@@ -51,8 +51,8 @@ class DbService {
 
   // Initialize and connect to DB
   async connect(): Promise<boolean> {
-    console.log('MONGODB_URI', process.env.MONGODB_URI);
-    const mongoUri = "mongodb+srv://kalathiyaparth:5RSiNuhbMI7tfgt8@cluster0.rzlil0f.mongodb.net/";
+    const mongoUri = process.env.MONGODB_URI?.trim();
+   console.log('mongoUri', mongoUri);
     if (mongoUri) {
       try {
         console.log('Attempting to connect to MongoDB...');
