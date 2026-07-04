@@ -39,11 +39,30 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Lukee Jewels is shining at http://localhost:${PORT}`);
+  });
+
+  // Handle server errors
+  server.on('error', (err) => {
+    console.error('[server] Error:', err);
+    process.exit(1);
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[unhandledRejection]', reason);
+  });
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (err) => {
+    console.error('[uncaughtException]', err);
+    process.exit(1);
   });
 }
 
 startServer().catch(err => {
   console.error('Fatal error launching server:', err);
+  process.exit(1);
 });
+
