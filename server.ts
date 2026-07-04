@@ -1,11 +1,9 @@
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { dbService } from './src/db/dbService.js';
 import apiRouter from './src/routes/api.js';
-
-dotenv.config();
 
 const isProduction =
   process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT);
