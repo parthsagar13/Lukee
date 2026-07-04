@@ -5,6 +5,16 @@ import { createServer as createViteServer } from 'vite';
 import { dbService } from './src/db/dbService.js';
 import apiRouter from './src/routes/api.js';
 
+// Register global error handlers FIRST
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[unhandledRejection]', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  process.exit(1);
+});
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -44,7 +54,13 @@ async function startServer() {
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       console.log('[server] Serving index.html for route:', req.path);
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error('[server] Error sending index.html:', err);
+          res.status(500).send('Internal Server Error');
+        }
+      });
     });
   }
   console.log('[server] Static file serving configured');
@@ -62,17 +78,6 @@ async function startServer() {
 
   server.on('clientError', (err, socket) => {
     console.error('[server] Client error:', err);
-  });
-
-  // Handle unhandled promise rejections
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('[unhandledRejection]', reason);
-  });
-
-  // Handle uncaught exceptions
-  process.on('uncaughtException', (err) => {
-    console.error('[uncaughtException]', err);
-    process.exit(1);
   });
 
   console.log('[server] All error handlers registered');
