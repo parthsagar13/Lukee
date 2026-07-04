@@ -1,0 +1,6 @@
+{
+  "name": "Lukee Jewels",
+  "description": "Lukee Jewels is a premium luxury ecommerce platform offering exquisite rings, necklaces, bracelets, and earrings with an immersive shopping experience and a dedicated administrative catalog panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
