@@ -52,22 +52,22 @@ class DbService {
   // Initialize and connect to DB
   async connect(): Promise<boolean> {
     const mongoUri = process.env.MONGODB_URI?.trim();
-   console.log('mongoUri', mongoUri);
     if (mongoUri) {
       try {
-        console.log('Attempting to connect to MongoDB...');
+        console.log('[dbService] Attempting to connect to MongoDB...');
         await mongoose.connect(mongoUri, {
           serverSelectionTimeoutMS: 5000,
         });
         this.isMongoConnected = true;
-        console.log('Successfully connected to MongoDB Atlas!');
+        console.log('[dbService] Successfully connected to MongoDB Atlas!');
         return true;
       } catch (err) {
-        console.error('MongoDB Atlas connection failed. Falling back to local persistent JSON DB.', err);
+        console.error('[dbService] MongoDB Atlas connection failed — falling back to local JSON DB.');
+        console.error('[dbService] Connection error details:', err instanceof Error ? err.message : err);
         this.isMongoConnected = false;
       }
     } else {
-      console.log('No MONGODB_URI found. Utilizing local persistent JSON DB.');
+      console.log('[dbService] MONGODB_URI is not set — using local persistent JSON DB.');
       this.isMongoConnected = false;
     }
     this.ensureLocalDir();
