@@ -46,54 +46,57 @@ export const Header: React.FC = () => {
       {/* 2. Main Navigation Bar */}
       <header id="main-header" className="sticky top-0 z-40 bg-[#FDFCFB]/95 backdrop-blur-md border-b border-gold-200 luxury-shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-20 gap-4">
             
-            {/* Mobile Hamburger Menu Toggle */}
-            <div className="flex md:hidden">
-              <button
-                id="mobile-menu-btn"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-[#1A1A1A] hover:text-gold-500 transition-colors p-2"
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-
-            {/* Left Nav (Desktop) */}
-            <nav id="desktop-nav" className="hidden md:flex space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`text-xs tracking-widest uppercase transition-all duration-300 relative py-2 ${
-                    isActive(link.path)
-                      ? 'text-gold-500 font-bold'
-                      : 'text-gray-600 hover:text-gold-500'
-                  }`}
+            {/* Left: Brand + Nav */}
+            <div className="flex items-center gap-4 md:gap-10 min-w-0">
+              {/* Mobile Hamburger Menu Toggle */}
+              <div className="flex md:hidden flex-shrink-0">
+                <button
+                  id="mobile-menu-btn"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="text-[#1A1A1A] hover:text-gold-500 transition-colors p-2"
+                  aria-label="Toggle menu"
                 >
-                  {link.label}
-                  {isActive(link.path) && (
-                    <span className="absolute bottom-0 left-0 w-full h-[1px] bg-gold-500"></span>
-                  )}
-                </Link>
-              ))}
-            </nav>
+                  {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
 
-            {/* Centered Brand Identity */}
-            <div className="flex-shrink-0 text-center">
-              <Link to="/" className="flex flex-col items-center select-none group">
-                <span className="font-serif text-2xl sm:text-3xl tracking-[0.25em] font-light text-[#1A1A1A] group-hover:text-gold-500 transition-colors duration-300">
-                  LUKEE
-                </span>
-                <span className="font-sans text-[0.65rem] tracking-[0.55em] text-gold-500 uppercase font-light -mt-1">
-                  JEWELS
-                </span>
-              </Link>
+              {/* Brand Identity (left-aligned) */}
+              <div className="flex-shrink-0">
+                <Link to="/" className="flex flex-col items-start select-none group">
+                  <span className="font-serif text-2xl sm:text-3xl tracking-[0.25em] font-light text-[#1A1A1A] group-hover:text-gold-500 transition-colors duration-300">
+                    LUKEE
+                  </span>
+                  <span className="font-sans text-[0.65rem] tracking-[0.55em] text-gold-500 uppercase font-light -mt-1">
+                    JEWELS
+                  </span>
+                </Link>
+              </div>
+
+              {/* Desktop Nav */}
+              <nav id="desktop-nav" className="hidden md:flex space-x-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`text-xs tracking-widest uppercase transition-all duration-300 relative py-2 ${
+                      isActive(link.path)
+                        ? 'text-gold-500 font-bold'
+                        : 'text-gray-600 hover:text-gold-500'
+                    }`}
+                  >
+                    {link.label}
+                    {isActive(link.path) && (
+                      <span className="absolute bottom-0 left-0 w-full h-[1px] bg-gold-500"></span>
+                    )}
+                  </Link>
+                ))}
+              </nav>
             </div>
 
             {/* Right Action Icons */}
-            <div id="nav-actions" className="flex items-center space-x-2 sm:space-x-4">
+            <div id="nav-actions" className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
               {/* Search Toggle */}
               <button
                 id="search-toggle-btn"

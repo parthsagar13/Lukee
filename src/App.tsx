@@ -41,9 +41,9 @@ const ClientLayout: React.FC = () => {
 
 // 2. Protected Route Guard (Verifies JWT validation before rendering administrative panes)
 const ProtectedRoute: React.FC = () => {
-  const { isAuthenticated, loading } = useAdmin();
+  const { isAuthenticated, isLoading } = useAdmin();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
         <div className="text-center space-y-3">

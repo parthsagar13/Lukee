@@ -6,15 +6,19 @@ import { dbService } from './src/db/dbService.js';
 import apiRouter from './src/routes/api.js';
 
 const isProduction =
-  process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT);
+  process.env.NODE_ENV === 'production' ||
+  Boolean(process.env.RAILWAY_ENVIRONMENT) ||
+  Boolean(process.env.RENDER) ||
+  Boolean(process.env.VERCEL);
 
-async function startServer() {
+/** Vercel runs Express as a serverless function (no app.listen). */
+const isServerless = Boolean(process.env.VERCEL);
+
+function createApp() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 4000;
 
   console.log('[server] Initializing Express app...');
 
-  // 1. Parse JSON body and support CORS
   app.use(express.json());
   app.use(cors({
     origin: '*',
@@ -22,26 +26,15 @@ async function startServer() {
   }));
   console.log('[server] Middleware configured');
 
-  // Health check for Railway / load balancers (respond before DB is ready)
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
   });
 
-  // 2. API Router
   app.use('/api', apiRouter);
   console.log('[server] API routes configured');
 
-  // 3. Vite middleware or static serving
-  if (!isProduction) {
-    console.log('[server] Starting development server with Vite middleware...');
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    console.log('[server] Starting production server with static bundle serving...');
+  if (isProduction) {
+    console.log('[server] Serving production static files from dist/...');
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath, { index: false }));
     app.get('*', (req, res, next) => {
@@ -50,35 +43,55 @@ async function startServer() {
         if (err) next(err);
       });
     });
+    console.log('[server] Static file serving configured');
   }
-  console.log('[server] Static file serving configured');
 
-  // 4. Connect to database in background so the server starts quickly
   dbService.connect().catch((err) => {
     console.error('[server] Database connection error:', err);
   });
+
+  return app;
+}
+
+async function attachViteDev(app: express.Express) {
+  console.log('[server] Starting development server with Vite middleware...');
+  const { createServer: createViteServer } = await import('vite');
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'spa',
+  });
+  app.use(vite.middlewares);
+  console.log('[server] Vite middleware configured');
+}
+
+const app = createApp();
+
+async function startServer() {
+  const PORT = Number(process.env.PORT) || 4000;
+
+  if (!isProduction) {
+    await attachViteDev(app);
+  }
 
   console.log('[server] Starting HTTP server on port', PORT);
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`[server] Lukee Jewels is shining on port ${PORT} (${isProduction ? 'production' : 'development'})`);
   });
 
-  // Handle server errors
   server.on('error', (err) => {
     console.error('[server] Server error:', err);
     process.exit(1);
   });
 
-  server.on('clientError', (err, socket) => {
-    console.error('[server] Client error:', err);
+  server.on('clientError', (_err, socket) => {
+    console.error('[server] Client error');
+    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
   });
 
-  // Handle unhandled promise rejections
-  process.on('unhandledRejection', (reason, promise) => {
+  process.on('unhandledRejection', (reason) => {
     console.error('[unhandledRejection]', reason);
   });
 
-  // Handle uncaught exceptions
   process.on('uncaughtException', (err) => {
     console.error('[uncaughtException]', err);
     process.exit(1);
@@ -87,8 +100,12 @@ async function startServer() {
   console.log('[server] All error handlers registered');
 }
 
-console.log('[server] Starting application...');
-startServer().catch(err => {
-  console.error('[server] Fatal error launching server:', err);
-  process.exit(1);
-});
+if (!isServerless) {
+  console.log('[server] Starting application...');
+  startServer().catch((err) => {
+    console.error('[server] Fatal error launching server:', err);
+    process.exit(1);
+  });
+}
+
+export default app;
