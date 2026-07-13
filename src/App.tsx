@@ -16,6 +16,9 @@ import { Contact } from './pages/Contact.js';
 import { PrivacyPolicy } from './pages/PrivacyPolicy.js';
 import { Terms } from './pages/Terms.js';
 import { NotFound } from './pages/NotFound.js';
+import { Checkout } from './pages/Checkout.js';
+import { OrderSuccess } from './pages/OrderSuccess.js';
+import { OrderDetails } from './pages/OrderDetails.js';
 
 // Admin / Back-office Pages
 import { AdminLogin } from './pages/admin/AdminLogin.js';
@@ -23,6 +26,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard.js';
 import { AdminCategories } from './pages/admin/AdminCategories.js';
 import { AdminProducts } from './pages/admin/AdminProducts.js';
 import { AdminSettings } from './pages/admin/AdminSettings.js';
+import { AdminOrders } from './pages/admin/AdminOrders.js';
 import { AdminLayout } from './layouts/AdminLayout.js';
 
 // 1. Client Layout (Public Storefront wrapper with header, footer and sliding drawers)
@@ -74,6 +78,9 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order-success/:id" element={<OrderSuccess />} />
+              <Route path="/orders/:id" element={<OrderDetails />} />
               <Route path="/404" element={<NotFound />} />
             </Route>
 
@@ -86,6 +93,7 @@ export default function App() {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/categories" element={<AdminCategories />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
               </Route>
             </Route>

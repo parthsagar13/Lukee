@@ -3,8 +3,11 @@ import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbService } from '../db/dbService.js';
 import { authMiddleware, AuthenticatedRequest, JWT_SECRET } from '../middleware/auth.js';
+import paymentsRouter from './payments.js';
 
 const router = Router();
+
+router.use(paymentsRouter);
 
 // Helper to create slugs
 function slugify(text: string): string {

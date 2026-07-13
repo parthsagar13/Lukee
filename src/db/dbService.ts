@@ -1,8 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
-import { MongooseAdmin, MongooseCategory, MongooseProduct } from './mongooseModels.js';
-import { Admin, Category, Product, DashboardStats } from '../types.js';
+import {
+  MongooseAdmin,
+  MongooseCategory,
+  MongooseProduct,
+  MongooseOrder,
+  MongoosePayment,
+  MongoosePurchase,
+} from './mongooseModels.js';
+import {
+  Admin,
+  Category,
+  Product,
+  DashboardStats,
+  Order,
+  Payment,
+  Purchase,
+  ShippingAddress,
+  OrderItem,
+} from '../types.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -11,11 +28,21 @@ interface LocalDbSchema {
   admins: Admin[];
   categories: Category[];
   products: Product[];
+  orders: Order[];
+  payments: Payment[];
+  purchases: Purchase[];
 }
 
 class DbService {
   private isMongoConnected = false;
-  private localDb: LocalDbSchema = { admins: [], categories: [], products: [] };
+  private localDb: LocalDbSchema = {
+    admins: [],
+    categories: [],
+    products: [],
+    orders: [],
+    payments: [],
+    purchases: [],
+  };
 
   constructor() {
     this.ensureLocalDir();
@@ -27,7 +54,15 @@ class DbService {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     if (!fs.existsSync(DB_FILE)) {
-      fs.writeFileSync(DB_FILE, JSON.stringify({ admins: [], categories: [], products: [] }, null, 2), 'utf8');
+      fs.writeFileSync(
+        DB_FILE,
+        JSON.stringify(
+          { admins: [], categories: [], products: [], orders: [], payments: [], purchases: [] },
+          null,
+          2
+        ),
+        'utf8'
+      );
     }
     this.readLocalDb();
   }
@@ -35,9 +70,24 @@ class DbService {
   private readLocalDb() {
     try {
       const data = fs.readFileSync(DB_FILE, 'utf8');
-      this.localDb = JSON.parse(data);
+      const parsed = JSON.parse(data);
+      this.localDb = {
+        admins: parsed.admins || [],
+        categories: parsed.categories || [],
+        products: parsed.products || [],
+        orders: parsed.orders || [],
+        payments: parsed.payments || [],
+        purchases: parsed.purchases || [],
+      };
     } catch (e) {
-      this.localDb = { admins: [], categories: [], products: [] };
+      this.localDb = {
+        admins: [],
+        categories: [],
+        products: [],
+        orders: [],
+        payments: [],
+        purchases: [],
+      };
     }
   }
 
@@ -768,6 +818,423 @@ class DbService {
         materialStats
       };
     }
+  }
+
+  // ==========================================
+  // ORDERS / PAYMENTS / PURCHASES
+  // ==========================================
+
+  private mapOrder(doc: any): Order {
+    return {
+      _id: doc._id?.toString?.() ?? String(doc._id),
+      invoiceNumber: doc.invoiceNumber,
+      items: (doc.items || []).map((i: any) => ({
+        productId: i.productId,
+        name: i.name,
+        sku: i.sku,
+        image: i.image,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+      shippingAddress: doc.shippingAddress,
+      subtotal: doc.subtotal,
+      discount: doc.discount ?? 0,
+      tax: doc.tax ?? 0,
+      shipping: doc.shipping ?? 0,
+      total: doc.total,
+      currency: doc.currency || 'INR',
+      paymentStatus: doc.paymentStatus,
+      orderStatus: doc.orderStatus,
+      razorpayOrderId: doc.razorpayOrderId,
+      notes: doc.notes instanceof Map ? Object.fromEntries(doc.notes) : doc.notes,
+      createdAt: doc.createdAt?.toISOString?.() ?? doc.createdAt,
+      updatedAt: doc.updatedAt?.toISOString?.() ?? doc.updatedAt,
+    };
+  }
+
+  private mapPayment(doc: any): Payment {
+    return {
+      _id: doc._id?.toString?.() ?? String(doc._id),
+      orderId: doc.orderId,
+      razorpayOrderId: doc.razorpayOrderId,
+      razorpayPaymentId: doc.razorpayPaymentId,
+      razorpaySignature: doc.razorpaySignature,
+      amount: doc.amount,
+      currency: doc.currency || 'INR',
+      status: doc.status,
+      method: doc.method,
+      email: doc.email,
+      contact: doc.contact,
+      receipt: doc.receipt,
+      notes: doc.notes instanceof Map ? Object.fromEntries(doc.notes) : doc.notes,
+      refundStatus: doc.refundStatus || 'none',
+      createdAt: doc.createdAt?.toISOString?.() ?? doc.createdAt,
+      updatedAt: doc.updatedAt?.toISOString?.() ?? doc.updatedAt,
+    };
+  }
+
+  async createPendingOrder(data: {
+    invoiceNumber: string;
+    items: OrderItem[];
+    shippingAddress: ShippingAddress;
+    subtotal: number;
+    discount: number;
+    tax: number;
+    shipping: number;
+    total: number;
+    currency?: string;
+    notes?: Record<string, string>;
+  }): Promise<Order> {
+    if (this.isMongoConnected) {
+      const doc = await MongooseOrder.create({
+        ...data,
+        currency: data.currency || 'INR',
+        paymentStatus: 'pending',
+        orderStatus: 'pending',
+      });
+      return this.mapOrder(doc);
+    }
+
+    this.readLocalDb();
+    const order: Order = {
+      _id: `ord_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      invoiceNumber: data.invoiceNumber,
+      items: data.items,
+      shippingAddress: data.shippingAddress,
+      subtotal: data.subtotal,
+      discount: data.discount,
+      tax: data.tax,
+      shipping: data.shipping,
+      total: data.total,
+      currency: data.currency || 'INR',
+      paymentStatus: 'pending',
+      orderStatus: 'pending',
+      notes: data.notes,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.localDb.orders.push(order);
+    this.saveLocalDb();
+    return order;
+  }
+
+  async attachRazorpayOrderId(orderId: string, razorpayOrderId: string): Promise<Order | null> {
+    if (this.isMongoConnected) {
+      const doc = await MongooseOrder.findByIdAndUpdate(
+        orderId,
+        { razorpayOrderId },
+        { new: true }
+      );
+      return doc ? this.mapOrder(doc) : null;
+    }
+
+    this.readLocalDb();
+    const idx = this.localDb.orders.findIndex((o) => o._id === orderId);
+    if (idx < 0) return null;
+    this.localDb.orders[idx].razorpayOrderId = razorpayOrderId;
+    this.localDb.orders[idx].updatedAt = new Date().toISOString();
+    this.saveLocalDb();
+    return this.localDb.orders[idx];
+  }
+
+  async createPendingPayment(data: {
+    orderId: string;
+    razorpayOrderId: string;
+    amount: number;
+    currency?: string;
+    email?: string;
+    contact?: string;
+    receipt?: string;
+    notes?: Record<string, string>;
+  }): Promise<Payment> {
+    if (this.isMongoConnected) {
+      const doc = await MongoosePayment.create({
+        ...data,
+        currency: data.currency || 'INR',
+        status: 'pending',
+        refundStatus: 'none',
+      });
+      return this.mapPayment(doc);
+    }
+
+    this.readLocalDb();
+    const payment: Payment = {
+      _id: `pay_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      orderId: data.orderId,
+      razorpayOrderId: data.razorpayOrderId,
+      amount: data.amount,
+      currency: data.currency || 'INR',
+      status: 'pending',
+      email: data.email,
+      contact: data.contact,
+      receipt: data.receipt,
+      notes: data.notes,
+      refundStatus: 'none',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.localDb.payments.push(payment);
+    this.saveLocalDb();
+    return payment;
+  }
+
+  async getOrderById(id: string): Promise<Order | null> {
+    if (this.isMongoConnected) {
+      const doc = await MongooseOrder.findById(id).lean();
+      return doc ? this.mapOrder(doc) : null;
+    }
+    this.readLocalDb();
+    return this.localDb.orders.find((o) => o._id === id) || null;
+  }
+
+  async getOrderByRazorpayOrderId(razorpayOrderId: string): Promise<Order | null> {
+    if (this.isMongoConnected) {
+      const doc = await MongooseOrder.findOne({ razorpayOrderId }).lean();
+      return doc ? this.mapOrder(doc) : null;
+    }
+    this.readLocalDb();
+    return this.localDb.orders.find((o) => o.razorpayOrderId === razorpayOrderId) || null;
+  }
+
+  async getOrders(filters?: { email?: string; paymentStatus?: string }): Promise<Order[]> {
+    if (this.isMongoConnected) {
+      const q: Record<string, unknown> = {};
+      if (filters?.email) q['shippingAddress.email'] = filters.email.toLowerCase();
+      if (filters?.paymentStatus) q.paymentStatus = filters.paymentStatus;
+      const docs = await MongooseOrder.find(q).sort({ createdAt: -1 }).lean();
+      return docs.map((d) => this.mapOrder(d));
+    }
+
+    this.readLocalDb();
+    let list = [...this.localDb.orders];
+    if (filters?.email) {
+      const email = filters.email.toLowerCase();
+      list = list.filter((o) => o.shippingAddress.email.toLowerCase() === email);
+    }
+    if (filters?.paymentStatus) {
+      list = list.filter((o) => o.paymentStatus === filters.paymentStatus);
+    }
+    return list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  }
+
+  async getPaymentById(id: string): Promise<Payment | null> {
+    if (this.isMongoConnected) {
+      const doc = await MongoosePayment.findById(id).lean();
+      return doc ? this.mapPayment(doc) : null;
+    }
+    this.readLocalDb();
+    return this.localDb.payments.find((p) => p._id === id) || null;
+  }
+
+  async getPaymentByRazorpayOrderId(razorpayOrderId: string): Promise<Payment | null> {
+    if (this.isMongoConnected) {
+      const doc = await MongoosePayment.findOne({ razorpayOrderId }).lean();
+      return doc ? this.mapPayment(doc) : null;
+    }
+    this.readLocalDb();
+    return this.localDb.payments.find((p) => p.razorpayOrderId === razorpayOrderId) || null;
+  }
+
+  async getPaymentByRazorpayPaymentId(razorpayPaymentId: string): Promise<Payment | null> {
+    if (this.isMongoConnected) {
+      const doc = await MongoosePayment.findOne({ razorpayPaymentId }).lean();
+      return doc ? this.mapPayment(doc) : null;
+    }
+    this.readLocalDb();
+    return this.localDb.payments.find((p) => p.razorpayPaymentId === razorpayPaymentId) || null;
+  }
+
+  async getPayments(): Promise<Payment[]> {
+    if (this.isMongoConnected) {
+      const docs = await MongoosePayment.find().sort({ createdAt: -1 }).lean();
+      return docs.map((d) => this.mapPayment(d));
+    }
+    this.readLocalDb();
+    return [...this.localDb.payments].sort((a, b) =>
+      (b.createdAt || '').localeCompare(a.createdAt || '')
+    );
+  }
+
+  async markPaymentFailed(razorpayOrderId: string): Promise<void> {
+    if (this.isMongoConnected) {
+      await MongoosePayment.findOneAndUpdate(
+        { razorpayOrderId, status: 'pending' },
+        { status: 'failed' }
+      );
+      await MongooseOrder.findOneAndUpdate(
+        { razorpayOrderId, paymentStatus: 'pending' },
+        { paymentStatus: 'failed' }
+      );
+      return;
+    }
+
+    this.readLocalDb();
+    const pIdx = this.localDb.payments.findIndex(
+      (p) => p.razorpayOrderId === razorpayOrderId && p.status === 'pending'
+    );
+    if (pIdx >= 0) {
+      this.localDb.payments[pIdx].status = 'failed';
+      this.localDb.payments[pIdx].updatedAt = new Date().toISOString();
+    }
+    const oIdx = this.localDb.orders.findIndex(
+      (o) => o.razorpayOrderId === razorpayOrderId && o.paymentStatus === 'pending'
+    );
+    if (oIdx >= 0) {
+      this.localDb.orders[oIdx].paymentStatus = 'failed';
+      this.localDb.orders[oIdx].updatedAt = new Date().toISOString();
+    }
+    this.saveLocalDb();
+  }
+
+  /**
+   * Finalize paid order: verify idempotency, decrement stock, create purchases.
+   * Uses a Mongo session transaction when available.
+   */
+  async finalizePaidOrder(params: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    method?: string;
+  }): Promise<{ order: Order; payment: Payment; alreadyProcessed: boolean }> {
+    const existingByPaymentId = await this.getPaymentByRazorpayPaymentId(params.razorpayPaymentId);
+    if (existingByPaymentId?.status === 'paid') {
+      const order = await this.getOrderById(existingByPaymentId.orderId);
+      if (!order) throw new Error('Order missing for completed payment.');
+      return { order, payment: existingByPaymentId, alreadyProcessed: true };
+    }
+
+    const payment = await this.getPaymentByRazorpayOrderId(params.razorpayOrderId);
+    if (!payment) throw new Error('Payment record not found.');
+
+    if (payment.status === 'paid') {
+      const order = await this.getOrderById(payment.orderId);
+      if (!order) throw new Error('Order missing for completed payment.');
+      return { order, payment, alreadyProcessed: true };
+    }
+
+    const order = await this.getOrderById(payment.orderId);
+    if (!order) throw new Error('Order not found.');
+
+    if (this.isMongoConnected) {
+      const session = await mongoose.startSession();
+      try {
+        session.startTransaction();
+
+        for (const item of order.items) {
+          const updated = await MongooseProduct.findOneAndUpdate(
+            { _id: item.productId, stock: { $gte: item.quantity } },
+            { $inc: { stock: -item.quantity } },
+            { new: true, session }
+          );
+          if (!updated) {
+            throw new Error(`Insufficient stock for product ${item.name}`);
+          }
+        }
+
+        const purchases = order.items.map((item) => ({
+          orderId: order._id,
+          productId: item.productId,
+          price: item.price,
+          quantity: item.quantity,
+          licenseType: 'standard',
+          downloadLimit: 0,
+          downloadCount: 0,
+          status: 'active' as const,
+          email: order.shippingAddress.email,
+        }));
+        await MongoosePurchase.insertMany(purchases, { session });
+
+        const paidPayment = await MongoosePayment.findByIdAndUpdate(
+          payment._id,
+          {
+            status: 'paid',
+            razorpayPaymentId: params.razorpayPaymentId,
+            razorpaySignature: params.razorpaySignature,
+            method: params.method || 'razorpay',
+          },
+          { new: true, session }
+        );
+
+        const paidOrder = await MongooseOrder.findByIdAndUpdate(
+          order._id,
+          {
+            paymentStatus: 'paid',
+            orderStatus: 'confirmed',
+          },
+          { new: true, session }
+        );
+
+        await session.commitTransaction();
+
+        return {
+          order: this.mapOrder(paidOrder!),
+          payment: this.mapPayment(paidPayment!),
+          alreadyProcessed: false,
+        };
+      } catch (err) {
+        await session.abortTransaction();
+        throw err;
+      } finally {
+        session.endSession();
+      }
+    }
+
+    // Local JSON fallback (no multi-doc transactions)
+    this.readLocalDb();
+
+    for (const item of order.items) {
+      const pIdx = this.localDb.products.findIndex((p) => p._id === item.productId);
+      if (pIdx < 0 || this.localDb.products[pIdx].stock < item.quantity) {
+        throw new Error(`Insufficient stock for product ${item.name}`);
+      }
+    }
+
+    for (const item of order.items) {
+      const pIdx = this.localDb.products.findIndex((p) => p._id === item.productId);
+      this.localDb.products[pIdx].stock -= item.quantity;
+    }
+
+    const purchases: Purchase[] = order.items.map((item) => ({
+      _id: `pur_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      orderId: order._id,
+      productId: item.productId,
+      price: item.price,
+      quantity: item.quantity,
+      licenseType: 'standard',
+      downloadLimit: 0,
+      downloadCount: 0,
+      status: 'active',
+      email: order.shippingAddress.email,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+    this.localDb.purchases.push(...purchases);
+
+    const payIdx = this.localDb.payments.findIndex((p) => p._id === payment._id);
+    this.localDb.payments[payIdx] = {
+      ...this.localDb.payments[payIdx],
+      status: 'paid',
+      razorpayPaymentId: params.razorpayPaymentId,
+      razorpaySignature: params.razorpaySignature,
+      method: params.method || 'razorpay',
+      updatedAt: new Date().toISOString(),
+    };
+
+    const ordIdx = this.localDb.orders.findIndex((o) => o._id === order._id);
+    this.localDb.orders[ordIdx] = {
+      ...this.localDb.orders[ordIdx],
+      paymentStatus: 'paid',
+      orderStatus: 'confirmed',
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.saveLocalDb();
+
+    return {
+      order: this.localDb.orders[ordIdx],
+      payment: this.localDb.payments[payIdx],
+      alreadyProcessed: false,
+    };
   }
 }
 
