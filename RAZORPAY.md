@@ -71,5 +71,7 @@ For production reliability, add a Razorpay webhook endpoint that verifies `X-Raz
 ## Deployment notes
 
 - Set Razorpay env vars on your host (Render / Vercel / etc.).
-- If frontend and backend are on different origins, configure CORS and point fetch URLs to the API host (this repo currently uses same-origin `/api`).
+- On **Vercel**, API runs as a serverless function (`api/index.ts`). `vercel.json` rewrites `/api/*` to that function and serves the Vite `dist/` frontend. Redeploy after pulling these changes.
+- Set `MONGODB_URI`, `JWT_SECRET`, and Razorpay keys in the Vercel project Environment Variables (Production + Preview).
+- If frontend and backend are on different origins, configure CORS and point fetch URLs to the API host (this repo uses same-origin `/api`).
 - Product catalog prices are treated as **INR** for Razorpay (paise).
