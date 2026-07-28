@@ -22,8 +22,13 @@ export const Footer: React.FC = () => {
           {/* Brand & Newsletter Column */}
           <div className="space-y-6">
             <div>
-              <span className="font-serif text-2xl tracking-[0.2em] text-[#1A1A1A] block">LUKEE</span>
-              <span className="font-sans text-[0.6rem] tracking-[0.5em] text-gold-500 block -mt-1 uppercase">JEWELS</span>
+              <Link to="/" className="inline-block overflow-visible" aria-label="Lukee Jewels Home">
+                <img
+                  src="/lukee-logo.png"
+                  alt="Lukee Jewels"
+                  className="h-20 w-auto max-w-[180px] object-contain object-left"
+                />
+              </Link>
             </div>
             <p className="text-xs text-gray-500 leading-relaxed font-light">
               Designing exclusive, masterfully crafted jewelry for discerning clients worldwide. Indulge in certified diamonds, fine metals, and timeless artistry.

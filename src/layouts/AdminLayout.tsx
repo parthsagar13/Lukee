@@ -28,7 +28,7 @@ export const AdminLayout: React.FC = () => {
       {/* Mobile Sticky top navigation */}
       <header className="md:hidden bg-[#1c1a17] text-white py-4 px-6 flex justify-between items-center border-b border-gold-500/20 sticky top-0 z-40">
         <div className="flex items-center space-x-2">
-          <span className="font-serif font-light text-lg tracking-wider text-gold-300">Lukee Jewels</span>
+          <img src="/lukee-logo.png" alt="Lukee Jewels" className="h-9 w-auto object-contain" />
           <span className="text-[0.55rem] tracking-widest bg-gold-500/20 text-gold-200 border border-gold-400/30 px-1.5 py-0.5 rounded-sm font-bold uppercase">Atelier</span>
         </div>
         <button
@@ -49,9 +49,13 @@ export const AdminLayout: React.FC = () => {
         <div className="space-y-8 p-6">
           {/* Logo */}
           <div className="hidden md:block border-b border-gold-500/10 pb-6">
-            <span className="text-[0.65rem] tracking-[0.4em] uppercase text-gold-500 block font-light">Management Shell</span>
-            <Link to="/admin" className="font-serif text-2xl font-light tracking-widest text-white mt-1 block">
-              Lukee Jewels
+            <span className="text-[0.65rem] tracking-[0.4em] uppercase text-gold-500 block font-light mb-3">Management Shell</span>
+            <Link to="/admin" className="block" aria-label="Lukee Jewels Admin">
+              <img
+                src="/lukee-logo.png"
+                alt="Lukee Jewels"
+                className="h-16 w-auto max-w-[150px] object-contain"
+              />
             </Link>
           </div>
 

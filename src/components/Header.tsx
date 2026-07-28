@@ -44,12 +44,12 @@ export const Header: React.FC = () => {
       </div>
 
       {/* 2. Main Navigation Bar */}
-      <header id="main-header" className="sticky top-0 z-40 bg-[#FDFCFB]/95 backdrop-blur-md border-b border-gold-200 luxury-shadow">
+      <header id="main-header" className="sticky top-0 z-40 bg-[#FDFCFB]/95 backdrop-blur-md border-b border-gold-200 luxury-shadow overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20 gap-4">
+          <div className="flex justify-between items-center min-h-20 py-2 gap-4 overflow-visible">
             
             {/* Left: Brand + Nav */}
-            <div className="flex items-center gap-4 md:gap-10 min-w-0">
+            <div className="flex items-center gap-4 md:gap-10 min-w-0 overflow-visible">
               {/* Mobile Hamburger Menu Toggle */}
               <div className="flex md:hidden flex-shrink-0">
                 <button
@@ -63,14 +63,13 @@ export const Header: React.FC = () => {
               </div>
 
               {/* Brand Identity (left-aligned) */}
-              <div className="flex-shrink-0">
-                <Link to="/" className="flex flex-col items-start select-none group">
-                  <span className="font-serif text-2xl sm:text-3xl tracking-[0.25em] font-light text-[#1A1A1A] group-hover:text-gold-500 transition-colors duration-300">
-                    LUKEE
-                  </span>
-                  <span className="font-sans text-[0.65rem] tracking-[0.55em] text-gold-500 uppercase font-light -mt-1">
-                    JEWELS
-                  </span>
+              <div className="flex-shrink-0 overflow-visible">
+                <Link to="/" className="block select-none group overflow-visible" aria-label="Lukee Jewels Home">
+                  <img
+                    src="/lukee-logo.png"
+                    alt="Lukee Jewels"
+                    className="h-16 sm:h-[4.5rem] w-auto max-w-[140px] sm:max-w-[160px] object-contain object-left transition-opacity duration-300 group-hover:opacity-90"
+                  />
                 </Link>
               </div>
 

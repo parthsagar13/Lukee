@@ -71,8 +71,8 @@ export const OrderSuccess: React.FC = () => {
       <div id="invoice-print" className="border border-gold-200 bg-white p-6 md:p-8 space-y-6">
         <div className="flex flex-wrap justify-between gap-4 border-b border-gold-200 pb-4">
           <div>
-            <p className="font-serif text-xl tracking-widest">LUKEE JEWELS</p>
-            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400 mt-1">Tax Invoice / Receipt</p>
+            <img src="/lukee-logo.png" alt="Lukee Jewels" className="h-16 w-auto max-w-[140px] object-contain" />
+            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400 mt-2">Tax Invoice / Receipt</p>
           </div>
           <div className="text-right text-xs space-y-1 text-gray-600">
             <p>Invoice: <span className="font-mono">{order.invoiceNumber}</span></p>
