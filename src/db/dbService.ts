@@ -35,6 +35,7 @@ interface LocalDbSchema {
 
 class DbService {
   private isMongoConnected = false;
+  private connectPromise: Promise<boolean> | null = null;
   private localDb: LocalDbSchema = {
     admins: [],
     categories: [],
@@ -91,43 +92,100 @@ class DbService {
     }
   }
 
+  private isProductionRuntime(): boolean {
+    return (
+      process.env.NODE_ENV === 'production' ||
+      Boolean(process.env.VERCEL) ||
+      Boolean(process.env.RENDER) ||
+      Boolean(process.env.RAILWAY_ENVIRONMENT)
+    );
+  }
+
   private saveLocalDb() {
+    if (this.isProductionRuntime()) {
+      throw new Error('[dbService] Local JSON storage cannot be used in production.');
+    }
     try {
       fs.writeFileSync(DB_FILE, JSON.stringify(this.localDb, null, 2), 'utf8');
     } catch (e) {
       console.error('Error saving local database:', e);
+      throw e;
     }
   }
 
-  // Initialize and connect to DB
+  // Initialize and connect to DB (idempotent — safe to call on every request)
   async connect(): Promise<boolean> {
+    if (this.connectPromise) {
+      return this.connectPromise;
+    }
+    this.connectPromise = this.connectInternal();
+    return this.connectPromise;
+  }
+
+  /** Wait for DB before handling writes/reads. Throws in production if MongoDB is unavailable. */
+  async ensureConnected(): Promise<void> {
+    const connected = await this.connect();
+    if (this.isProductionRuntime() && !connected) {
+      throw new Error(
+        'Database unavailable in production. Set MONGODB_URI in your deployment environment (e.g. Vercel → Settings → Environment Variables).'
+      );
+    }
+  }
+
+  private async connectInternal(): Promise<boolean> {
+    if (mongoose.connection.readyState === 1) {
+      this.isMongoConnected = true;
+      return true;
+    }
+
     const mongoUri = process.env.MONGODB_URI?.trim();
-    if (mongoUri) {
-      try {
-        console.log('[dbService] Attempting to connect to MongoDB...');
-        await mongoose.connect(mongoUri, {
-          serverSelectionTimeoutMS: 5000,
-        });
-        this.isMongoConnected = true;
-        console.log('[dbService] Successfully connected to MongoDB Atlas!');
-        return true;
-      } catch (err) {
-        console.error('[dbService] MongoDB Atlas connection failed — falling back to local JSON DB.');
-        console.error('[dbService] Connection error details:', err instanceof Error ? err.message : err);
+    if (!mongoUri) {
+      if (this.isProductionRuntime()) {
+        console.error('[dbService] MONGODB_URI is not set — production requires MongoDB Atlas.');
         this.isMongoConnected = false;
+        return false;
       }
-    } else {
       console.log('[dbService] MONGODB_URI is not set — using local persistent JSON DB.');
       this.isMongoConnected = false;
+      this.ensureLocalDir();
+      return false;
     }
-    this.ensureLocalDir();
-    return false;
+
+    try {
+      console.log('[dbService] Attempting to connect to MongoDB...');
+      await mongoose.connect(mongoUri, {
+        serverSelectionTimeoutMS: 10000,
+        maxPoolSize: 10,
+      });
+      this.isMongoConnected = true;
+      console.log('[dbService] Successfully connected to MongoDB Atlas!');
+      return true;
+    } catch (err) {
+      console.error('[dbService] MongoDB Atlas connection failed.');
+      console.error('[dbService] Connection error details:', err instanceof Error ? err.message : err);
+      this.isMongoConnected = false;
+
+      if (this.isProductionRuntime()) {
+        return false;
+      }
+
+      console.warn('[dbService] Falling back to local JSON DB (development only).');
+      this.ensureLocalDir();
+      return false;
+    }
   }
 
-  getDbStatus(): { connected: boolean; engine: 'mongodb' | 'json' } {
+  getDbStatus(): {
+    connected: boolean;
+    engine: 'mongodb' | 'json';
+    mongooseReadyState: number;
+    production: boolean;
+  } {
     return {
       connected: this.isMongoConnected,
-      engine: this.isMongoConnected ? 'mongodb' : 'json'
+      engine: this.isMongoConnected ? 'mongodb' : 'json',
+      mongooseReadyState: mongoose.connection.readyState,
+      production: this.isProductionRuntime(),
     };
   }
 

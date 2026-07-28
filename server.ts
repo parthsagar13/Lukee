@@ -26,8 +26,30 @@ function createApp() {
   }));
   console.log('[server] Middleware configured');
 
-  app.get('/health', (_req, res) => {
-    res.status(200).json({ status: 'ok' });
+  app.get('/health', async (_req, res) => {
+    try {
+      await dbService.ensureConnected();
+      res.status(200).json({ status: 'ok', db: dbService.getDbStatus() });
+    } catch (err) {
+      res.status(503).json({
+        status: 'degraded',
+        db: dbService.getDbStatus(),
+        error: err instanceof Error ? err.message : 'Database unavailable',
+      });
+    }
+  });
+
+  app.use(async (_req, res, next) => {
+    try {
+      await dbService.ensureConnected();
+      next();
+    } catch (err) {
+      console.error('[server] Database not ready:', err);
+      res.status(503).json({
+        error: err instanceof Error ? err.message : 'Database unavailable.',
+        db: dbService.getDbStatus(),
+      });
+    }
   });
 
   app.use('/api', apiRouter);
@@ -45,10 +67,6 @@ function createApp() {
     });
     console.log('[server] Static file serving configured');
   }
-
-  dbService.connect().catch((err) => {
-    console.error('[server] Database connection error:', err);
-  });
 
   return app;
 }
@@ -72,6 +90,10 @@ async function startServer() {
   if (!isProduction) {
     await attachViteDev(app);
   }
+
+  await dbService.ensureConnected().catch((err) => {
+    console.error('[server] Database ensureConnected warning:', err);
+  });
 
   console.log('[server] Starting HTTP server on port', PORT);
   const server = app.listen(PORT, '0.0.0.0', () => {
