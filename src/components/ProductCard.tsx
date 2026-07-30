@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Eye, Heart } from 'lucide-react';
+import { ShoppingBag, Eye } from 'lucide-react';
 import { Product } from '../types.js';
 import { useCart } from '../contexts/CartContext.js';
 
@@ -11,101 +11,104 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
 
-  // Use first image as main, fallback if empty
-  const mainImage = product.images?.[0] || 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80';
+  const mainImage =
+    product.images?.[0] ||
+    'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80';
   const hoverImage = product.images?.[1] || mainImage;
-
-  const isOnSale = product.salePrice !== undefined && product.salePrice !== null && product.salePrice < product.price;
+  const isOnSale =
+    product.salePrice !== undefined &&
+    product.salePrice !== null &&
+    product.salePrice < product.price;
 
   return (
-    <div id={`product-${product._id}`} className="group relative flex flex-col bg-[#FDFCFB] overflow-hidden border border-gold-200 luxury-shadow transition-all duration-300 hover:shadow-lg">
-      {/* Image Container with Hover Overlay */}
-      <div className="relative aspect-[4/5] w-full bg-[#F9F6F2] overflow-hidden">
-        {/* Main Product Image */}
+    <div
+      id={`product-${product._id}`}
+      className="group relative flex flex-col bg-white overflow-hidden rounded-2xl border border-gold-200/80 luxury-shadow transition-all duration-500 hover:-translate-y-1 hover:luxury-shadow-lg"
+    >
+      <div className="relative aspect-[4/5] w-full bg-[#F3EEE6] overflow-hidden rounded-t-2xl">
         <img
           src={mainImage}
           alt={product.name}
           referrerPolicy="no-referrer"
-          className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 group-hover:opacity-0"
+        />
+        <img
+          src={hoverImage}
+          alt=""
+          aria-hidden
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-0 scale-105 transition-all duration-700 group-hover:opacity-100 group-hover:scale-100"
         />
 
-        {/* Floating Custom luxury Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {isOnSale && (
-            <span className="bg-gold-500 text-white font-sans text-[0.65rem] font-semibold tracking-widest px-2.5 py-1 uppercase rounded-sm">
+            <span className="bg-gold-500 text-[#1A1A1A] font-sans text-[0.65rem] font-semibold tracking-[0.18em] px-2.5 py-1 uppercase">
               Sale
             </span>
           )}
           {product.bestSeller && (
-            <span className="bg-[#1A1A1A] text-white font-sans text-[0.65rem] font-semibold tracking-widest px-2.5 py-1 uppercase rounded-sm">
+            <span className="bg-[#1A1A1A] text-white font-sans text-[0.65rem] font-semibold tracking-[0.18em] px-2.5 py-1 uppercase">
               Best Seller
             </span>
           )}
           {product.newArrival && (
-            <span className="bg-gold-100 text-gold-700 font-sans text-[0.65rem] font-semibold tracking-widest px-2.5 py-1 uppercase rounded-sm border border-gold-200">
+            <span className="bg-white/95 text-gold-700 font-sans text-[0.65rem] font-semibold tracking-[0.18em] px-2.5 py-1 uppercase border border-gold-200">
               New
             </span>
           )}
         </div>
 
-        {/* Hover Quick Action Buttons */}
-        <div className="absolute inset-0 bg-[#1A1A1A]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+        <div className="absolute inset-0 bg-[#1A1A1A]/0 group-hover:bg-[#1A1A1A]/15 transition-colors duration-300 flex items-center justify-center gap-3">
           <Link
             to={`/product/${product.slug}`}
-            className="p-3 bg-[#FDFCFB] text-gray-800 rounded-full shadow-md hover:bg-gold-100 hover:text-gold-500 transition-all duration-200 transform translate-y-4 group-hover:translate-y-0"
+            className="p-3 bg-white text-[#1A1A1A] shadow-md opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-gold-500 hover:text-white"
             title="View Details"
           >
             <Eye size={18} />
           </Link>
           {product.stock > 0 ? (
             <button
+              type="button"
               onClick={() => addToCart(product, 1)}
-              className="p-3 bg-[#FDFCFB] text-gray-800 rounded-full shadow-md hover:bg-gold-500 hover:text-white transition-all duration-200 transform translate-y-4 group-hover:translate-y-0 delay-75"
+              className="p-3 bg-white text-[#1A1A1A] shadow-md opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75 hover:bg-gold-500 hover:text-white"
               title="Add to Bag"
             >
               <ShoppingBag size={18} />
             </button>
           ) : (
-            <span className="bg-[#1A1A1A]/90 text-white text-[0.6rem] uppercase tracking-widest px-4 py-2 font-semibold font-sans rounded-sm">
+            <span className="bg-[#1A1A1A]/90 text-white text-[0.6rem] uppercase tracking-[0.18em] px-4 py-2 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               Out of Stock
             </span>
           )}
         </div>
       </div>
 
-      {/* Product Information */}
-      <div className="p-5 flex flex-col flex-grow text-center bg-[#FDFCFB]">
-        {/* Material & Purity tag */}
-        <span className="text-[0.65rem] font-sans tracking-[0.2em] text-gold-500 uppercase font-semibold mb-1.5">
-          {product.material} &bull; {product.purity}
+      <div className="p-5 flex flex-col flex-grow text-center bg-white">
+        <span className="text-[0.65rem] font-sans tracking-[0.2em] text-gold-500 uppercase font-medium mb-1.5">
+          {product.material} · {product.purity}
         </span>
 
-        {/* Title */}
-        <h3 className="font-serif text-base text-[#1A1A1A] line-clamp-1 mb-2 hover:text-gold-500 transition-colors">
-          <Link to={`/product/${product.slug}`}>
-            {product.name}
-          </Link>
+        <h3 className="font-serif text-lg text-[#1A1A1A] line-clamp-1 mb-2 font-light hover:text-gold-600 transition-colors">
+          <Link to={`/product/${product.slug}`}>{product.name}</Link>
         </h3>
 
-        {/* SKU (Fine technical touch) */}
         <span className="text-[0.6rem] font-mono tracking-widest text-gray-400 uppercase mb-3 block">
           SKU: {product.sku}
         </span>
 
-        {/* Price Tag */}
         <div className="mt-auto flex justify-center items-baseline space-x-2">
           {isOnSale ? (
             <>
-              <span className="font-serif text-base text-gold-500 font-semibold">
-                ${product.salePrice?.toLocaleString()}
+              <span className="font-sans text-sm text-gold-600 font-semibold tracking-wide">
+                ₹{product.salePrice?.toLocaleString('en-IN')}
               </span>
-              <span className="font-serif text-xs text-gray-400 line-through">
-                ${product.price.toLocaleString()}
+              <span className="font-sans text-xs text-gray-400 line-through">
+                ₹{product.price.toLocaleString('en-IN')}
               </span>
             </>
           ) : (
-            <span className="font-serif text-base text-[#1A1A1A] font-semibold">
-              ${product.price.toLocaleString()}
+            <span className="font-sans text-sm text-[#1A1A1A] font-semibold tracking-wide">
+              ₹{product.price.toLocaleString('en-IN')}
             </span>
           )}
         </div>

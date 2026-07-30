@@ -28,6 +28,8 @@ export const Shop: React.FC = () => {
   const activeMaterial = searchParams.get('material') || '';
   const activeSort = searchParams.get('sort') || 'newest';
   const activePage = parseInt(searchParams.get('page') || '1', 10);
+  const bestSellerOnly = searchParams.get('bestSeller') === 'true';
+  const newArrivalOnly = searchParams.get('newArrival') === 'true';
 
   const limit = 12; // 12 items per page for luxury layout
   const skip = (activePage - 1) * limit;
@@ -58,6 +60,8 @@ export const Shop: React.FC = () => {
         if (maxPrice) queryParams.set('maxPrice', maxPrice);
         if (activeMaterial) queryParams.set('material', activeMaterial);
         if (activeSort) queryParams.set('sort', activeSort);
+        if (bestSellerOnly) queryParams.set('bestSeller', 'true');
+        if (newArrivalOnly) queryParams.set('newArrival', 'true');
         queryParams.set('limit', String(limit));
         queryParams.set('skip', String(skip));
 
@@ -73,7 +77,7 @@ export const Shop: React.FC = () => {
     };
 
     fetchProds();
-  }, [activeCategory, searchQuery, minPrice, maxPrice, activeMaterial, activeSort, activePage]);
+  }, [activeCategory, searchQuery, minPrice, maxPrice, activeMaterial, activeSort, activePage, bestSellerOnly, newArrivalOnly]);
 
   // Helper to update a URL parameter safely without losing other states
   const updateUrlParam = (key: string, value: string) => {
@@ -98,17 +102,17 @@ export const Shop: React.FC = () => {
   const totalPages = Math.ceil(totalProducts / limit) || 1;
 
   return (
-    <div id="shop-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans">
+    <div id="shop-page" className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-10 font-sans">
       
       {/* Page Header */}
-      <div className="border-b border-gold-200 pb-8 mb-10 text-center sm:text-left space-y-3">
+      <div className="border-b border-gold-200 pb-8 mb-8 text-center sm:text-left space-y-3">
         <h1 className="text-3xl sm:text-5xl font-light tracking-wide">The Salon Collection</h1>
         <p className="text-xs sm:text-sm text-gray-500 font-light max-w-2xl leading-relaxed">
           Exquisite custom jewels masterfully configured across metals, materials, and stone cuts. Utilize our filters below to narrow your selection.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] gap-6 xl:gap-8">
         
         {/* 1. Filter Sidebar (Desktop) */}
         <aside id="desktop-filters" className="hidden lg:block space-y-8 sticky top-32 h-fit">
@@ -246,7 +250,7 @@ export const Shop: React.FC = () => {
         </aside>
 
         {/* 2. Main Product Catalog Grid & Controllers */}
-        <section id="catalog-grid-area" className="lg:col-span-3 space-y-8">
+        <section id="catalog-grid-area" className="min-w-0 space-y-8">
           
           {/* Grid Toolbar Controls */}
           <div className="flex flex-col sm:flex-row justify-between items-center bg-[#F9F6F2] border border-gold-200 p-4 gap-4 rounded-sm">
@@ -331,7 +335,7 @@ export const Shop: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-5">
               {products.map((prod) => (
                 <ProductCard key={prod._id} product={prod} />
               ))}
