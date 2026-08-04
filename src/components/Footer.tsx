@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowRight, Instagram, Facebook, Phone, MapPin } from 'lucide-react';
+import {
+  ArrowRight,
+  Instagram,
+  Facebook,
+  Phone,
+  MapPin,
+  Mail,
+  ShieldCheck,
+  CreditCard,
+} from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,110 +24,138 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer id="main-footer" className="bg-[#FDFCFB] text-gray-500 border-t border-gold-200 pt-16 pb-8 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-          
-          {/* Brand & Newsletter Column */}
-          <div className="space-y-6">
-            <div>
-              <Link to="/" className="inline-block overflow-visible" aria-label="Lukee Jewels Home">
-                <img
-                  src="/lukee-logo.png"
-                  alt="Lukee Jewels"
-                  className="h-20 w-auto max-w-[180px] object-contain object-left"
-                />
-              </Link>
-            </div>
-            <p className="text-xs text-gray-500 leading-relaxed font-light">
-              Designing exclusive, masterfully crafted jewelry for discerning clients worldwide. Indulge in certified diamonds, fine metals, and timeless artistry.
+    <footer className="bg-dark text-white/70 pt-16 pb-8 font-sans">
+      <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 md:p-8 mb-12 grid md:grid-cols-2 gap-6 items-center">
+          <div>
+            <p className="text-brand text-[12px] tracking-[1.2px] uppercase font-bold mb-2">Newsletter</p>
+            <h3 className="font-serif text-[26px] md:text-[32px] text-white font-semibold tracking-[0.15px]">
+              Join the Lukee circle
+            </h3>
+            <p className="mt-2 text-sm text-white/55 max-w-md">
+              Early access to drops, private viewings, and styling notes.
             </p>
-            <div className="space-y-3">
-              <span className="text-xs tracking-wider uppercase text-[#1A1A1A] font-semibold block">Newsletter</span>
-              {subscribed ? (
-                <p className="text-xs text-gold-500">Thank you for subscribing to our luxury updates.</p>
-              ) : (
-                <form onSubmit={handleSubscribe} className="flex border-b border-gold-200 py-1.5 max-w-sm">
-                  <input
-                    type="email"
-                    placeholder="Your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="bg-transparent border-none text-xs w-full text-[#1A1A1A] placeholder-gray-400 focus:outline-none"
-                  />
-                  <button type="submit" className="text-gold-500 hover:text-gold-600 transition-colors" aria-label="Subscribe">
-                    <ArrowRight size={16} />
-                  </button>
-                </form>
-              )}
-            </div>
           </div>
-
-          {/* Quick Shop Links */}
           <div>
-            <h4 className="text-xs tracking-widest uppercase text-[#1A1A1A] mb-6 font-semibold">Explore Shop</h4>
-            <ul className="space-y-3 text-xs font-light text-gray-500">
-              <li><Link to="/shop" className="hover:text-gold-500 transition-colors">Shop All Jewelry</Link></li>
-              <li><Link to="/shop?category=engagement-rings" className="hover:text-gold-500 transition-colors">Engagement Rings</Link></li>
-              <li><Link to="/shop?category=necklaces" className="hover:text-gold-500 transition-colors">Luxury Necklaces</Link></li>
-              <li><Link to="/shop?category=earrings" className="hover:text-gold-500 transition-colors">Bespoke Earrings</Link></li>
-              <li><Link to="/collections" className="hover:text-gold-500 transition-colors">Exclusive Collections</Link></li>
-            </ul>
+            {subscribed ? (
+              <p className="text-brand text-sm font-bold">Thank you — welcome to the circle.</p>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address"
+                  className="flex-1 bg-white/5 border border-white/15 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-brand"
+                />
+                <button type="submit" className="btn-primary whitespace-nowrap">
+                  Subscribe
+                  <ArrowRight size={14} />
+                </button>
+              </form>
+            )}
           </div>
-
-          {/* Legal and Support */}
-          <div>
-            <h4 className="text-xs tracking-widest uppercase text-[#1A1A1A] mb-6 font-semibold">Customer Service</h4>
-            <ul className="space-y-3 text-xs font-light text-gray-500">
-              <li><Link to="/about" className="hover:text-gold-500 transition-colors">The Brand Story</Link></li>
-              <li><Link to="/contact" className="hover:text-gold-500 transition-colors">Boutique Locations</Link></li>
-              <li><Link to="/privacy" className="hover:text-gold-500 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-gold-500 transition-colors">Terms & Conditions</Link></li>
-              <li><Link to="/contact" className="hover:text-gold-500 transition-colors">Book a Private Viewing</Link></li>
-            </ul>
-          </div>
-
-          {/* Contact details */}
-          <div className="space-y-4 text-xs font-light text-gray-500">
-            <h4 className="text-xs tracking-widest uppercase text-[#1A1A1A] mb-6 font-semibold">The Boutique</h4>
-            <div className="flex items-start space-x-3">
-              <MapPin size={16} className="text-gold-500 mt-0.5 flex-shrink-0" />
-              <span>
-                Lukee Jewels Salon<br />
-                744 Fifth Avenue, New York, NY 10019
-              </span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Phone size={16} className="text-gold-500 flex-shrink-0" />
-              <span>+1 (212) 555-0180</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Mail size={16} className="text-gold-500 flex-shrink-0" />
-              <span>concierge@lukeejewels.com</span>
-            </div>
-            <div className="pt-2 flex space-x-4">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gold-500 transition-colors">
-                <Instagram size={18} />
-              </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gold-500 transition-colors">
-                <Facebook size={18} />
-              </a>
-            </div>
-          </div>
-
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gold-200 pt-8 flex flex-col md:flex-row justify-between items-center text-[0.7rem] text-gray-400 font-light space-y-4 md:space-y-0">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-12">
+          <div className="col-span-2 lg:col-span-1 space-y-4">
+            <Link to="/" aria-label="Lukee Jewels Home">
+              <img
+                src="/lukee-logo.png"
+                alt="Lukee Jewels"
+                className="h-14 w-auto object-contain brightness-0 invert opacity-90"
+              />
+            </Link>
+            <p className="text-xs leading-relaxed text-white/50">
+              Certified diamonds & fine gold, crafted for modern rituals and lifelong occasions.
+            </p>
+            <div className="flex gap-2">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="p-2.5 rounded-lg border border-white/15 hover:border-brand hover:text-brand transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram size={16} />
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                className="p-2.5 rounded-lg border border-white/15 hover:border-brand hover:text-brand transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook size={16} />
+              </a>
+            </div>
+          </div>
+
           <div>
-            &copy; {new Date().getFullYear()} Lukee Jewels Inc. All rights reserved. Registered trademark.
+            <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Shop</h4>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link to="/shop" className="hover:text-brand transition-colors">Shop All</Link></li>
+              <li><Link to="/shop?bestSeller=true" className="hover:text-brand transition-colors">Bestsellers</Link></li>
+              <li><Link to="/shop?newArrival=true" className="hover:text-brand transition-colors">New Arrivals</Link></li>
+              <li><Link to="/collections" className="hover:text-brand transition-colors">Collections</Link></li>
+              <li><Link to="/shop?search=ring" className="hover:text-brand transition-colors">Engagement Rings</Link></li>
+            </ul>
           </div>
-          <div className="flex space-x-6">
-            <Link to="/privacy" className="hover:text-gold-500">Privacy</Link>
-            <Link to="/terms" className="hover:text-gold-500">Terms</Link>
-            <Link to="/admin/login" className="hover:text-gold-500">Admin Portal</Link>
+
+          <div>
+            <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Company</h4>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link to="/about" className="hover:text-brand transition-colors">Our Story</Link></li>
+              <li><Link to="/contact" className="hover:text-brand transition-colors">Book a Visit</Link></li>
+              <li><Link to="/contact" className="hover:text-brand transition-colors">Stores</Link></li>
+              <li><Link to="/privacy-policy" className="hover:text-brand transition-colors">Privacy</Link></li>
+              <li><Link to="/terms" className="hover:text-brand transition-colors">Terms</Link></li>
+            </ul>
           </div>
+
+          <div>
+            <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Support</h4>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link to="/contact" className="hover:text-brand transition-colors">Concierge</Link></li>
+              <li><Link to="/contact" className="hover:text-brand transition-colors">Track Order</Link></li>
+              <li><Link to="/about" className="hover:text-brand transition-colors">Exchange Policy</Link></li>
+              <li><Link to="/contact" className="hover:text-brand transition-colors">Size Guide</Link></li>
+            </ul>
+          </div>
+
+          <div className="col-span-2 md:col-span-1">
+            <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Contact</h4>
+            <ul className="space-y-3 text-sm">
+              <li className="flex gap-2 items-start">
+                <Phone size={14} className="text-brand mt-0.5 flex-shrink-0" />
+                <span>+91 98765 43210</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <Mail size={14} className="text-brand mt-0.5 flex-shrink-0" />
+                <span>hello@lukeejewels.com</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <MapPin size={14} className="text-brand mt-0.5 flex-shrink-0" />
+                <span>Bandra West, Mumbai · Connaught Place, Delhi</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+          <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-wider text-white/40 font-bold">
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck size={12} className="text-brand" /> Certified
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CreditCard size={12} className="text-brand" /> Razorpay Secure
+            </span>
+            <span>BIS Hallmark Ready</span>
+          </div>
+          <p className="text-[12px] text-white/35">
+            © {new Date().getFullYear()} Lukee Jewels. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

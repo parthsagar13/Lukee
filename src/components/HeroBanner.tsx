@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { IMAGES } from '../data/luxuryContent.js';
 
 export interface HeroSlide {
   id: string;
@@ -14,28 +15,25 @@ export interface HeroSlide {
   secondaryLabel?: string;
   secondaryTo?: string;
   image: string;
-  align?: 'left' | 'right' | 'center';
 }
 
 const DEFAULT_SLIDES: HeroSlide[] = [
   {
     id: 'diamond-edit',
-    eyebrow: "It's your right to stylish jewellery",
-    title: 'Diamond Brilliance',
+    eyebrow: 'Certified brilliance',
+    title: 'Diamond',
     accent: 'Redefined',
     description:
-      'Discover certified diamonds and fine gold crafted for everyday luxury and lifelong occasions.',
-    ctaLabel: 'Shop Diamond Jewellery',
+      'Discover lab-backed diamonds and fine gold crafted for everyday luxury and lifelong occasions.',
+    ctaLabel: 'Shop Diamonds',
     ctaTo: '/shop?search=diamond',
     secondaryLabel: 'Explore Collections',
     secondaryTo: '/collections',
-    image:
-      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1920&q=80',
-    align: 'left',
+    image: IMAGES.hero1,
   },
   {
     id: 'gold-edit',
-    eyebrow: 'Tradition Reimagined',
+    eyebrow: 'Tradition, reimagined',
     title: 'Aura Gold',
     accent: 'Collection',
     description:
@@ -44,39 +42,33 @@ const DEFAULT_SLIDES: HeroSlide[] = [
     ctaTo: '/shop?search=gold',
     secondaryLabel: 'View Shop',
     secondaryTo: '/shop',
-    image:
-      'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=1920&q=80',
-    align: 'left',
+    image: IMAGES.hero4,
   },
   {
     id: 'bridal-edit',
     eyebrow: 'Say it with Lukee',
-    title: 'Bridal & Solitaire',
-    accent: 'Heirlooms',
+    title: 'Bridal &',
+    accent: 'Solitaire',
     description:
-      'Engagement rings and bridal sets with GIA-inspired clarity standards and bespoke finishing.',
+      'Engagement rings and bridal sets with clarity-first standards and bespoke finishing.',
     ctaLabel: 'Shop Bridal',
     ctaTo: '/shop?search=ring',
     secondaryLabel: 'Book Private Viewing',
     secondaryTo: '/contact',
-    image:
-      'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1920&q=80',
-    align: 'left',
+    image: IMAGES.hero2,
   },
   {
     id: 'gifting-edit',
-    eyebrow: 'Gifts that speak the occasion',
+    eyebrow: 'Gifts that speak',
     title: 'Curated for',
     accent: 'the Bold',
     description:
-      'Pendants, earrings, and bracelets packed with velvet care — ready for birthdays, anniversaries, and just because.',
+      'Pendants, earrings, and bracelets packed with velvet care — ready for birthdays and just because.',
     ctaLabel: 'Shop Gifts',
     ctaTo: '/shop',
     secondaryLabel: 'Contact Concierge',
     secondaryTo: '/contact',
-    image:
-      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1920&q=80',
-    align: 'left',
+    image: IMAGES.hero3,
   },
 ];
 
@@ -103,17 +95,10 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
     return () => window.clearInterval(timer);
   }, [index, paused, count, goTo]);
 
-  const alignClass =
-    slide.align === 'center'
-      ? 'items-center text-center'
-      : slide.align === 'right'
-        ? 'items-end text-right'
-        : 'items-start text-left';
-
   return (
     <section
       id="hero-banner"
-      className="relative h-[78vh] min-h-[520px] max-h-[820px] overflow-hidden bg-[#0f0e0c]"
+      className="relative h-[68vh] min-h-[440px] max-h-[640px] overflow-hidden bg-dark rounded-none"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -124,7 +109,7 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <img
             src={slide.image}
@@ -135,44 +120,35 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
         </motion.div>
       </AnimatePresence>
 
-      <div className={`relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex ${alignClass}`}>
-        <div className="flex flex-col justify-center max-w-xl py-16 space-y-5 text-white">
+      <div className="relative z-10 h-full w-full max-w-[1440px] mx-auto px-4 sm:px-8 flex items-center">
+        <div className="flex flex-col justify-center max-w-lg py-12 space-y-4 text-white">
           <AnimatePresence mode="wait">
             <motion.div
               key={`${slide.id}-copy`}
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-5"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.45 }}
+              className="space-y-4"
             >
-              <span className="inline-block text-[0.7rem] sm:text-xs tracking-[0.35em] uppercase text-gold-300 font-medium">
+              <span className="inline-block text-[12px] tracking-[1.2px] uppercase text-brand font-bold">
                 {slide.eyebrow}
               </span>
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light leading-[1.05] text-white">
+              {/* Restrained hero type per design system */}
+              <h1 className="font-serif text-[26px] sm:text-[32px] md:text-[40px] font-semibold leading-[1.25] tracking-[0.15px] text-white">
                 {slide.title}{' '}
-                <span className="italic text-gold-400">{slide.accent}</span>
+                <span className="italic font-medium text-brand">{slide.accent}</span>
               </h1>
-              <p className="font-sans text-sm sm:text-base text-white/75 font-light leading-relaxed max-w-md">
+              <p className="font-sans text-[15px] sm:text-base text-white/75 font-normal leading-relaxed max-w-md">
                 {slide.description}
               </p>
-              <div
-                className={`pt-2 flex flex-col sm:flex-row gap-3 ${
-                  slide.align === 'center' ? 'sm:justify-center' : ''
-                }`}
-              >
-                <Link
-                  to={slide.ctaTo}
-                  className="inline-flex items-center justify-center gap-2 bg-gold-500 text-[#1A1A1A] px-7 py-3.5 text-[0.7rem] uppercase tracking-[0.22em] font-semibold hover:bg-white transition-colors duration-300"
-                >
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <Link to={slide.ctaTo} className="btn-primary">
                   {slide.ctaLabel}
                   <ArrowRight size={14} />
                 </Link>
                 {slide.secondaryLabel && slide.secondaryTo && (
-                  <Link
-                    to={slide.secondaryTo}
-                    className="inline-flex items-center justify-center border border-white/40 text-white px-7 py-3.5 text-[0.7rem] uppercase tracking-[0.22em] font-medium hover:bg-white/10 transition-colors duration-300"
-                  >
+                  <Link to={slide.secondaryTo} className="btn-secondary !bg-white/10 !text-white hover:!bg-brand">
                     {slide.secondaryLabel}
                   </Link>
                 )}
@@ -182,9 +158,8 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="absolute bottom-6 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div className="absolute bottom-5 left-0 right-0 z-20 px-4 sm:px-8">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             {slides.map((s, i) => (
               <button
@@ -192,19 +167,18 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
                 type="button"
                 aria-label={`Go to slide ${i + 1}`}
                 onClick={() => goTo(i)}
-                className={`h-1 transition-all duration-500 rounded-full ${
-                  i === index ? 'w-10 bg-gold-500' : 'w-4 bg-white/35 hover:bg-white/60'
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i === index ? 'w-8 bg-brand' : 'w-3 bg-white/40 hover:bg-white/70'
                 }`}
               />
             ))}
           </div>
-
           <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label="Previous slide"
               onClick={() => goTo(index - 1)}
-              className="w-10 h-10 border border-white/30 text-white/90 hover:bg-white/10 hover:border-gold-400 transition-colors flex items-center justify-center"
+              className="w-11 h-11 rounded-full border border-white/30 text-white hover:bg-brand hover:border-brand transition-colors flex items-center justify-center"
             >
               <ChevronLeft size={18} />
             </button>
@@ -212,19 +186,15 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
               type="button"
               aria-label="Next slide"
               onClick={() => goTo(index + 1)}
-              className="w-10 h-10 border border-white/30 text-white/90 hover:bg-white/10 hover:border-gold-400 transition-colors flex items-center justify-center"
+              className="w-11 h-11 rounded-full border border-white/30 text-white hover:bg-brand hover:border-brand transition-colors flex items-center justify-center"
             >
               <ChevronRight size={18} />
             </button>
           </div>
         </div>
-
         {!paused && (
-          <div
-            key={index}
-            className="mt-4 h-[2px] w-full max-w-7xl mx-auto bg-white/15 overflow-hidden"
-          >
-            <div className="h-full bg-gold-500 hero-progress" />
+          <div key={index} className="mt-3 h-[2px] w-full max-w-[1440px] mx-auto bg-white/15 overflow-hidden rounded-full">
+            <div className="h-full bg-brand hero-progress" />
           </div>
         )}
       </div>

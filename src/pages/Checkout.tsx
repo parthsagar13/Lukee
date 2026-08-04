@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Lock, Loader2, ShieldCheck, BadgeCheck, Truck } from 'lucide-react';
 import { useCart } from '../contexts/CartContext.js';
 import type { ShippingAddress } from '../types.js';
 import {
@@ -24,6 +24,12 @@ const emptyAddress: ShippingAddress = {
   country: 'India',
 };
 
+const STEPS = [
+  { id: 1, label: 'Bag' },
+  { id: 2, label: 'Review' },
+  { id: 3, label: 'Pay' },
+] as const;
+
 export const Checkout: React.FC = () => {
   const { cartItems, getCartTotal, clearCart, closeCart } = useCart();
   const navigate = useNavigate();
@@ -35,9 +41,8 @@ export const Checkout: React.FC = () => {
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_FEE;
   const total = subtotal + shipping;
 
-  const canPay = useMemo(() => {
-    return (
-      cartItems.length > 0 &&
+  const addressComplete = useMemo(() => {
+    return !!(
       address.fullName.trim() &&
       address.email.trim() &&
       address.phone.trim() &&
@@ -45,10 +50,15 @@ export const Checkout: React.FC = () => {
       address.city.trim() &&
       address.state.trim() &&
       address.postalCode.trim() &&
-      address.country.trim() &&
-      !paying
+      address.country.trim()
     );
-  }, [address, cartItems.length, paying]);
+  }, [address]);
+
+  const activeStep = paying ? 3 : addressComplete ? 2 : 1;
+
+  const canPay = useMemo(() => {
+    return cartItems.length > 0 && addressComplete && !paying;
+  }, [addressComplete, cartItems.length, paying]);
 
   const updateField = (key: keyof ShippingAddress, value: string) => {
     setAddress((prev) => ({ ...prev, [key]: value }));
@@ -88,7 +98,7 @@ export const Checkout: React.FC = () => {
         order_id: orderPayload.razorpayOrderId,
         prefill: orderPayload.prefill,
         notes: orderPayload.notes,
-        theme: { color: '#C5A059' },
+        theme: { color: '#2fbccc' },
         handler: async (response: unknown) => {
           try {
             const raw = response as {
@@ -146,152 +156,217 @@ export const Checkout: React.FC = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
-        <h1 className="font-serif text-3xl text-[#1A1A1A]">Your bag is empty</h1>
-        <p className="text-sm text-gray-500">Add pieces from the shop before checking out.</p>
-        <Link
-          to="/shop"
-          className="inline-block bg-[#1A1A1A] text-white px-6 py-3 text-xs uppercase tracking-widest hover:bg-gold-500 transition-colors"
-        >
-          Continue Shopping
-        </Link>
+      <div className="bg-white min-h-[50vh] flex items-center justify-center">
+        <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-5">
+          <p className="section-eyebrow">Checkout</p>
+          <h1 className="font-serif text-3xl sm:text-4xl text-ink font-light">Your bag is empty</h1>
+          <p className="text-sm text-muted">Add pieces from the shop before checking out.</p>
+          <Link to="/shop" className="btn-primary">
+            Continue Shopping
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-      <Link
-        to="/shop"
-        className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gray-500 hover:text-gold-500 mb-8"
-      >
-        <ArrowLeft size={14} />
-        Back to Shop
-      </Link>
+    <div className="bg-white text-ink min-h-[60vh]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <Link
+          to="/shop"
+          className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-muted hover:text-brand mb-8 transition-colors"
+        >
+          <ArrowLeft size={14} />
+          Back to Shop
+        </Link>
 
-      <h1 className="font-serif text-3xl md:text-4xl text-[#1A1A1A] mb-2">Checkout</h1>
-      <p className="text-xs uppercase tracking-widest text-gold-500 mb-10">
-        Secure payment powered by Razorpay
-      </p>
-
-      <div className="grid lg:grid-cols-5 gap-10">
-        <div className="lg:col-span-3 space-y-6">
-          <section className="border border-gold-200 bg-white p-6 space-y-4">
-            <h2 className="text-xs uppercase tracking-widest font-bold text-[#1A1A1A]">
-              Shipping Address
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {(
-                [
-                  ['fullName', 'Full Name'],
-                  ['email', 'Email'],
-                  ['phone', 'Phone'],
-                  ['addressLine1', 'Address Line 1'],
-                  ['addressLine2', 'Address Line 2 (optional)'],
-                  ['city', 'City'],
-                  ['state', 'State'],
-                  ['postalCode', 'Postal Code'],
-                  ['country', 'Country'],
-                ] as const
-              ).map(([key, label]) => (
-                <label
-                  key={key}
-                  className={`block text-xs space-y-1.5 ${
-                    key === 'addressLine1' || key === 'addressLine2' ? 'sm:col-span-2' : ''
-                  }`}
-                >
-                  <span className="uppercase tracking-wider text-gray-500">{label}</span>
-                  <input
-                    type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
-                    value={address[key] || ''}
-                    onChange={(e) => updateField(key, e.target.value)}
-                    className="w-full border border-gold-200 bg-[#FDFCFB] px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:border-gold-500"
-                    required={key !== 'addressLine2'}
-                  />
-                </label>
-              ))}
-            </div>
-          </section>
-
-          {error && (
-            <div className="border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
-              {error}
-              <button
-                type="button"
-                onClick={() => setError(null)}
-                className="ml-3 underline text-xs uppercase tracking-wider"
-              >
-                Dismiss
-              </button>
-            </div>
-          )}
+        <div className="text-center sm:text-left mb-10 space-y-2">
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-ink">Checkout</h1>
+          <p className="section-eyebrow">Secure payment powered by Razorpay</p>
         </div>
 
-        <aside className="lg:col-span-2">
-          <div className="border border-gold-200 bg-[#F9F6F2] p-6 space-y-5 sticky top-28">
-            <h2 className="text-xs uppercase tracking-widest font-bold text-[#1A1A1A]">
-              Order Review
-            </h2>
-            <ul className="space-y-3 max-h-64 overflow-y-auto divide-y divide-gold-200">
-              {cartItems.map((item) => {
-                const price = item.product.salePrice ?? item.product.price;
-                return (
-                  <li key={item.product._id} className="pt-3 first:pt-0 flex justify-between gap-3 text-sm">
-                    <div>
-                      <p className="font-serif text-[#1A1A1A]">{item.product.name}</p>
-                      <p className="text-[0.65rem] uppercase tracking-wider text-gray-500">
-                        Qty {item.quantity}
-                      </p>
-                    </div>
-                    <span className="font-mono text-xs whitespace-nowrap">
-                      {formatInr(price * item.quantity)}
+        {/* Progress: Bag → Review → Pay */}
+        <nav aria-label="Checkout progress" className="mb-12">
+          <ol className="flex items-center justify-center sm:justify-start gap-0 max-w-lg">
+            {STEPS.map((step, idx) => {
+              const done = activeStep > step.id;
+              const current = activeStep === step.id;
+              return (
+                <li key={step.id} className="flex items-center flex-1 last:flex-none">
+                  <div className="flex flex-col items-center gap-2">
+                    <span
+                      className={`w-9 h-9 flex items-center justify-center text-xs font-semibold tracking-wider border transition-colors ${
+                        done || current
+                          ? 'bg-ink text-white border-ink'
+                          : 'bg-white text-muted border-line'
+                      }`}
+                    >
+                      {step.id}
                     </span>
-                  </li>
-                );
-              })}
-            </ul>
+                    <span
+                      className={`text-[0.65rem] uppercase tracking-[0.2em] ${
+                        current || done ? 'text-ink font-semibold' : 'text-muted'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                  {idx < STEPS.length - 1 && (
+                    <div
+                      className={`h-px flex-1 mx-3 mb-6 ${
+                        activeStep > step.id ? 'bg-brand' : 'bg-line'
+                      }`}
+                      aria-hidden
+                    />
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
 
-            <div className="space-y-2 text-xs uppercase tracking-wider text-gray-500 border-t border-gold-200 pt-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span className="font-mono text-[#1A1A1A]">{formatInr(subtotal)}</span>
+        <div className="grid lg:grid-cols-5 gap-8 lg:gap-10">
+          <div className="lg:col-span-3 space-y-6">
+            <section className="bg-white border border-line p-6 sm:p-8 space-y-5 luxury-shadow">
+              <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
+                <h2 className="font-serif text-xl font-semibold text-ink">Shipping Address</h2>
+                <span className="text-[0.65rem] uppercase tracking-[0.2em] text-brand">Step 1</span>
               </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className="font-mono text-[#1A1A1A]">
-                  {shipping === 0 ? 'Complimentary' : formatInr(shipping)}
-                </span>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {(
+                  [
+                    ['fullName', 'Full Name'],
+                    ['email', 'Email'],
+                    ['phone', 'Phone'],
+                    ['addressLine1', 'Address Line 1'],
+                    ['addressLine2', 'Address Line 2 (optional)'],
+                    ['city', 'City'],
+                    ['state', 'State'],
+                    ['postalCode', 'Postal Code'],
+                    ['country', 'Country'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className={`block text-xs space-y-1.5 ${
+                      key === 'addressLine1' || key === 'addressLine2' ? 'sm:col-span-2' : ''
+                    }`}
+                  >
+                    <span className="uppercase tracking-wider text-muted">{label}</span>
+                    <input
+                      type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
+                      value={address[key] || ''}
+                      onChange={(e) => updateField(key, e.target.value)}
+                      className="input-luxury"
+                      required={key !== 'addressLine2'}
+                    />
+                  </label>
+                ))}
               </div>
-              <div className="flex justify-between text-[#1A1A1A] font-bold pt-2 border-t border-dashed border-gold-200">
-                <span>Total</span>
-                <span className="font-mono text-gold-500 text-base">{formatInr(total)}</span>
-              </div>
-            </div>
+            </section>
 
-            <button
-              type="button"
-              disabled={!canPay}
-              onClick={handlePay}
-              className="w-full bg-[#1A1A1A] text-white py-3.5 text-xs uppercase tracking-widest font-bold hover:bg-gold-500 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {paying ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Processing…
-                </>
-              ) : (
-                <>
-                  <Lock size={14} />
-                  Pay Securely
-                </>
-              )}
-            </button>
-            <p className="text-[0.65rem] text-center text-gray-400 leading-relaxed">
-              Amounts are recalculated on the server. Never trust client totals.
-              Free insured shipping on orders {formatInr(FREE_SHIPPING_THRESHOLD)}+.
-            </p>
+            {error && (
+              <div className="border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
+                {error}
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  className="ml-3 underline text-xs uppercase tracking-wider"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
           </div>
-        </aside>
+
+          <aside className="lg:col-span-2">
+            <div className="bg-white border border-line p-6 sm:p-7 space-y-5 sticky top-28 luxury-shadow">
+              <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
+                <h2 className="font-serif text-xl font-semibold text-ink">Order Review</h2>
+                <span className="text-[0.65rem] uppercase tracking-[0.2em] text-brand">Step 2</span>
+              </div>
+
+              <ul className="space-y-0 max-h-64 overflow-y-auto divide-y divide-line">
+                {cartItems.map((item) => {
+                  const price = item.product.salePrice ?? item.product.price;
+                  return (
+                    <li
+                      key={item.product._id}
+                      className="py-3 first:pt-0 flex justify-between gap-3 text-sm"
+                    >
+                      <div>
+                        <p className="font-serif text-ink">{item.product.name}</p>
+                        <p className="text-[0.65rem] uppercase tracking-wider text-muted">
+                          Qty {item.quantity}
+                        </p>
+                      </div>
+                      <span className="font-mono text-xs whitespace-nowrap text-ink">
+                        {formatInr(price * item.quantity)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="space-y-2 text-xs uppercase tracking-wider text-muted border-t border-line pt-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-mono text-ink">{formatInr(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span className="font-mono text-ink">
+                    {shipping === 0 ? 'Complimentary' : formatInr(shipping)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-ink font-bold pt-2 border-t border-dashed border-line">
+                  <span>Total</span>
+                  <span className="font-mono text-brand text-base">{formatInr(total)}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={!canPay}
+                onClick={handlePay}
+                className="btn-primary w-full disabled:opacity-60"
+              >
+                {paying ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Processing…
+                  </>
+                ) : (
+                  <>
+                    <Lock size={14} />
+                    Pay Securely
+                  </>
+                )}
+              </button>
+
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                {[
+                  { icon: ShieldCheck, label: 'Encrypted' },
+                  { icon: BadgeCheck, label: 'Razorpay' },
+                  { icon: Truck, label: 'Insured' },
+                ].map(({ icon: Icon, label }) => (
+                  <div
+                    key={label}
+                    className="flex flex-col items-center gap-1.5 py-2.5 border border-line bg-white text-center"
+                  >
+                    <Icon size={14} className="text-brand" />
+                    <span className="text-[0.55rem] uppercase tracking-wider text-muted">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-[0.65rem] text-center text-muted leading-relaxed">
+                Amounts are recalculated on the server. Never trust client totals. Free insured shipping
+                on orders {formatInr(FREE_SHIPPING_THRESHOLD)}+.
+              </p>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );

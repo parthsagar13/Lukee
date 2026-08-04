@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ShoppingBag, Search, Menu, X, ShieldAlert } from 'lucide-react';
+import {
+  ShoppingBag,
+  Search,
+  Menu,
+  X,
+  ShieldAlert,
+  Heart,
+  User,
+  ChevronDown,
+} from 'lucide-react';
 import { useCart } from '../contexts/CartContext.js';
 import { useAdmin } from '../contexts/AdminContext.js';
 import type { Category } from '../types.js';
+import { CATEGORY_TILES } from '../data/luxuryContent.js';
 
 type CategoryNavItem = {
   label: string;
@@ -14,14 +24,29 @@ type CategoryNavItem = {
 export const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [scrolled, setScrolled] = useState(false);
 
   const { toggleCart, getCartCount } = useCart();
   const { isAuthenticated } = useAdmin();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setMegaOpen(false);
+    setIsSearchOpen(false);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -54,7 +79,7 @@ export const Header: React.FC = () => {
     { label: 'Home', path: '/' },
     { label: 'Shop All', path: '/shop' },
     { label: 'Collections', path: '/collections' },
-    { label: 'About Us', path: '/about' },
+    { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact' },
   ];
 
@@ -83,126 +108,111 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <div
-        id="announcement-bar"
-        className="bg-[#C5A059] text-white text-center py-2 px-4 text-[10px] tracking-[0.3em] font-sans uppercase font-semibold"
-      >
-        Complimentary fully insured worldwide delivery & bespoke velvet packaging.
+      <div className="bg-brand text-white text-center py-2.5 px-4 text-[11px] tracking-[0.4px] font-sans font-bold">
+        Complimentary insured delivery · Lifetime exchange · Certified diamonds
       </div>
 
       <header
-        id="main-header"
-        className="sticky top-0 z-40 bg-[#FDFCFB]/95 backdrop-blur-md border-b border-gold-200 luxury-shadow overflow-visible"
+        className={`sticky top-0 z-40 bg-white transition-shadow duration-300 ${
+          scrolled ? 'luxury-shadow' : 'border-b border-line'
+        }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center min-h-20 py-2 gap-4 overflow-visible">
-            <div className="flex items-center gap-4 md:gap-10 min-w-0 overflow-visible flex-1">
-              <div className="flex md:hidden flex-shrink-0">
-                <button
-                  id="mobile-menu-btn"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="text-[#1A1A1A] hover:text-gold-500 transition-colors p-2"
-                  aria-label="Toggle menu"
-                >
-                  {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                </button>
-              </div>
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between min-h-[70px] gap-4">
+            <div className="flex items-center gap-3 lg:gap-8 min-w-0 flex-1">
+              <button
+                type="button"
+                className="lg:hidden p-2.5 text-ink hover:text-brand rounded-lg"
+                onClick={() => setIsMobileMenuOpen((v) => !v)}
+                aria-label="Open menu"
+              >
+                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
 
-              <div className="flex-shrink-0 overflow-visible">
-                <Link
-                  to="/"
-                  className="block select-none group overflow-visible"
-                  aria-label="Lukee Jewels Home"
-                >
-                  <img
-                    src="/lukee-logo.png"
-                    alt="Lukee Jewels"
-                    className="h-16 sm:h-[4.5rem] w-auto max-w-[140px] sm:max-w-[160px] object-contain object-left transition-opacity duration-300 group-hover:opacity-90"
-                  />
-                </Link>
-              </div>
+              <Link to="/" className="flex-shrink-0" aria-label="Lukee Jewels Home">
+                <img
+                  src="/lukee-logo.png"
+                  alt="Lukee Jewels"
+                  className="h-11 sm:h-12 w-auto object-contain"
+                />
+              </Link>
 
-              <nav id="desktop-nav" className="hidden lg:flex space-x-7">
+              <nav className="hidden lg:flex items-center gap-6">
                 {navLinks.map((link) => (
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`text-xs tracking-widest uppercase transition-all duration-300 relative py-2 ${
-                      isActive(link.path)
-                        ? 'text-gold-500 font-bold'
-                        : 'text-gray-600 hover:text-gold-500'
+                    className={`relative text-[13px] font-bold tracking-[0.3px] transition-colors py-1 ${
+                      isActive(link.path) ? 'text-brand' : 'text-ink hover:text-brand'
                     }`}
                   >
                     {link.label}
                     {isActive(link.path) && (
-                      <span className="absolute bottom-0 left-0 w-full h-[1px] bg-gold-500" />
+                      <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-brand rounded-full" />
                     )}
                   </Link>
                 ))}
+                <button
+                  type="button"
+                  onMouseEnter={() => setMegaOpen(true)}
+                  onClick={() => setMegaOpen((v) => !v)}
+                  className="inline-flex items-center gap-1 text-[13px] font-bold tracking-[0.3px] text-ink hover:text-brand"
+                >
+                  Jewellery
+                  <ChevronDown size={14} className={`transition-transform ${megaOpen ? 'rotate-180' : ''}`} />
+                </button>
               </nav>
-
-              {/* Desktop inline search */}
-              <form
-                onSubmit={handleSearchSubmit}
-                className="hidden md:flex flex-1 max-w-md ml-auto items-center border border-gold-200 bg-white px-3 py-2 focus-within:border-gold-500 transition-colors"
-              >
-                <Search size={16} className="text-gold-500 flex-shrink-0" />
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search rings, diamonds, gold…"
-                  className="w-full ml-2 bg-transparent text-sm font-sans font-light text-[#1A1A1A] placeholder:text-gray-400 focus:outline-none"
-                  aria-label="Search products"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="text-gray-400 hover:text-gray-600 p-0.5"
-                    aria-label="Clear search"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </form>
             </div>
 
-            <div id="nav-actions" className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden md:flex flex-1 max-w-sm items-center border border-line bg-surface rounded-lg px-3 py-2.5 focus-within:border-brand transition-colors"
+            >
+              <Search size={15} className="text-brand flex-shrink-0" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search rings, diamonds, gold…"
+                className="w-full ml-2 bg-transparent text-sm text-ink placeholder:text-muted focus:outline-none"
+                aria-label="Search products"
+              />
+            </form>
+
+            <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
-                id="search-toggle-btn"
+                type="button"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="md:hidden text-[#1A1A1A] hover:text-gold-500 transition-colors p-2"
-                aria-label="Search catalog"
+                className="md:hidden p-2.5 text-ink hover:text-brand rounded-lg"
+                aria-label="Search"
               >
                 <Search size={18} />
               </button>
-
               <Link
-                id="admin-shortcut"
-                to={isAuthenticated ? '/admin' : '/admin/login'}
-                className={`p-2 transition-colors relative ${
-                  isAuthenticated
-                    ? 'text-emerald-600 hover:text-emerald-700'
-                    : 'text-[#1A1A1A] hover:text-gold-500'
-                }`}
-                title={isAuthenticated ? 'Admin Dashboard' : 'Admin Login'}
+                to="/shop"
+                className="hidden sm:inline-flex p-2.5 text-ink hover:text-brand rounded-lg"
+                aria-label="Wishlist"
               >
-                <ShieldAlert size={18} />
-                {isAuthenticated && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 border border-white" />
-                )}
+                <Heart size={18} />
               </Link>
-
+              <Link
+                to={isAuthenticated ? '/admin' : '/admin/login'}
+                className={`p-2.5 rounded-lg transition-colors ${
+                  isAuthenticated ? 'text-brand-dark' : 'text-ink hover:text-brand'
+                }`}
+                title={isAuthenticated ? 'Admin' : 'Account'}
+              >
+                {isAuthenticated ? <ShieldAlert size={18} /> : <User size={18} />}
+              </Link>
               <button
-                id="cart-toggle-btn"
+                type="button"
                 onClick={toggleCart}
-                className="text-[#1A1A1A] hover:text-gold-500 transition-colors p-2 relative flex items-center"
-                aria-label="View shopping cart"
+                className="relative p-2.5 text-ink hover:text-brand rounded-lg"
+                aria-label="Open cart"
               >
                 <ShoppingBag size={18} />
                 {getCartCount() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gold-500 text-white font-sans text-[0.65rem] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  <span className="absolute top-1 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-brand text-white text-[9px] font-bold flex items-center justify-center">
                     {getCartCount()}
                   </span>
                 )}
@@ -211,28 +221,65 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Category bar */}
-        <nav
-          id="category-nav-bar"
-          className="bg-[#C5A059] border-t border-gold-600/20"
-          aria-label="Product categories"
-        >
-          <div className="max-w-7xl mx-auto px-2 sm:px-4">
-            <ul className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-1 sm:py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {megaOpen && (
+          <div
+            className="hidden lg:block absolute left-0 right-0 top-full bg-white border-t border-line luxury-shadow-lg"
+            onMouseLeave={() => setMegaOpen(false)}
+          >
+            <div className="max-w-[1440px] mx-auto px-8 py-8 grid grid-cols-4 gap-8">
+              <div>
+                <p className="section-eyebrow mb-4">Shop</p>
+                <ul className="space-y-2.5">
+                  {categoryNav.slice(0, 6).map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        to={item.to}
+                        className="text-sm font-medium text-ink hover:text-brand transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="col-span-3 grid grid-cols-3 gap-4">
+                {CATEGORY_TILES.slice(0, 3).map((cat) => (
+                  <Link
+                    key={cat.name}
+                    to={cat.path}
+                    className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-surface"
+                  >
+                    <img
+                      src={cat.img}
+                      alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />
+                    <span className="absolute bottom-3 left-3 text-white font-serif text-lg font-semibold">
+                      {cat.name}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <nav className="bg-surface border-t border-line" aria-label="Product categories">
+          <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
+            <ul className="flex items-center gap-1 overflow-x-auto scrollbar-none py-2">
               {categoryNav.map((item) => {
                 const active = isCategoryActive(item);
                 return (
                   <li key={item.label} className="flex-shrink-0">
                     <Link
                       to={item.to}
-                      className={`block px-2.5 sm:px-3.5 py-1 text-[0.6rem] sm:text-[0.65rem] font-sans font-medium uppercase tracking-[0.12em] whitespace-nowrap transition-colors duration-200 ${
-                        item.highlight
-                          ? active
-                            ? 'text-white'
-                            : 'text-[#FFF8E7] hover:text-white'
-                          : active
-                            ? 'text-white font-semibold'
-                            : 'text-[#1A1A1A]/85 hover:text-white'
+                      className={`block px-3 py-1.5 text-[12px] font-bold tracking-[0.3px] whitespace-nowrap rounded-full transition-colors ${
+                        active
+                          ? 'bg-brand text-white'
+                          : item.highlight
+                            ? 'text-brand hover:bg-brand-soft'
+                            : 'text-ink/80 hover:bg-white hover:text-brand'
                       }`}
                     >
                       {item.label}
@@ -245,12 +292,12 @@ export const Header: React.FC = () => {
         </nav>
 
         {isMobileMenuOpen && (
-          <div
-            id="mobile-menu"
-            className="md:hidden border-t border-gold-200 bg-[#FDFCFB] py-4 px-6 space-y-3 shadow-lg"
-          >
-            <form onSubmit={handleSearchSubmit} className="flex items-center border border-gold-200 px-3 py-2 mb-2">
-              <Search size={16} className="text-gold-500" />
+          <div className="lg:hidden border-t border-line bg-white py-4 px-5 space-y-1 max-h-[70vh] overflow-y-auto">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center border border-line rounded-lg px-3 py-2.5 mb-3 bg-surface"
+            >
+              <Search size={16} className="text-brand" />
               <input
                 type="search"
                 value={searchQuery}
@@ -263,24 +310,18 @@ export const Header: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block text-xs tracking-widest uppercase py-2 border-b border-gold-100 ${
-                  isActive(link.path) ? 'text-gold-500 font-bold' : 'text-gray-600'
-                }`}
+                className="block py-3 text-sm font-bold text-ink border-b border-line"
               >
                 {link.label}
               </Link>
             ))}
-            <p className="pt-2 text-[0.65rem] uppercase tracking-[0.2em] text-gray-400">
-              Categories
-            </p>
+            <p className="pt-3 text-[11px] uppercase tracking-wider text-muted font-bold">Categories</p>
             {categoryNav.map((item) => (
               <Link
                 key={item.label}
                 to={item.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block text-xs tracking-widest uppercase py-1.5 ${
-                  item.highlight ? 'text-[#2a9d8f] font-semibold' : 'text-gray-600'
+                className={`block text-sm py-2 ${
+                  item.highlight ? 'text-brand font-bold' : 'text-muted font-medium'
                 }`}
               >
                 {item.label}
@@ -290,33 +331,18 @@ export const Header: React.FC = () => {
         )}
 
         {isSearchOpen && (
-          <div
-            id="search-overlay"
-            className="md:hidden absolute top-full left-0 w-full bg-[#FDFCFB] border-b border-gold-200 py-4 px-4 shadow-md z-50"
-          >
+          <div className="md:hidden border-t border-line bg-white py-4 px-4">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
               <input
-                id="search-input"
                 type="text"
-                placeholder="Search rings, diamond necklaces…"
+                placeholder="Search rings, necklaces…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
-                className="w-full font-sans text-sm tracking-wide bg-transparent border-b border-gold-500 py-2 focus:outline-none text-[#1A1A1A] placeholder-gray-400"
+                className="input-luxury flex-1"
               />
-              <button
-                type="submit"
-                className="bg-[#1A1A1A] text-white px-4 py-2 text-[0.65rem] uppercase tracking-widest hover:bg-gold-500 transition-colors"
-              >
+              <button type="submit" className="btn-primary !py-3">
                 Search
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
-                aria-label="Close search"
-              >
-                <X size={20} />
               </button>
             </form>
           </div>

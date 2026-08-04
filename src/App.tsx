@@ -32,7 +32,7 @@ import { AdminLayout } from './layouts/AdminLayout.js';
 // 1. Client Layout (Public Storefront wrapper with header, footer and sliding drawers)
 const ClientLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9f6]">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <div className="flex-grow">
         <Outlet />
@@ -49,10 +49,10 @@ const ProtectedRoute: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-gold-300 border-t-gold-600 rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs tracking-widest text-gray-400 uppercase font-sans">Verifying Key Clearance...</p>
+          <div className="w-10 h-10 border-2 border-brand-soft border-t-brand rounded-full animate-spin mx-auto" />
+          <p className="text-xs tracking-[0.8px] text-muted uppercase font-sans font-bold">Verifying access…</p>
         </div>
       </div>
     );

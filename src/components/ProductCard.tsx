@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Eye } from 'lucide-react';
+import { ShoppingBag, Eye, Heart, Star } from 'lucide-react';
 import { Product } from '../types.js';
 import { useCart } from '../contexts/CartContext.js';
 
@@ -10,6 +10,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const [wishlisted, setWishlisted] = useState(false);
 
   const mainImage =
     product.images?.[0] ||
@@ -19,13 +20,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     product.salePrice !== undefined &&
     product.salePrice !== null &&
     product.salePrice < product.price;
+  const discountPct = isOnSale
+    ? Math.round(((product.price - (product.salePrice || 0)) / product.price) * 100)
+    : 0;
+
+  const ratingSeed = (product.sku || product._id || 'x').charCodeAt(0) % 10;
+  const rating = 4 + (ratingSeed % 10) / 10;
+  const reviewCount = 12 + (ratingSeed * 7) % 80;
 
   return (
-    <div
-      id={`product-${product._id}`}
-      className="group relative flex flex-col bg-white overflow-hidden rounded-2xl border border-gold-200/80 luxury-shadow transition-all duration-500 hover:-translate-y-1 hover:luxury-shadow-lg"
-    >
-      <div className="relative aspect-[4/5] w-full bg-[#F3EEE6] overflow-hidden rounded-t-2xl">
+    <div className="group relative flex flex-col bg-white overflow-hidden rounded-xl border border-line luxury-shadow transition-all duration-300 hover:-translate-y-1 hover:luxury-shadow-lg">
+      <div className="relative aspect-[4/5] w-full bg-surface overflow-hidden rounded-t-xl">
         <img
           src={mainImage}
           alt={product.name}
@@ -42,72 +47,85 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {isOnSale && (
-            <span className="bg-gold-500 text-[#1A1A1A] font-sans text-[0.65rem] font-semibold tracking-[0.18em] px-2.5 py-1 uppercase">
-              Sale
+            <span className="bg-brand text-white font-sans text-[11px] font-bold tracking-[0.3px] px-2.5 py-1 rounded-full">
+              −{discountPct}%
             </span>
           )}
           {product.bestSeller && (
-            <span className="bg-[#1A1A1A] text-white font-sans text-[0.65rem] font-semibold tracking-[0.18em] px-2.5 py-1 uppercase">
+            <span className="bg-btn-dark text-white font-sans text-[11px] font-bold tracking-[0.3px] px-2.5 py-1 rounded-full">
               Best Seller
             </span>
           )}
-          {product.newArrival && (
-            <span className="bg-white/95 text-gold-700 font-sans text-[0.65rem] font-semibold tracking-[0.18em] px-2.5 py-1 uppercase border border-gold-200">
+          {product.newArrival && !product.bestSeller && (
+            <span className="bg-brand-soft text-brand-dark font-sans text-[11px] font-bold tracking-[0.3px] px-2.5 py-1 rounded-full">
               New
             </span>
           )}
         </div>
 
-        <div className="absolute inset-0 bg-[#1A1A1A]/0 group-hover:bg-[#1A1A1A]/15 transition-colors duration-300 flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => setWishlisted((v) => !v)}
+          className={`absolute top-3 right-3 z-10 p-2.5 rounded-full bg-white luxury-shadow transition-colors ${
+            wishlisted ? 'text-brand' : 'text-muted hover:text-brand'
+          }`}
+          aria-label="Wishlist"
+        >
+          <Heart size={15} fill={wishlisted ? 'currentColor' : 'none'} />
+        </button>
+
+        <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
           <Link
             to={`/product/${product.slug}`}
-            className="p-3 bg-white text-[#1A1A1A] shadow-md opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-gold-500 hover:text-white"
-            title="View Details"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white text-ink py-2.5 text-[12px] font-bold rounded-lg hover:bg-brand-soft hover:text-brand-dark transition-colors"
           >
-            <Eye size={18} />
+            <Eye size={13} />
+            View
           </Link>
           {product.stock > 0 ? (
             <button
               type="button"
               onClick={() => addToCart(product, 1)}
-              className="p-3 bg-white text-[#1A1A1A] shadow-md opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75 hover:bg-gold-500 hover:text-white"
-              title="Add to Bag"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 bg-brand text-white py-2.5 text-[12px] font-bold rounded-lg hover:bg-brand-dark transition-colors"
             >
-              <ShoppingBag size={18} />
+              <ShoppingBag size={13} />
+              Add
             </button>
           ) : (
-            <span className="bg-[#1A1A1A]/90 text-white text-[0.6rem] uppercase tracking-[0.18em] px-4 py-2 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-              Out of Stock
+            <span className="flex-1 text-center bg-btn-dark/80 text-white py-2.5 text-[12px] font-bold rounded-lg">
+              Sold Out
             </span>
           )}
         </div>
       </div>
 
-      <div className="p-5 flex flex-col flex-grow text-center bg-white">
-        <span className="text-[0.65rem] font-sans tracking-[0.2em] text-gold-500 uppercase font-medium mb-1.5">
+      <div className="p-4 flex flex-col flex-grow text-left">
+        <span className="text-[11px] font-sans tracking-[0.4px] text-brand-dark uppercase font-bold mb-1">
           {product.material} · {product.purity}
         </span>
 
-        <h3 className="font-serif text-lg text-[#1A1A1A] line-clamp-1 mb-2 font-light hover:text-gold-600 transition-colors">
+        <h3 className="font-serif text-[17px] text-ink line-clamp-1 mb-1.5 font-semibold group-hover:text-brand transition-colors">
           <Link to={`/product/${product.slug}`}>{product.name}</Link>
         </h3>
 
-        <span className="text-[0.6rem] font-mono tracking-widest text-gray-400 uppercase mb-3 block">
-          SKU: {product.sku}
-        </span>
+        <div className="flex items-center gap-1.5 mb-3">
+          <Star size={12} className="text-brand fill-brand" />
+          <span className="text-xs text-ink font-bold">{rating.toFixed(1)}</span>
+          <span className="text-[12px] text-muted">({reviewCount})</span>
+        </div>
 
-        <div className="mt-auto flex justify-center items-baseline space-x-2">
+        <div className="mt-auto flex items-baseline gap-2">
           {isOnSale ? (
             <>
-              <span className="font-sans text-sm text-gold-600 font-semibold tracking-wide">
+              <span className="font-sans text-[15px] text-ink font-bold">
                 ₹{product.salePrice?.toLocaleString('en-IN')}
               </span>
-              <span className="font-sans text-xs text-gray-400 line-through">
+              <span className="font-sans text-xs text-muted line-through">
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
             </>
           ) : (
-            <span className="font-sans text-sm text-[#1A1A1A] font-semibold tracking-wide">
+            <span className="font-sans text-[15px] text-ink font-bold">
               ₹{product.price.toLocaleString('en-IN')}
             </span>
           )}

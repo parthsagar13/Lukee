@@ -9,8 +9,182 @@ const MATERIALS_PRESETS = [
   '14k White Gold',
   '950 Platinum',
   '18k Rose Gold',
-  '925 Sterling Silver'
+  '925 Sterling Silver',
 ];
+
+const ProductSkeleton: React.FC = () => (
+  <div className="animate-pulse space-y-3">
+    <div className="aspect-[4/5] bg-line/60 rounded-xl" />
+    <div className="h-3 w-2/3 bg-line/60 rounded" />
+    <div className="h-3 w-1/2 bg-line/40 rounded" />
+    <div className="h-3 w-1/3 bg-line/40 rounded" />
+  </div>
+);
+
+const FilterPanel: React.FC<{
+  searchQuery: string;
+  activeCategory: string;
+  categories: Category[];
+  minPrice: string;
+  maxPrice: string;
+  activeMaterial: string;
+  searchParams: URLSearchParams;
+  updateUrlParam: (key: string, value: string) => void;
+  setSearchParams: (params: URLSearchParams) => void;
+  onCategoryPick?: () => void;
+  onMaterialPick?: () => void;
+}> = ({
+  searchQuery,
+  activeCategory,
+  categories,
+  minPrice,
+  maxPrice,
+  activeMaterial,
+  searchParams,
+  updateUrlParam,
+  setSearchParams,
+  onCategoryPick,
+  onMaterialPick,
+}) => (
+  <div className="space-y-6">
+    <div className="space-y-2.5">
+      <label className="section-eyebrow !text-[0.65rem] block">Search Keyword</label>
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search name, SKU..."
+          value={searchQuery}
+          onChange={(e) => updateUrlParam('search', e.target.value)}
+          className="input-luxury !py-2.5 !pr-9 !text-xs rounded-xl"
+        />
+        <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <label className="section-eyebrow !text-[0.65rem] block">Category</label>
+      <div className="space-y-0.5 max-h-56 overflow-y-auto pr-1">
+        <button
+          type="button"
+          onClick={() => {
+            updateUrlParam('category', '');
+            onCategoryPick?.();
+          }}
+          className={`w-full text-left text-xs uppercase py-2 px-2.5 tracking-wider rounded-lg transition-colors ${
+            !activeCategory
+              ? 'bg-brand-soft text-brand-dark font-semibold'
+              : 'text-muted hover:bg-white hover:text-ink'
+          }`}
+        >
+          All Categories
+        </button>
+        {categories.map((cat) => (
+          <button
+            type="button"
+            key={cat._id}
+            onClick={() => {
+              updateUrlParam('category', cat.slug);
+              onCategoryPick?.();
+            }}
+            className={`w-full text-left text-xs uppercase py-2 px-2.5 tracking-wider rounded-lg transition-colors ${
+              activeCategory === cat.slug || activeCategory === cat._id
+                ? 'bg-brand-soft text-brand-dark font-semibold'
+                : 'text-muted hover:bg-white hover:text-ink'
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <label className="section-eyebrow !text-[0.65rem] block">Price Range (₹)</label>
+      <div className="grid grid-cols-2 gap-3 items-center">
+        <input
+          type="number"
+          placeholder="Min"
+          value={minPrice}
+          onChange={(e) => updateUrlParam('minPrice', e.target.value)}
+          className="input-luxury !py-2 !text-xs !font-mono rounded-xl"
+        />
+        <input
+          type="number"
+          placeholder="Max"
+          value={maxPrice}
+          onChange={(e) => updateUrlParam('maxPrice', e.target.value)}
+          className="input-luxury !py-2 !text-xs !font-mono rounded-xl"
+        />
+      </div>
+      <div className="flex flex-wrap gap-1.5 pt-1">
+        {['0-1500', '1500-3000', '3000-5000', '5000+'].map((range) => {
+          const parts = range.split('-');
+          const min = parts[0];
+          const max = parts[1] || '';
+          const isSelected = minPrice === min && maxPrice === max;
+          return (
+            <button
+              type="button"
+              key={range}
+              onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('minPrice', min);
+                if (max) newParams.set('maxPrice', max);
+                else newParams.delete('maxPrice');
+                newParams.delete('page');
+                setSearchParams(newParams);
+              }}
+              className={`text-[0.65rem] px-2.5 py-1 uppercase rounded-lg border transition-colors ${
+                isSelected
+                  ? 'bg-brand text-ink border-brand font-semibold'
+                  : 'bg-white text-muted border-line hover:border-brand'
+              }`}
+            >
+              ₹{range}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <label className="section-eyebrow !text-[0.65rem] block">Metal / Material</label>
+      <div className="space-y-0.5">
+        <button
+          type="button"
+          onClick={() => {
+            updateUrlParam('material', '');
+            onMaterialPick?.();
+          }}
+          className={`w-full text-left text-xs uppercase py-2 px-2.5 tracking-wider rounded-lg transition-colors ${
+            !activeMaterial
+              ? 'bg-brand-soft text-brand-dark font-semibold'
+              : 'text-muted hover:bg-white hover:text-ink'
+          }`}
+        >
+          All Metals
+        </button>
+        {MATERIALS_PRESETS.map((m) => (
+          <button
+            type="button"
+            key={m}
+            onClick={() => {
+              updateUrlParam('material', m);
+              onMaterialPick?.();
+            }}
+            className={`w-full text-left text-xs uppercase py-2 px-2.5 tracking-wider rounded-lg transition-colors ${
+              activeMaterial === m
+                ? 'bg-brand-soft text-brand-dark font-semibold'
+                : 'text-muted hover:bg-white hover:text-ink'
+            }`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export const Shop: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,7 +194,6 @@ export const Shop: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Read URL params (with defaults)
   const activeCategory = searchParams.get('category') || '';
   const searchQuery = searchParams.get('search') || '';
   const minPrice = searchParams.get('minPrice') || '';
@@ -31,10 +204,9 @@ export const Shop: React.FC = () => {
   const bestSellerOnly = searchParams.get('bestSeller') === 'true';
   const newArrivalOnly = searchParams.get('newArrival') === 'true';
 
-  const limit = 12; // 12 items per page for luxury layout
+  const limit = 12;
   const skip = (activePage - 1) * limit;
 
-  // Load all active categories for side filter
   useEffect(() => {
     const fetchCats = async () => {
       try {
@@ -48,7 +220,6 @@ export const Shop: React.FC = () => {
     fetchCats();
   }, []);
 
-  // Fetch products whenever filters or pagination change
   useEffect(() => {
     const fetchProds = async () => {
       setLoading(true);
@@ -77,9 +248,18 @@ export const Shop: React.FC = () => {
     };
 
     fetchProds();
-  }, [activeCategory, searchQuery, minPrice, maxPrice, activeMaterial, activeSort, activePage, bestSellerOnly, newArrivalOnly]);
+  }, [
+    activeCategory,
+    searchQuery,
+    minPrice,
+    maxPrice,
+    activeMaterial,
+    activeSort,
+    activePage,
+    bestSellerOnly,
+    newArrivalOnly,
+  ]);
 
-  // Helper to update a URL parameter safely without losing other states
   const updateUrlParam = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
     if (value) {
@@ -87,7 +267,6 @@ export const Shop: React.FC = () => {
     } else {
       newParams.delete(key);
     }
-    // Always reset page to 1 when changing filters
     if (key !== 'page') {
       newParams.delete('page');
     }
@@ -100,181 +279,79 @@ export const Shop: React.FC = () => {
   };
 
   const totalPages = Math.ceil(totalProducts / limit) || 1;
+  const hasActiveFilters = !!(activeCategory || searchQuery || minPrice || maxPrice || activeMaterial);
+
+  const filterProps = {
+    searchQuery,
+    activeCategory,
+    categories,
+    minPrice,
+    maxPrice,
+    activeMaterial,
+    searchParams,
+    updateUrlParam,
+    setSearchParams,
+  };
 
   return (
-    <div id="shop-page" className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-10 font-sans">
-      
-      {/* Page Header */}
-      <div className="border-b border-gold-200 pb-8 mb-8 text-center sm:text-left space-y-3">
-        <h1 className="text-3xl sm:text-5xl font-light tracking-wide">The Salon Collection</h1>
-        <p className="text-xs sm:text-sm text-gray-500 font-light max-w-2xl leading-relaxed">
-          Exquisite custom jewels masterfully configured across metals, materials, and stone cuts. Utilize our filters below to narrow your selection.
+    <div id="shop-page" className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-12 font-sans bg-white text-ink">
+      <div className="border-b border-line pb-8 mb-8 text-center sm:text-left space-y-3">
+        <p className="section-eyebrow">Curated for you</p>
+        <h1 className="text-3xl sm:text-5xl font-serif font-light tracking-wide text-ink">
+          The Salon Collection
+        </h1>
+        <p className="text-xs sm:text-sm text-muted font-light max-w-2xl leading-relaxed">
+          Exquisite custom jewels masterfully configured across metals, materials, and stone cuts.
+          Utilize our filters below to narrow your selection.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] gap-6 xl:gap-8">
-        
-        {/* 1. Filter Sidebar (Desktop) */}
-        <aside id="desktop-filters" className="hidden lg:block space-y-8 sticky top-32 h-fit">
-          <div className="flex justify-between items-center border-b border-gold-200 pb-4">
-            <h3 className="text-xs uppercase tracking-widest font-semibold text-[#1A1A1A] flex items-center gap-2">
-              <SlidersHorizontal size={14} className="text-gold-500" />
-              Filter Catalog
-            </h3>
-            {(activeCategory || searchQuery || minPrice || maxPrice || activeMaterial) && (
-              <button
-                onClick={handleClearFilters}
-                className="text-[0.65rem] uppercase tracking-widest text-gold-600 hover:text-gold-800 font-semibold border-b border-gold-300"
-              >
-                Clear All
-              </button>
-            )}
-          </div>
-
-          {/* Search Box inside Sidebar */}
-          <div className="space-y-2.5">
-            <label className="text-xs tracking-wider uppercase text-gray-500 block">Search Keyword</label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search name, SKU..."
-                value={searchQuery}
-                onChange={(e) => updateUrlParam('search', e.target.value)}
-                className="w-full text-xs bg-[#F9F6F2] border border-gold-200 py-2.5 px-3 pr-8 rounded-sm focus:outline-none focus:border-gold-500 text-[#1A1A1A] font-light"
-              />
-              <Search size={14} className="absolute right-2.5 top-3 text-gray-400" />
-            </div>
-          </div>
-
-          {/* Categories Filter */}
-          <div className="space-y-3">
-            <label className="text-xs tracking-wider uppercase text-gray-500 block">Category</label>
-            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-2">
-              <button
-                onClick={() => updateUrlParam('category', '')}
-                className={`w-full text-left text-xs uppercase py-1 tracking-wider block transition-colors ${
-                  !activeCategory ? 'text-gold-500 font-bold' : 'text-gray-500 hover:text-gold-500'
-                }`}
-              >
-                All Categories
-              </button>
-              {categories.map((cat) => (
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr] gap-6 xl:gap-8">
+        <aside id="desktop-filters" className="hidden lg:block sticky top-28 h-fit">
+          <div className="bg-white border border-line rounded-xl luxury-shadow p-5 space-y-6">
+            <div className="flex justify-between items-center border-b border-line pb-4">
+              <h3 className="text-xs uppercase tracking-widest font-semibold text-ink flex items-center gap-2">
+                <SlidersHorizontal size={14} className="text-brand" />
+                Filter Catalog
+              </h3>
+              {hasActiveFilters && (
                 <button
-                  key={cat._id}
-                  onClick={() => updateUrlParam('category', cat.slug)}
-                  className={`w-full text-left text-xs uppercase py-1 tracking-wider block transition-colors ${
-                    activeCategory === cat.slug || activeCategory === cat._id
-                      ? 'text-gold-500 font-bold'
-                      : 'text-gray-500 hover:text-gold-500'
-                  }`}
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="text-[0.65rem] uppercase tracking-widest text-brand-dark hover:text-brand-dark font-semibold border-b border-brand/30"
                 >
-                  {cat.name}
+                  Clear All
                 </button>
-              ))}
+              )}
             </div>
-          </div>
-
-          {/* Price Range Filter */}
-          <div className="space-y-3">
-            <label className="text-xs tracking-wider uppercase text-gray-500 block">Price Range ($)</label>
-            <div className="grid grid-cols-2 gap-3 items-center">
-              <input
-                type="number"
-                placeholder="Min"
-                value={minPrice}
-                onChange={(e) => updateUrlParam('minPrice', e.target.value)}
-                className="w-full text-xs bg-[#F9F6F2] border border-gold-200 py-2 px-2.5 rounded-sm focus:outline-none focus:border-gold-500 text-[#1A1A1A] font-mono"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={maxPrice}
-                onChange={(e) => updateUrlParam('maxPrice', e.target.value)}
-                className="w-full text-xs bg-[#F9F6F2] border border-gold-200 py-2 px-2.5 rounded-sm focus:outline-none focus:border-gold-500 text-[#1A1A1A] font-mono"
-              />
-            </div>
-            {/* Price presets */}
-            <div className="flex flex-wrap gap-1.5 pt-1.5">
-              {['0-1500', '1500-3000', '3000-5000', '5000+'].map((range) => {
-                const parts = range.split('-');
-                const min = parts[0];
-                const max = parts[1] || '';
-                const isSelected = minPrice === min && maxPrice === max;
-                return (
-                  <button
-                    key={range}
-                    onClick={() => {
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.set('minPrice', min);
-                      if (max) newParams.set('maxPrice', max);
-                      else newParams.delete('maxPrice');
-                      newParams.delete('page');
-                      setSearchParams(newParams);
-                    }}
-                    className={`text-[0.65rem] px-2 py-1 uppercase rounded-sm border transition-colors ${
-                      isSelected ? 'bg-gold-500 text-white border-gold-500' : 'bg-[#FDFCFB] text-gray-500 border-gold-200 hover:border-gold-400'
-                    }`}
-                  >
-                    ${range}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Materials Filter */}
-          <div className="space-y-3">
-            <label className="text-xs tracking-wider uppercase text-gray-500 block">Metal / Material</label>
-            <div className="space-y-1.5">
-              <button
-                onClick={() => updateUrlParam('material', '')}
-                className={`w-full text-left text-xs uppercase py-1 tracking-wider block transition-colors ${
-                  !activeMaterial ? 'text-gold-500 font-bold' : 'text-gray-500 hover:text-[#C5A059]'
-                }`}
-              >
-                All Metals
-              </button>
-              {MATERIALS_PRESETS.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => updateUrlParam('material', m)}
-                  className={`w-full text-left text-xs uppercase py-1 tracking-wider block transition-colors ${
-                    activeMaterial === m ? 'text-gold-500 font-bold' : 'text-gray-500 hover:text-gold-500'
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
+            <FilterPanel {...filterProps} />
           </div>
         </aside>
 
-        {/* 2. Main Product Catalog Grid & Controllers */}
-        <section id="catalog-grid-area" className="min-w-0 space-y-8">
-          
-          {/* Grid Toolbar Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center bg-[#F9F6F2] border border-gold-200 p-4 gap-4 rounded-sm">
-            <span className="text-xs text-gray-500 font-light order-2 sm:order-1">
-              Showing <span className="font-semibold text-gray-800">{products.length}</span> of <span className="font-semibold text-gray-800">{totalProducts}</span> exquisite designs
+        <section id="catalog-grid-area" className="min-w-0 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center bg-white border border-line p-4 gap-4 rounded-xl luxury-shadow">
+            <span className="text-xs text-muted font-light order-2 sm:order-1">
+              Showing{' '}
+              <span className="font-semibold text-ink">{products.length}</span> of{' '}
+              <span className="font-semibold text-ink">{totalProducts}</span> exquisite designs
             </span>
- 
+
             <div className="flex items-center space-x-3 w-full sm:w-auto order-1 sm:order-2 justify-end">
-              {/* Mobile Filter Button */}
               <button
+                type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className="lg:hidden flex items-center space-x-2 text-xs uppercase tracking-widest text-gray-700 bg-[#FDFCFB] border border-gold-200 px-3 py-2 rounded-sm hover:border-gold-500"
+                className="lg:hidden flex items-center space-x-2 text-xs uppercase tracking-widest text-ink bg-white border border-line px-3 py-2 rounded-xl hover:border-brand"
               >
                 <SlidersHorizontal size={12} />
                 <span>Filters</span>
               </button>
- 
-              {/* Sort Dropdown */}
+
               <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <ArrowUpDown size={12} className="text-gold-500 flex-shrink-0" />
+                <ArrowUpDown size={12} className="text-brand flex-shrink-0" />
                 <select
                   value={activeSort}
                   onChange={(e) => updateUrlParam('sort', e.target.value)}
-                  className="bg-[#FDFCFB] border border-gold-200 text-xs px-2.5 py-2 focus:outline-none focus:border-gold-500 text-gray-700 tracking-wider rounded-sm"
+                  className="bg-white border border-line text-xs px-2.5 py-2 focus:outline-none focus:border-brand text-ink tracking-wider rounded-xl w-full sm:w-auto"
                 >
                   <option value="newest">Sort: Newest</option>
                   <option value="featured">Sort: Featured</option>
@@ -284,71 +361,82 @@ export const Shop: React.FC = () => {
               </div>
             </div>
           </div>
- 
-          {/* Active Filter Badges */}
-          {(activeCategory || searchQuery || minPrice || maxPrice || activeMaterial) && (
+
+          {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[0.65rem] uppercase tracking-widest text-gray-400">Active filters:</span>
+              <span className="text-[0.65rem] uppercase tracking-widest text-muted">Active filters:</span>
               {activeCategory && (
-                <span className="text-[0.65rem] bg-gold-100 border border-gold-200 px-2.5 py-1 text-gold-800 rounded-full flex items-center gap-1">
+                <span className="text-[0.65rem] bg-brand-soft border border-line px-2.5 py-1 text-brand-dark rounded-full flex items-center gap-1.5">
                   Category: {activeCategory}
-                  <button onClick={() => updateUrlParam('category', '')}><X size={10} /></button>
+                  <button type="button" onClick={() => updateUrlParam('category', '')} aria-label="Remove category">
+                    <X size={10} />
+                  </button>
                 </span>
               )}
               {searchQuery && (
-                <span className="text-[0.65rem] bg-gold-100 border border-gold-200 px-2.5 py-1 text-gold-800 rounded-full flex items-center gap-1">
+                <span className="text-[0.65rem] bg-brand-soft border border-line px-2.5 py-1 text-brand-dark rounded-full flex items-center gap-1.5">
                   Keyword: {searchQuery}
-                  <button onClick={() => updateUrlParam('search', '')}><X size={10} /></button>
+                  <button type="button" onClick={() => updateUrlParam('search', '')} aria-label="Remove search">
+                    <X size={10} />
+                  </button>
                 </span>
               )}
               {(minPrice || maxPrice) && (
-                <span className="text-[0.65rem] bg-gold-100 border border-gold-200 px-2.5 py-1 text-gold-800 rounded-full flex items-center gap-1">
-                  Price: ${minPrice || '0'} - ${maxPrice || '&infin;'}
-                  <button onClick={() => {
-                    const newParams = new URLSearchParams(searchParams);
-                    newParams.delete('minPrice');
-                    newParams.delete('maxPrice');
-                    setSearchParams(newParams);
-                  }}><X size={10} /></button>
+                <span className="text-[0.65rem] bg-brand-soft border border-line px-2.5 py-1 text-brand-dark rounded-full flex items-center gap-1.5">
+                  Price: ₹{minPrice || '0'} – {maxPrice || '∞'}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete('minPrice');
+                      newParams.delete('maxPrice');
+                      setSearchParams(newParams);
+                    }}
+                    aria-label="Remove price"
+                  >
+                    <X size={10} />
+                  </button>
                 </span>
               )}
               {activeMaterial && (
-                <span className="text-[0.65rem] bg-gold-100 border border-gold-200 px-2.5 py-1 text-gold-800 rounded-full flex items-center gap-1">
+                <span className="text-[0.65rem] bg-brand-soft border border-line px-2.5 py-1 text-brand-dark rounded-full flex items-center gap-1.5">
                   Metal: {activeMaterial}
-                  <button onClick={() => updateUrlParam('material', '')}><X size={10} /></button>
+                  <button type="button" onClick={() => updateUrlParam('material', '')} aria-label="Remove material">
+                    <X size={10} />
+                  </button>
                 </span>
               )}
             </div>
           )}
- 
-          {/* Products Grid */}
+
           {loading ? (
-            <div className="text-center py-20 text-gray-400 text-xs">Awaiting inventory delivery...</div>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-5">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <ProductSkeleton key={i} />
+              ))}
+            </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-20 space-y-4">
-              <p className="text-sm font-light text-gray-500">No matching luxury items were found in our catalog.</p>
-              <button
-                onClick={handleClearFilters}
-                className="bg-[#1A1A1A] text-white px-6 py-2.5 text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-white transition-all rounded-sm"
-              >
+            <div className="text-center py-20 space-y-5 bg-white border border-line rounded-xl luxury-shadow">
+              <p className="text-sm font-light text-muted">No matching luxury items were found in our catalog.</p>
+              <button type="button" onClick={handleClearFilters} className="btn-primary">
                 Reset Filter Catalog
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-5">
               {products.map((prod) => (
                 <ProductCard key={prod._id} product={prod} />
               ))}
             </div>
           )}
- 
-          {/* Pagination Controls */}
+
           {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-2 pt-10 border-t border-gold-200">
+            <div className="flex justify-center items-center space-x-2 pt-10 border-t border-line">
               <button
+                type="button"
                 onClick={() => updateUrlParam('page', String(activePage - 1))}
                 disabled={activePage <= 1}
-                className="p-2 border border-gold-200 rounded-sm hover:bg-gold-100 text-gray-500 disabled:opacity-40 transition-colors"
+                className="p-2 border border-line rounded-xl hover:bg-brand-soft text-muted disabled:opacity-40 transition-colors"
                 title="Previous Page"
               >
                 <ChevronLeft size={16} />
@@ -357,12 +445,13 @@ export const Shop: React.FC = () => {
                 const pageNum = idx + 1;
                 return (
                   <button
+                    type="button"
                     key={pageNum}
                     onClick={() => updateUrlParam('page', String(pageNum))}
-                    className={`px-3 py-1.5 text-xs font-mono rounded-sm transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-mono rounded-xl transition-colors ${
                       activePage === pageNum
-                        ? 'bg-[#1A1A1A] text-white font-bold'
-                        : 'border border-gold-200 hover:bg-gold-100 text-gray-600'
+                        ? 'bg-ink text-white font-bold'
+                        : 'border border-line hover:bg-brand-soft text-muted'
                     }`}
                   >
                     {pageNum}
@@ -370,9 +459,10 @@ export const Shop: React.FC = () => {
                 );
               })}
               <button
+                type="button"
                 onClick={() => updateUrlParam('page', String(activePage + 1))}
                 disabled={activePage >= totalPages}
-                className="p-2 border border-gold-200 rounded-sm hover:bg-gold-100 text-gray-500 disabled:opacity-40 transition-colors"
+                className="p-2 border border-line rounded-xl hover:bg-brand-soft text-muted disabled:opacity-40 transition-colors"
                 title="Next Page"
               >
                 <ChevronRight size={16} />
@@ -382,139 +472,42 @@ export const Shop: React.FC = () => {
         </section>
       </div>
 
-      {/* 3. Mobile Filter Drawer */}
       {isMobileFilterOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-[#11100e]/40 backdrop-blur-xs"
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={() => setIsMobileFilterOpen(false)}
           />
 
-          <div className="relative w-screen max-w-sm bg-[#FDFCFB] shadow-xl flex flex-col h-full ml-auto">
-            <div className="px-5 py-4 border-b border-gold-200 flex justify-between items-center bg-[#F9F6F2]">
-              <h3 className="text-xs uppercase tracking-widest font-semibold text-[#1A1A1A]">
-                Filter Catalog
-              </h3>
+          <div className="relative w-screen max-w-sm bg-white shadow-xl flex flex-col h-full ml-auto">
+            <div className="px-5 py-4 border-b border-line flex justify-between items-center bg-white">
+              <h3 className="text-xs uppercase tracking-widest font-semibold text-ink">Filter Catalog</h3>
               <button
+                type="button"
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="text-muted hover:text-ink p-1"
+                aria-label="Close filters"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Search */}
-              <div className="space-y-2.5">
-                <label className="text-xs tracking-wider uppercase text-gray-500 block">Keyword search</label>
-                <input
-                  type="text"
-                  placeholder="Search name, SKU..."
-                  value={searchQuery}
-                  onChange={(e) => updateUrlParam('search', e.target.value)}
-                  className="w-full text-xs bg-[#F9F6F2] border border-gold-200 py-2.5 px-3 rounded-sm focus:outline-none focus:border-gold-500 text-[#1A1A1A]"
-                />
-              </div>
-
-              {/* Categories */}
-              <div className="space-y-3">
-                <label className="text-xs tracking-wider uppercase text-gray-500 block">Category</label>
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      updateUrlParam('category', '');
-                      setIsMobileFilterOpen(false);
-                    }}
-                    className={`w-full text-left text-xs uppercase py-1.5 block ${
-                      !activeCategory ? 'text-gold-500 font-bold' : 'text-gray-500'
-                    }`}
-                  >
-                    All Categories
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat._id}
-                      onClick={() => {
-                        updateUrlParam('category', cat.slug);
-                        setIsMobileFilterOpen(false);
-                      }}
-                      className={`w-full text-left text-xs uppercase py-1.5 block ${
-                        activeCategory === cat.slug || activeCategory === cat._id
-                          ? 'text-gold-500 font-bold'
-                          : 'text-gray-500'
-                      }`}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price range */}
-              <div className="space-y-3">
-                <label className="text-xs tracking-wider uppercase text-gray-500 block">Price Range ($)</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={minPrice}
-                    onChange={(e) => updateUrlParam('minPrice', e.target.value)}
-                    className="w-full text-xs bg-[#F9F6F2] border border-gold-200 py-2 px-2 rounded-sm text-[#1A1A1A]"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={maxPrice}
-                    onChange={(e) => updateUrlParam('maxPrice', e.target.value)}
-                    className="w-full text-xs bg-[#F9F6F2] border border-gold-200 py-2 px-2 rounded-sm text-[#1A1A1A]"
-                  />
-                </div>
-              </div>
-
-              {/* Material */}
-              <div className="space-y-3">
-                <label className="text-xs tracking-wider uppercase text-gray-500 block">Metal / Material</label>
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      updateUrlParam('material', '');
-                      setIsMobileFilterOpen(false);
-                    }}
-                    className={`w-full text-left text-xs uppercase py-1.5 block ${
-                      !activeMaterial ? 'text-gold-500 font-bold' : 'text-gray-500'
-                    }`}
-                  >
-                    All Metals
-                  </button>
-                  {MATERIALS_PRESETS.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => {
-                        updateUrlParam('material', m);
-                        setIsMobileFilterOpen(false);
-                      }}
-                      className={`w-full text-left text-xs uppercase py-1.5 block ${
-                        activeMaterial === m ? 'text-gold-500 font-bold' : 'text-gray-500'
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <FilterPanel
+                {...filterProps}
+                onCategoryPick={() => setIsMobileFilterOpen(false)}
+                onMaterialPick={() => setIsMobileFilterOpen(false)}
+              />
             </div>
 
-            <div className="p-4 border-t border-gold-200 bg-[#F9F6F2] flex gap-3">
-              <button
-                onClick={handleClearFilters}
-                className="w-1/2 border border-gold-300 text-[#1A1A1A] text-xs uppercase tracking-widest py-3 hover:bg-gold-100 rounded-sm font-semibold"
-              >
+            <div className="p-4 border-t border-line bg-white flex gap-3">
+              <button type="button" onClick={handleClearFilters} className="w-1/2 btn-secondary !py-3">
                 Reset
               </button>
               <button
+                type="button"
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="w-1/2 bg-[#1A1A1A] text-white text-xs uppercase tracking-widest py-3 hover:bg-gold-500 hover:text-white rounded-sm font-semibold transition-colors"
+                className="w-1/2 btn-primary !py-3"
               >
                 Apply
               </button>

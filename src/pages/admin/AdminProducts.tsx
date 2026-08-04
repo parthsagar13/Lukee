@@ -274,12 +274,12 @@ export const AdminProducts: React.FC = () => {
       {/* Page Title & Add Button */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gold-100 pb-5">
         <div>
-          <span className="text-[0.65rem] tracking-[0.3em] uppercase text-gold-600 block font-light">Inventory Control</span>
+          <span className="text-[0.65rem] tracking-[0.3em] uppercase text-brand-dark block font-light">Inventory Control</span>
           <h1 className="font-serif text-2xl sm:text-3xl font-light text-gray-800">Products Catalog</h1>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest font-semibold px-4 py-2.5 hover:bg-gold-500 hover:text-white transition-all rounded-sm flex items-center gap-2"
+          className="bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest font-semibold px-4 py-2.5 hover:bg-brand hover:text-white transition-all rounded-sm flex items-center gap-2"
         >
           <Plus size={14} />
           <span>New Catalog Item</span>
@@ -295,7 +295,7 @@ export const AdminProducts: React.FC = () => {
             placeholder="Search name, SKU, material..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs bg-white border border-gold-200 py-2 pl-8 pr-3 rounded-sm focus:outline-none focus:border-gold-500 text-gray-700"
+            className="w-full text-xs bg-white border border-line py-2 pl-8 pr-3 rounded-sm focus:outline-none focus:border-brand text-gray-700"
           />
           <Search size={14} className="absolute left-2.5 top-2.5 text-gray-400" />
         </div>
@@ -305,7 +305,7 @@ export const AdminProducts: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-white border border-gold-200 text-xs px-2.5 py-2 focus:outline-none focus:border-gold-500 text-gray-700 rounded-sm"
+            className="w-full bg-white border border-line text-xs px-2.5 py-2 focus:outline-none focus:border-brand text-gray-700 rounded-sm"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
@@ -323,7 +323,7 @@ export const AdminProducts: React.FC = () => {
       {loading ? (
         <div className="text-center py-10 text-gray-400 text-xs">Exhuming cases...</div>
       ) : filteredProducts.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-xs border border-dashed border-gold-200 rounded-sm">
+        <div className="text-center py-10 text-gray-400 text-xs border border-dashed border-line rounded-sm">
           No matching jewelry products found. Define a new item index.
         </div>
       ) : (
@@ -350,7 +350,7 @@ export const AdminProducts: React.FC = () => {
                   <tr key={p._id} className="hover:bg-gold-50/10 transition-colors">
                     {/* Preview */}
                     <td className="py-3 px-4 flex items-center space-x-3 min-w-[200px]">
-                      <div className="w-12 h-12 bg-[#faf9f6] border border-gray-100 flex-shrink-0 rounded-sm overflow-hidden flex items-center justify-center">
+                      <div className="w-12 h-12 bg-white border border-gray-100 flex-shrink-0 rounded-sm overflow-hidden flex items-center justify-center">
                         {p.images?.[0] ? (
                           <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -359,7 +359,7 @@ export const AdminProducts: React.FC = () => {
                       </div>
                       <div>
                         <span className="font-serif text-gray-800 text-xs sm:text-sm font-semibold line-clamp-1 block">{p.name}</span>
-                        <span className="text-[0.65rem] text-gold-600 uppercase font-light block">{catRef}</span>
+                        <span className="text-[0.65rem] text-brand-dark uppercase font-light block">{catRef}</span>
                       </div>
                     </td>
                     
@@ -376,7 +376,7 @@ export const AdminProducts: React.FC = () => {
                     <td className="py-3 px-4">
                       {isOnSale ? (
                         <div className="space-y-0.5">
-                          <span className="block font-mono text-gold-600 font-bold">${p.salePrice?.toLocaleString()}</span>
+                          <span className="block font-mono text-brand-dark font-bold">${p.salePrice?.toLocaleString()}</span>
                           <span className="block font-mono text-gray-400 line-through text-[0.65rem]">${p.price.toLocaleString()}</span>
                         </div>
                       ) : (
@@ -399,9 +399,9 @@ export const AdminProducts: React.FC = () => {
 
                     {/* Badges */}
                     <td className="py-3 px-4 space-y-0.5">
-                      {p.featured && <span className="inline-block bg-gold-500 text-white text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded-sm mr-1">Featured</span>}
+                      {p.featured && <span className="inline-block bg-brand text-white text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded-sm mr-1">Featured</span>}
                       {p.bestSeller && <span className="inline-block bg-[#1c1a17] text-gold-200 text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded-sm mr-1">Bestseller</span>}
-                      {p.newArrival && <span className="inline-block bg-gold-50 border border-gold-200 text-gold-800 text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded-sm">New</span>}
+                      {p.newArrival && <span className="inline-block bg-gold-50 border border-line text-brand-dark text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded-sm">New</span>}
                       {p.status === 'inactive' && <span className="inline-block bg-red-50 border border-red-100 text-red-700 text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded-sm block w-fit mt-1">Archived</span>}
                     </td>
 
@@ -409,14 +409,14 @@ export const AdminProducts: React.FC = () => {
                     <td className="py-3 px-4 text-right space-x-1.5 min-w-[100px]">
                       <button
                         onClick={() => handleOpenEdit(p)}
-                        className="p-1.5 border border-gold-200 text-gray-500 hover:text-gold-600 rounded-sm hover:bg-gold-50/20"
+                        className="p-1.5 border border-line text-gray-500 hover:text-brand-dark rounded-sm hover:bg-gold-50/20"
                         title="Edit Jewelry Product"
                       >
                         <Edit2 size={12} />
                       </button>
                       <button
                         onClick={() => handleDelete(p._id)}
-                        className="p-1.5 border border-gold-200 text-gray-400 hover:text-red-600 rounded-sm hover:bg-red-50/20"
+                        className="p-1.5 border border-line text-gray-400 hover:text-red-600 rounded-sm hover:bg-red-50/20"
                         title="Delete Product"
                       >
                         <Trash2 size={12} />
@@ -469,7 +469,7 @@ export const AdminProducts: React.FC = () => {
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. Elysian Diamond Solitaire"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                   />
                 </div>
                 <div className="space-y-2">
@@ -480,7 +480,7 @@ export const AdminProducts: React.FC = () => {
                     value={formSku}
                     onChange={(e) => setFormSku(e.target.value)}
                     placeholder="e.g. LK-RIN-10291"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-mono"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
                   />
                 </div>
               </div>
@@ -493,7 +493,7 @@ export const AdminProducts: React.FC = () => {
                   value={formShortDesc}
                   onChange={(e) => setFormShortDesc(e.target.value)}
                   placeholder="Exquisitely crafted engagement ring in brilliant 18k gold..."
-                  className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-light"
+                  className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-light"
                 />
               </div>
 
@@ -504,7 +504,7 @@ export const AdminProducts: React.FC = () => {
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                   placeholder="Tell the artisan narrative, detailed stone specifications, diamond carats, and polish notes..."
-                  className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 resize-none"
+                  className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 resize-none"
                 />
               </div>
 
@@ -514,7 +514,7 @@ export const AdminProducts: React.FC = () => {
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                  className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                 >
                   {categories.map((c) => (
                     <option key={c._id} value={c._id}>{c.name}</option>
@@ -529,7 +529,7 @@ export const AdminProducts: React.FC = () => {
                   <select
                     value={formMaterialIdx}
                     onChange={(e) => setFormMaterialIdx(e.target.value)}
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                   >
                     {MATERIALS_PRESETS.map((m, idx) => (
                       <option key={idx} value={idx}>{m.name} ({m.purity})</option>
@@ -545,7 +545,7 @@ export const AdminProducts: React.FC = () => {
                     required
                     value={formWeight}
                     onChange={(e) => setFormWeight(e.target.value)}
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-mono"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
                   />
                 </div>
               </div>
@@ -554,23 +554,23 @@ export const AdminProducts: React.FC = () => {
               {formMaterialIdx === 'custom' && (
                 <div className="grid grid-cols-2 gap-4 bg-gold-50/20 border border-gold-100 p-4 rounded-sm">
                   <div className="space-y-2">
-                    <label className="text-[0.65rem] tracking-wider uppercase text-gold-700 block font-medium">Custom Alloy name</label>
+                    <label className="text-[0.65rem] tracking-wider uppercase text-brand-dark block font-medium">Custom Alloy name</label>
                     <input
                       type="text"
                       value={formCustomMaterial}
                       onChange={(e) => setFormCustomMaterial(e.target.value)}
                       placeholder="e.g. Brushed Black Titanium"
-                      className="w-full text-xs bg-white border border-gold-200 py-2.5 px-3 focus:outline-none rounded-sm"
+                      className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[0.65rem] tracking-wider uppercase text-gold-700 block font-medium">Custom Alloy Purity index</label>
+                    <label className="text-[0.65rem] tracking-wider uppercase text-brand-dark block font-medium">Custom Alloy Purity index</label>
                     <input
                       type="text"
                       value={formCustomPurity}
                       onChange={(e) => setFormCustomPurity(e.target.value)}
                       placeholder="e.g. Titanium Grade 5"
-                      className="w-full text-xs bg-white border border-gold-200 py-2.5 px-3 focus:outline-none rounded-sm"
+                      className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
                     />
                   </div>
                 </div>
@@ -586,7 +586,7 @@ export const AdminProducts: React.FC = () => {
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
                     placeholder="e.g. 2400"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-mono"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
                   />
                 </div>
                 <div className="space-y-2">
@@ -596,7 +596,7 @@ export const AdminProducts: React.FC = () => {
                     value={formSalePrice}
                     onChange={(e) => setFormSalePrice(e.target.value)}
                     placeholder="e.g. 1950 (optional)"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-mono"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
                   />
                 </div>
                 <div className="space-y-2">
@@ -606,7 +606,7 @@ export const AdminProducts: React.FC = () => {
                     required
                     value={formStock}
                     onChange={(e) => setFormStock(e.target.value)}
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-mono"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
                   />
                 </div>
               </div>
@@ -614,11 +614,11 @@ export const AdminProducts: React.FC = () => {
               {/* Multiple Image URL Lists (Strictly entered via text input as mandated) */}
               <div className="space-y-3.5 border-t border-gold-100 pt-4">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-serif text-sm text-gold-700 font-medium">Pre-loaded Image URL Registry</h4>
+                  <h4 className="font-serif text-sm text-brand-dark font-medium">Pre-loaded Image URL Registry</h4>
                   <button
                     type="button"
                     onClick={handleAddImageUrl}
-                    className="text-[0.65rem] font-bold tracking-widest uppercase text-[#be903c] border-b border-gold-300 hover:text-[#aa7a30]"
+                    className="text-[0.65rem] font-bold tracking-widest uppercase text-[#be903c] border-b border-brand/30 hover:text-[#aa7a30]"
                   >
                     + Append URL Row
                   </button>
@@ -636,7 +636,7 @@ export const AdminProducts: React.FC = () => {
                         placeholder="https://images.unsplash.com/..."
                         value={imgUrl}
                         onChange={(e) => handleImageUrlChange(idx, e.target.value)}
-                        className="flex-1 text-xs bg-gray-50 border border-gold-200 py-2 px-3 rounded-sm text-gray-600 font-light"
+                        className="flex-1 text-xs bg-gray-50 border border-line py-2 px-3 rounded-sm text-gray-600 font-light"
                       />
                       {formImages.length > 1 && (
                         <button
@@ -661,7 +661,7 @@ export const AdminProducts: React.FC = () => {
                       type="checkbox"
                       checked={formFeatured}
                       onChange={(e) => setFormFeatured(e.target.checked)}
-                      className="rounded text-gold-500 focus:ring-gold-500 border-gold-300"
+                      className="rounded text-brand focus:ring-gold-500 border-brand/30"
                     />
                     <span>Featured Flag</span>
                   </label>
@@ -670,7 +670,7 @@ export const AdminProducts: React.FC = () => {
                       type="checkbox"
                       checked={formBestSeller}
                       onChange={(e) => setFormBestSeller(e.target.checked)}
-                      className="rounded text-gold-500 focus:ring-gold-500 border-gold-300"
+                      className="rounded text-brand focus:ring-gold-500 border-brand/30"
                     />
                     <span>Best Seller Flag</span>
                   </label>
@@ -679,7 +679,7 @@ export const AdminProducts: React.FC = () => {
                       type="checkbox"
                       checked={formNewArrival}
                       onChange={(e) => setFormNewArrival(e.target.checked)}
-                      className="rounded text-gold-500 focus:ring-gold-500 border-gold-300"
+                      className="rounded text-brand focus:ring-gold-500 border-brand/30"
                     />
                     <span>New Arrival Flag</span>
                   </label>
@@ -693,7 +693,7 @@ export const AdminProducts: React.FC = () => {
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value as any)}
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                   >
                     <option value="active">Active (Visible in Store)</option>
                     <option value="inactive">Archived (Vaulted)</option>
@@ -701,7 +701,7 @@ export const AdminProducts: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2 col-span-2 pt-2">
-                  <h4 className="font-serif text-sm text-gold-700 font-medium">SEO Identifiers</h4>
+                  <h4 className="font-serif text-sm text-brand-dark font-medium">SEO Identifiers</h4>
                 </div>
 
                 <div className="space-y-2 col-span-2">
@@ -711,7 +711,7 @@ export const AdminProducts: React.FC = () => {
                     value={formSeoTitle}
                     onChange={(e) => setFormSeoTitle(e.target.value)}
                     placeholder="Elysian Diamond Solitaire Ring in 18k White Gold | Lukee Jewels"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                   />
                 </div>
 
@@ -722,7 +722,7 @@ export const AdminProducts: React.FC = () => {
                     value={formSeoDesc}
                     onChange={(e) => setFormSeoDesc(e.target.value)}
                     placeholder="Bespoke engagement diamond ring in pristine condition. Kimberley Process certified..."
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 resize-none font-light"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 resize-none font-light"
                   />
                 </div>
               </div>
@@ -731,13 +731,13 @@ export const AdminProducts: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="w-1/2 border border-gold-300 text-gold-800 text-xs uppercase tracking-widest py-3 hover:bg-gold-50 rounded-sm"
+                  className="w-1/2 border border-brand/30 text-brand-dark text-xs uppercase tracking-widest py-3 hover:bg-gold-50 rounded-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest py-3 hover:bg-gold-500 hover:text-white transition-all rounded-sm font-semibold"
+                  className="w-1/2 bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest py-3 hover:bg-brand hover:text-white transition-all rounded-sm font-semibold"
                 >
                   Confirm Specifications
                 </button>

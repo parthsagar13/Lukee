@@ -46,19 +46,19 @@ export const AdminOrders: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="font-serif text-2xl text-[#1A1A1A]">Orders & Payments</h1>
-        <p className="text-xs uppercase tracking-widest text-gold-500 mt-1">Commerce ledger</p>
+        <p className="text-xs uppercase tracking-widest text-brand mt-1">Commerce ledger</p>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-gold-200 p-4">
+        <div className="bg-white border border-line p-4">
           <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Orders</p>
           <p className="font-mono text-2xl mt-1">{orders.length}</p>
         </div>
-        <div className="bg-white border border-gold-200 p-4">
+        <div className="bg-white border border-line p-4">
           <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Paid Revenue</p>
-          <p className="font-mono text-2xl mt-1 text-gold-500">{formatInr(paidRevenue)}</p>
+          <p className="font-mono text-2xl mt-1 text-brand">{formatInr(paidRevenue)}</p>
         </div>
-        <div className="bg-white border border-gold-200 p-4">
+        <div className="bg-white border border-line p-4">
           <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Failed Payments</p>
           <p className="font-mono text-2xl mt-1 text-red-500">{failedCount}</p>
         </div>
@@ -69,7 +69,7 @@ export const AdminOrders: React.FC = () => {
           type="button"
           onClick={() => setTab('orders')}
           className={`px-4 py-2 text-xs uppercase tracking-widest ${
-            tab === 'orders' ? 'bg-[#1A1A1A] text-white' : 'border border-gold-200'
+            tab === 'orders' ? 'bg-[#1A1A1A] text-white' : 'border border-line'
           }`}
         >
           Orders
@@ -78,7 +78,7 @@ export const AdminOrders: React.FC = () => {
           type="button"
           onClick={() => setTab('payments')}
           className={`px-4 py-2 text-xs uppercase tracking-widest ${
-            tab === 'payments' ? 'bg-[#1A1A1A] text-white' : 'border border-gold-200'
+            tab === 'payments' ? 'bg-[#1A1A1A] text-white' : 'border border-line'
           }`}
         >
           Payments
@@ -89,7 +89,7 @@ export const AdminOrders: React.FC = () => {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!loading && tab === 'orders' && (
-        <div className="bg-white border border-gold-200 overflow-x-auto">
+        <div className="bg-white border border-line overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[0.65rem] uppercase tracking-widest text-gray-400 border-b">
@@ -107,7 +107,7 @@ export const AdminOrders: React.FC = () => {
                   <td className="p-3 font-mono text-xs">
                     <Link
                       to={`/order-success/${o._id}?email=${encodeURIComponent(o.shippingAddress.email)}`}
-                      className="text-gold-500 hover:underline"
+                      className="text-brand hover:underline"
                       target="_blank"
                     >
                       {o.invoiceNumber}
@@ -137,7 +137,7 @@ export const AdminOrders: React.FC = () => {
       )}
 
       {!loading && tab === 'payments' && (
-        <div className="bg-white border border-gold-200 overflow-x-auto">
+        <div className="bg-white border border-line overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[0.65rem] uppercase tracking-widest text-gray-400 border-b">

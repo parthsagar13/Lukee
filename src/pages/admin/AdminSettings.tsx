@@ -64,7 +64,7 @@ export const AdminSettings: React.FC = () => {
       
       {/* Title */}
       <div className="border-b border-gold-100 pb-5">
-        <span className="text-[0.65rem] tracking-[0.3em] uppercase text-gold-600 block font-light">Atelier Preferences</span>
+        <span className="text-[0.65rem] tracking-[0.3em] uppercase text-brand-dark block font-light">Atelier Preferences</span>
         <h1 className="font-serif text-2xl sm:text-3xl font-light text-gray-800">System Settings</h1>
       </div>
 
@@ -76,7 +76,7 @@ export const AdminSettings: React.FC = () => {
           {/* DB card info */}
           <div className="bg-[#fcfbf9] border border-gold-100/40 p-6 rounded-sm space-y-4">
             <h3 className="font-serif text-sm uppercase tracking-wider text-gray-800 border-b border-gold-100 pb-2.5 flex items-center gap-2">
-              <Server size={14} className="text-gold-500" />
+              <Server size={14} className="text-brand" />
               Engine Diagnostics
             </h3>
 
@@ -100,7 +100,7 @@ export const AdminSettings: React.FC = () => {
                 <span className="text-[0.65rem] text-gray-400 uppercase tracking-wider block">Collection Schema Classes</span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {dbStatus.collections.map((col) => (
-                    <span key={col} className="bg-white border border-gold-200 text-gold-700 font-mono text-[0.65rem] px-2 py-0.5 rounded-sm">
+                    <span key={col} className="bg-white border border-line text-brand-dark font-mono text-[0.65rem] px-2 py-0.5 rounded-sm">
                       {col}
                     </span>
                   ))}
@@ -115,8 +115,8 @@ export const AdminSettings: React.FC = () => {
           </div>
 
           {/* Secure Admin details info */}
-          <div className="bg-gold-50/20 border border-gold-200/50 p-6 rounded-sm space-y-2">
-            <h4 className="text-xs uppercase tracking-wider text-gold-800 font-medium flex items-center gap-1.5">
+          <div className="bg-gold-50/20 border border-line/50 p-6 rounded-sm space-y-2">
+            <h4 className="text-xs uppercase tracking-wider text-brand-dark font-medium flex items-center gap-1.5">
               <Shield size={12} />
               Identity Clearance
             </h4>
@@ -130,7 +130,7 @@ export const AdminSettings: React.FC = () => {
         {/* Right Side: Password change form (7 cols) */}
         <div className="md:col-span-7 bg-white border border-gold-100 p-8 shadow-xs rounded-sm space-y-6">
           <h3 className="font-serif text-lg text-gray-800 font-light uppercase tracking-wider text-xs flex items-center gap-2 border-b border-gray-100 pb-3">
-            <Key size={14} className="text-gold-500" />
+            <Key size={14} className="text-brand" />
             Control Key Rotation
           </h3>
 
@@ -155,7 +155,7 @@ export const AdminSettings: React.FC = () => {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
               />
             </div>
 
@@ -166,7 +166,7 @@ export const AdminSettings: React.FC = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
               />
             </div>
 
@@ -177,14 +177,14 @@ export const AdminSettings: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest font-semibold py-3.5 hover:bg-gold-500 hover:text-white transition-all duration-300 rounded-sm disabled:opacity-75"
+              className="w-full bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest font-semibold py-3.5 hover:bg-brand hover:text-white transition-all duration-300 rounded-sm disabled:opacity-75"
             >
               {submitting ? 'Encrypting & Dispensing...' : 'Rotate Security Credentials'}
             </button>

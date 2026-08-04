@@ -1,36 +1,52 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export const Terms: React.FC = () => {
   return (
-    <div id="terms-page" className="max-w-4xl mx-auto px-4 sm:px-6 py-16 font-sans space-y-8 leading-relaxed text-gray-600 font-light text-xs sm:text-sm">
-      <div className="text-center space-y-2 border-b border-gold-200 pb-6 mb-10">
-        <h1 className="font-serif text-3xl sm:text-4xl text-[#1A1A1A] font-semibold">Terms & Conditions</h1>
-        <p className="text-[0.65rem] text-gray-400 uppercase tracking-widest">Effective Date: July 3, 2026</p>
-      </div>
+    <div className="bg-white min-h-[60vh]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 md:py-24 font-sans space-y-8">
+        <div className="text-center space-y-3 border-b border-line pb-8 mb-4">
+          <p className="section-eyebrow">Legal</p>
+          <h1 className="font-serif text-3xl sm:text-5xl text-ink font-light">Terms & Conditions</h1>
+          <p className="text-[0.65rem] text-muted uppercase tracking-[0.2em]">Effective Date: July 3, 2026</p>
+        </div>
 
-      <p>
-        These terms govern the use of Lukee Jewels boutiques and virtual shopping networks. By completing luxury jewelry reservations or browsing catalog indices, you agree to these bounds.
-      </p>
-
-      <div className="space-y-4">
-        <h3 className="font-serif text-lg text-[#1A1A1A] font-semibold">1. Reservation Integrity</h3>
-        <p>
-          Products listed in our catalog represent finite hand-forged metals. We update inventory records to match boutique vaults; however, if two reservations occur simultaneously, we resolve fulfillment chronologically. Price listings are verified but can be adjusted if raw precious metals undergo sudden massive exchange fluctuations.
+        <p className="text-sm text-muted leading-relaxed">
+          These terms govern the use of Lukee Jewels boutiques and online shopping experiences. By browsing or completing a purchase, you agree to these bounds.
         </p>
-      </div>
 
-      <div className="space-y-4">
-        <h3 className="font-serif text-lg text-[#1A1A1A] font-semibold">2. Shipping and Liability</h3>
-        <p>
-          All dispatched shipments are fully insured against theft, loss, or damage in transit. Risk transfers to the buyer upon receipt signatures. All packages are double-boxed in high-security neutral cardboard to guarantee anonymous delivery.
-        </p>
-      </div>
+        {[
+          {
+            t: '1. Reservation Integrity',
+            b: 'Products listed represent finite handcrafted inventory. If two reservations occur simultaneously, we resolve fulfillment chronologically. Prices may adjust if precious-metal markets move materially before confirmation.',
+          },
+          {
+            t: '2. Shipping and Liability',
+            b: 'All dispatched shipments are fully insured against theft, loss, or damage in transit. Risk transfers to the buyer upon receipt. Packages use discreet outer packaging for privacy.',
+          },
+          {
+            t: '3. Gemstone Certification',
+            b: 'Diamond and fine jewellery pieces ship with authenticity documentation aligned to trusted lab standards where applicable.',
+          },
+          {
+            t: '4. Exchange Policy',
+            b: 'Eligible pieces may be exchanged toward a new Lukee design under our lifetime exchange programme. Custom or engraved items may have limited eligibility.',
+          },
+        ].map((s) => (
+          <div key={s.t} className="space-y-3">
+            <h3 className="font-serif text-xl text-ink font-light">{s.t}</h3>
+            <p className="text-sm text-muted leading-relaxed">{s.b}</p>
+          </div>
+        ))}
 
-      <div className="space-y-4">
-        <h3 className="font-serif text-lg text-[#1A1A1A] font-semibold">3. Gemstone Certification</h3>
-        <p>
-          Jewelry descriptions detail metal weights, karat numbers, and diamond clarity with maximum precision. Variations in natural minerals can include micro inclusions that define gemstone originality. Certified valuations are furnished for reference only and represent objective gemstone grading criteria at the time of examination.
-        </p>
+        <div className="pt-6 flex flex-wrap gap-3">
+          <Link to="/shop" className="btn-primary">
+            Continue Shopping
+          </Link>
+          <Link to="/privacy-policy" className="btn-secondary">
+            Privacy Policy
+          </Link>
+        </div>
       </div>
     </div>
   );
