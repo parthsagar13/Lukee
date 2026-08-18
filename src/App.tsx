@@ -5,6 +5,7 @@ import { CartProvider } from './contexts/CartContext.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 import { CartDrawer } from './components/CartDrawer.js';
+import { ContactWidget } from './components/ContactWidget.js';
 
 // Public User-Facing Pages
 import { Home } from './pages/Home.js';
@@ -39,6 +40,7 @@ const ClientLayout: React.FC = () => {
       </div>
       <Footer />
       <CartDrawer />
+      <ContactWidget />
     </div>
   );
 };
