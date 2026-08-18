@@ -15,7 +15,7 @@ import {
   Instagram,
   Mail,
 } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { Product, Category } from '../types.js';
 import { ProductCard } from '../components/ProductCard.js';
 import { HeroBanner } from '../components/HeroBanner.js';
@@ -168,10 +168,8 @@ export const Home: React.FC = () => {
   const [email, setEmail] = useState('');
   const [newsletterDone, setNewsletterDone] = useState(false);
   const [activeCollection, setActiveCollection] = useState(3);
-  const [collectionDirection, setCollectionDirection] = useState<1 | -1>(1);
   const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
   const [activeFeed, setActiveFeed] = useState(2);
-  const [feedDirection, setFeedDirection] = useState<1 | -1>(1);
   const [feedSwipeStartX, setFeedSwipeStartX] = useState<number | null>(null);
   const categorySliderRef = useRef<HTMLDivElement>(null);
   const collectionsSliderRef = useRef<HTMLDivElement>(null);
@@ -186,7 +184,6 @@ export const Home: React.FC = () => {
   };
 
   const scrollCollections = (dir: 'prev' | 'next') => {
-    setCollectionDirection(dir === 'next' ? 1 : -1);
     setActiveCollection((prev) => {
       const next =
         dir === 'next'
@@ -217,7 +214,6 @@ export const Home: React.FC = () => {
   };
 
   const scrollFeed = (dir: 'prev' | 'next') => {
-    setFeedDirection(dir === 'next' ? 1 : -1);
     setActiveFeed((prev) => {
       const next =
         dir === 'next'
@@ -277,7 +273,6 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setFeedDirection(1);
       setActiveFeed((prev) => (prev + 1) % FEED_SHOWCASE.length);
     }, 3200);
 
@@ -369,47 +364,36 @@ export const Home: React.FC = () => {
             onTouchStart={(e) => handleCollectionSwipeStart(e.touches[0].clientX)}
             onTouchEnd={(e) => handleCollectionSwipeEnd(e.changedTouches[0].clientX)}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeCollection}
-                initial={{ opacity: 0, x: collectionDirection > 0 ? 90 : -90 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: collectionDirection > 0 ? -90 : 90 }}
-                transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-end justify-center gap-[10px]"
-              >
-                {[-2, -1, 0, 1, 2].map((offset, slotIndex) => {
-                  const index =
-                    (activeCollection + offset + COLLECTIONS_SHOWCASE.length) %
-                    COLLECTIONS_SHOWCASE.length;
-                  const col = COLLECTIONS_SHOWCASE[index];
-                  const slot = COLLECTION_SLOT_LAYOUT[slotIndex];
+            <div className="flex items-end justify-center gap-[10px]">
+              {[-2, -1, 0, 1, 2].map((offset, slotIndex) => {
+                const index =
+                  (activeCollection + offset + COLLECTIONS_SHOWCASE.length) %
+                  COLLECTIONS_SHOWCASE.length;
+                const col = COLLECTIONS_SHOWCASE[index];
+                const slot = COLLECTION_SLOT_LAYOUT[slotIndex];
 
-                  return (
-                    <motion.div
-                      key={`${col.title}-${offset}`}
-                      animate={{
-                        opacity: slotIndex === 2 ? 1 : slotIndex === 1 || slotIndex === 3 ? 0.98 : 0.94,
-                        y: slot.y,
-                        scale: slot.scale,
-                      }}
-                      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                return (
+                  <motion.div
+                    key={col.title}
+                    layout
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ zIndex: 5 - Math.abs(slotIndex - 2), marginTop: slot.y }}
+                    className={`flex-shrink-0 ${slot.width} ${slot.height}`}
+                  >
+                    <Link
+                      to={col.to}
+                      className="group relative flex h-full w-full items-center justify-center overflow-hidden rounded-[10px] bg-[#091321] shadow-[0_0_20px_rgba(0,0,0,0.32)]"
                     >
-                      <Link
-                        to={col.to}
-                        className={`group relative flex items-center justify-center overflow-hidden rounded-[10px] bg-[#091321] shadow-[0_0_20px_rgba(0,0,0,0.32)] transition-all duration-500 ${slot.width} ${slot.height}`}
-                      >
-                        <img
-                          src={col.img}
-                          alt={col.title}
-                          className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
-                        />
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </AnimatePresence>
+                      <img
+                        src={col.img}
+                        alt={col.title}
+                        className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
+                      />
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
 
           <motion.div
@@ -894,48 +878,42 @@ export const Home: React.FC = () => {
             onTouchStart={(e) => handleFeedSwipeStart(e.touches[0].clientX)}
             onTouchEnd={(e) => handleFeedSwipeEnd(e.changedTouches[0].clientX)}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeFeed}
-                initial={{ opacity: 0, x: feedDirection > 0 ? 90 : -90 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: feedDirection > 0 ? -90 : 90 }}
-                transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-start justify-center gap-[10px] lg:gap-[14px]"
-              >
-                {[-2, -1, 0, 1, 2].map((offset, slotIndex) => {
-                  const index = (activeFeed + offset + FEED_SHOWCASE.length) % FEED_SHOWCASE.length;
-                  const src = FEED_SHOWCASE[index];
-                  const slot = FEED_SLOT_LAYOUT[slotIndex];
+            <div className="flex items-start justify-center gap-[10px] lg:gap-[14px]">
+              {[-2, -1, 0, 1, 2].map((offset, slotIndex) => {
+                const index = (activeFeed + offset + FEED_SHOWCASE.length) % FEED_SHOWCASE.length;
+                const src = FEED_SHOWCASE[index];
+                const slot = FEED_SLOT_LAYOUT[slotIndex];
 
-                  return (
-                    <motion.a
-                      key={`${src}-${offset}`}
-                      href="https://instagram.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      animate={{
-                        y: slot.y,
-                        rotate: slot.rotate,
-                        opacity: slotIndex === 2 ? 1 : 0.98,
-                      }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      className={`${slot.width} flex-shrink-0`}
+                return (
+                  <motion.a
+                    key={src}
+                    layout
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      zIndex: 5 - Math.abs(slotIndex - 2),
+                      marginTop: slot.y,
+                    }}
+                    className={`${slot.width} flex-shrink-0`}
+                  >
+                    <div
+                      className="rounded-[8px] bg-white p-[10px] shadow-[0_12px_30px_rgba(0,0,0,0.28)]"
+                      style={{ transform: `rotate(${slot.rotate}deg)` }}
                     >
-                      <div className="rounded-[8px] bg-white p-[10px] shadow-[0_12px_30px_rgba(0,0,0,0.28)]">
-                        <div className="rounded-[6px] bg-white">
-                          <img
-                            src={src}
-                            alt={`Feed slide ${index + 1}`}
-                            className="block w-full h-auto object-contain"
-                          />
-                        </div>
+                      <div className="rounded-[6px] bg-white">
+                        <img
+                          src={src}
+                          alt={`Feed slide ${index + 1}`}
+                          className="block w-full h-auto object-contain"
+                        />
                       </div>
-                    </motion.a>
-                  );
-                })}
-              </motion.div>
-            </AnimatePresence>
+                    </div>
+                  </motion.a>
+                );
+              })}
+            </div>
           </div>
 
           <div
