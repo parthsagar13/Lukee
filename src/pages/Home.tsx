@@ -14,6 +14,9 @@ import {
   Clock,
   Instagram,
   Mail,
+  Eye,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Product, Category } from '../types.js';
@@ -151,6 +154,18 @@ const FEED_SLOT_LAYOUT = [
   { width: 'w-[208px] lg:w-[240px]', y: 8, rotate: 0 },
 ] as const;
 
+const VIDEO_SHOWCASE = [
+  { src: '/home/videos/01.mp4', views: '12K', to: '/shop' },
+  { src: '/home/videos/02.mp4', views: '13K', to: '/shop' },
+  { src: '/home/videos/03.mp4', views: '49K', to: '/shop' },
+] as const;
+
+const VIDEO_SLOT_LAYOUT = [
+  { width: 'w-[160px] sm:w-[190px] lg:w-[220px]', scale: 0.92 },
+  { width: 'w-[230px] sm:w-[280px] lg:w-[330px]', scale: 1 },
+  { width: 'w-[160px] sm:w-[190px] lg:w-[220px]', scale: 0.92 },
+] as const;
+
 const ProductSkeleton: React.FC = () => (
   <div className="animate-pulse space-y-3">
     <div className="aspect-[4/5] bg-line/60 rounded-xl" />
@@ -171,10 +186,14 @@ export const Home: React.FC = () => {
   const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
   const [activeFeed, setActiveFeed] = useState(2);
   const [feedSwipeStartX, setFeedSwipeStartX] = useState<number | null>(null);
+  const [activeVideo, setActiveVideo] = useState(0);
+  const [videoMuted, setVideoMuted] = useState(true);
+  const [videoSwipeStartX, setVideoSwipeStartX] = useState<number | null>(null);
   const categorySliderRef = useRef<HTMLDivElement>(null);
   const collectionsSliderRef = useRef<HTMLDivElement>(null);
   const collectionItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const feedItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const scrollCategories = (dir: 'prev' | 'next') => {
     const el = categorySliderRef.current;
@@ -243,6 +262,27 @@ export const Home: React.FC = () => {
     setFeedSwipeStartX(null);
   };
 
+  const scrollVideos = (dir: 'prev' | 'next') => {
+    setActiveVideo((prev) =>
+      dir === 'next'
+        ? (prev + 1) % VIDEO_SHOWCASE.length
+        : (prev - 1 + VIDEO_SHOWCASE.length) % VIDEO_SHOWCASE.length
+    );
+  };
+
+  const handleVideoSwipeStart = (clientX: number) => {
+    setVideoSwipeStartX(clientX);
+  };
+
+  const handleVideoSwipeEnd = (clientX: number) => {
+    if (videoSwipeStartX === null) return;
+    const delta = clientX - videoSwipeStartX;
+    if (Math.abs(delta) > 50) {
+      scrollVideos(delta < 0 ? 'next' : 'prev');
+    }
+    setVideoSwipeStartX(null);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -278,6 +318,19 @@ export const Home: React.FC = () => {
 
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+      video.muted = videoMuted;
+      if (index === activeVideo) {
+        const playPromise = video.play();
+        if (playPromise) playPromise.catch(() => undefined);
+      } else {
+        video.pause();
+      }
+    });
+  }, [activeVideo, videoMuted]);
 
   const categoryCards =
     categories.length >= 4
@@ -466,7 +519,115 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Shop by Category — horizontal slider */}
+      {/* 4. Watch It Dazzle */}
+      <section className="relative overflow-hidden bg-black py-16 md:py-24">
+        <div className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-10 text-center font-serif text-[28px] font-medium tracking-[-0.01em] text-white sm:mb-14 sm:text-[36px] lg:text-[44px]"
+          >
+            Watch It Dazzle, Click to Own!
+          </motion.h2>
+
+          <div
+            className="relative mx-auto flex max-w-[980px] items-center justify-center"
+            onTouchStart={(e) => handleVideoSwipeStart(e.touches[0].clientX)}
+            onTouchEnd={(e) => handleVideoSwipeEnd(e.changedTouches[0].clientX)}
+          >
+            <button
+              type="button"
+              onClick={() => scrollVideos('prev')}
+              aria-label="Previous video"
+              className="absolute left-0 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition hover:scale-105 sm:left-2 lg:-left-2"
+            >
+              <ChevronLeft size={22} strokeWidth={2.25} />
+            </button>
+
+            <div className="flex items-center justify-center -space-x-10 sm:-space-x-14 lg:-space-x-16">
+              {VIDEO_SHOWCASE.map((item, index) => {
+                const offset =
+                  (index - activeVideo + VIDEO_SHOWCASE.length) % VIDEO_SHOWCASE.length;
+                const slotIndex = offset === 0 ? 1 : offset === 1 ? 2 : 0;
+                const slot = VIDEO_SLOT_LAYOUT[slotIndex];
+                const isCenter = slotIndex === 1;
+
+                return (
+                  <motion.div
+                    key={item.src}
+                    layout
+                    animate={{ scale: slot.scale }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      order: slotIndex,
+                      zIndex: isCenter ? 5 : 2,
+                    }}
+                    className={`relative flex-shrink-0 overflow-hidden rounded-[14px] bg-[#111] shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${slot.width} aspect-[9/16]`}
+                  >
+                    {isCenter ? (
+                      <Link
+                        to={item.to}
+                        className="absolute inset-0 z-[1]"
+                        aria-label="Shop this look"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className="absolute inset-0 z-[1]"
+                        aria-label="Play this video"
+                        onClick={() => setActiveVideo(index)}
+                      />
+                    )}
+
+                    <video
+                      ref={(el) => {
+                        videoRefs.current[index] = el;
+                      }}
+                      src={item.src}
+                      className="pointer-events-none h-full w-full object-cover"
+                      playsInline
+                      loop={!isCenter}
+                      muted={videoMuted}
+                      preload="metadata"
+                      onEnded={() => {
+                        if (isCenter) scrollVideos('next');
+                      }}
+                    />
+
+                    <div className="pointer-events-none absolute left-3 top-3 z-[2] inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-[2px]">
+                      <Eye size={13} strokeWidth={2} />
+                      <span>{item.views}</span>
+                    </div>
+
+                    {isCenter && (
+                      <button
+                        type="button"
+                        aria-label={videoMuted ? 'Unmute video' : 'Mute video'}
+                        onClick={() => setVideoMuted((prev) => !prev)}
+                        className="absolute right-3 top-3 z-[3] flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-[2px] transition hover:bg-black/60"
+                      >
+                        {videoMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                      </button>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => scrollVideos('next')}
+              aria-label="Next video"
+              className="absolute right-0 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition hover:scale-105 sm:right-2 lg:-right-2"
+            >
+              <ChevronRight size={22} strokeWidth={2.25} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Shop by Category — horizontal slider */}
       <section className="py-16 md:py-24 bg-white border-y border-line overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
