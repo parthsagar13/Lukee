@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
           <div className="col-span-2 lg:col-span-1 space-y-4">
             <Link to="/" aria-label="Lukee Jewels Home">
               <img
-                src="/lukee-logo.PNG"
+                src="/lukee-logo.png"
                 alt="Lukee Jewels"
                 className="h-14 w-auto object-contain brightness-0 invert opacity-90"
               />

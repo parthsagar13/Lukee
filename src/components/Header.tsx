@@ -131,7 +131,7 @@ export const Header: React.FC = () => {
 
               <Link to="/" className="flex-shrink-0" aria-label="Lukee Jewels Home">
                 <img
-                  src="/lukee-logo.PNG"
+                  src="/lukee-logo.png"
                   alt="Lukee Jewels"
                   className="h-[58px] sm:h-[68px] w-auto object-contain"
                 />
