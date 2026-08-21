@@ -118,7 +118,7 @@ export const Header: React.FC = () => {
         }`}
       >
         <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between min-h-[70px] gap-4">
+          <div className="flex items-center justify-between min-h-[78px] sm:min-h-[88px] gap-4">
             <div className="flex items-center gap-3 lg:gap-8 min-w-0 flex-1">
               <button
                 type="button"
@@ -131,9 +131,9 @@ export const Header: React.FC = () => {
 
               <Link to="/" className="flex-shrink-0" aria-label="Lukee Jewels Home">
                 <img
-                  src="/lukee-logo.png"
+                  src="/lukee-logo.PNG"
                   alt="Lukee Jewels"
-                  className="h-11 sm:h-12 w-auto object-contain"
+                  className="h-[58px] sm:h-[68px] w-auto object-contain"
                 />
               </Link>
 
