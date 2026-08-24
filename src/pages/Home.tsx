@@ -131,6 +131,12 @@ const COLLECTION_SLOT_LAYOUT = [
   { width: 'w-[150px] lg:w-[168px]', height: 'h-[246px] lg:h-[274px]', y: 18, scale: 0.97 },
 ] as const;
 
+const COLLECTION_MOBILE_SLOT_LAYOUT = [
+  { width: 'w-[32%]', height: 'h-[250px]' },
+  { width: 'w-[54%]', height: 'h-[330px]' },
+  { width: 'w-[32%]', height: 'h-[250px]' },
+] as const;
+
 const FEED_SHOWCASE = [
   '/home/feed/01.webp',
   '/home/feed/02.webp',
@@ -184,14 +190,13 @@ export const Home: React.FC = () => {
   const [newsletterDone, setNewsletterDone] = useState(false);
   const [activeCollection, setActiveCollection] = useState(3);
   const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
+  const collectionSwipedRef = useRef(false);
   const [activeFeed, setActiveFeed] = useState(2);
   const [feedSwipeStartX, setFeedSwipeStartX] = useState<number | null>(null);
   const [activeVideo, setActiveVideo] = useState(0);
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoSwipeStartX, setVideoSwipeStartX] = useState<number | null>(null);
   const categorySliderRef = useRef<HTMLDivElement>(null);
-  const collectionsSliderRef = useRef<HTMLDivElement>(null);
-  const collectionItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const feedItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -203,30 +208,23 @@ export const Home: React.FC = () => {
   };
 
   const scrollCollections = (dir: 'prev' | 'next') => {
-    setActiveCollection((prev) => {
-      const next =
-        dir === 'next'
-          ? (prev + 1) % COLLECTIONS_SHOWCASE.length
-          : (prev - 1 + COLLECTIONS_SHOWCASE.length) % COLLECTIONS_SHOWCASE.length;
-
-      collectionItemRefs.current[next]?.scrollIntoView({
-        behavior: 'smooth',
-        inline: 'center',
-        block: 'nearest',
-      });
-
-      return next;
-    });
+    setActiveCollection((prev) =>
+      dir === 'next'
+        ? (prev + 1) % COLLECTIONS_SHOWCASE.length
+        : (prev - 1 + COLLECTIONS_SHOWCASE.length) % COLLECTIONS_SHOWCASE.length
+    );
   };
 
   const handleCollectionSwipeStart = (clientX: number) => {
+    collectionSwipedRef.current = false;
     setSwipeStartX(clientX);
   };
 
   const handleCollectionSwipeEnd = (clientX: number) => {
     if (swipeStartX === null) return;
     const delta = clientX - swipeStartX;
-    if (Math.abs(delta) > 50) {
+    if (Math.abs(delta) > 40) {
+      collectionSwipedRef.current = true;
       scrollCollections(delta < 0 ? 'next' : 'prev');
     }
     setSwipeStartX(null);
@@ -449,60 +447,78 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          <motion.div
-            ref={collectionsSliderRef}
-            className="flex md:hidden items-end justify-start gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory px-1 py-2"
+          <div
+            className="flex md:hidden items-center justify-center overflow-visible py-2"
             onTouchStart={(e) => handleCollectionSwipeStart(e.touches[0].clientX)}
             onTouchEnd={(e) => handleCollectionSwipeEnd(e.changedTouches[0].clientX)}
           >
-            {COLLECTIONS_SHOWCASE.map((col, index) => (
-              <motion.div
-                key={col.title}
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.04 }}
-                className={`snap-center flex-shrink-0 ${
-                  col.size === 'large'
-                    ? 'w-[72vw] min-w-[280px] max-w-[360px] sm:w-[300px] md:w-[340px]'
-                    : 'w-[52vw] min-w-[200px] max-w-[250px] sm:w-[220px] md:w-[250px]'
-                }`}
-              >
-                <Link
-                  ref={(el) => {
-                    collectionItemRefs.current[index] = el;
-                  }}
-                  to={col.to}
-                  className={`group relative flex items-center justify-center overflow-hidden rounded-[10px] bg-[#0a1626] shadow-[0_0_20px_rgba(0,0,0,0.28)] ${
-                    col.size === 'large'
-                      ? 'w-[66vw] min-w-[240px] aspect-[0.74]'
-                      : 'w-[44vw] min-w-[165px] aspect-[0.74]'
-                  }`}
-                >
-                  <img
-                    src={col.img}
-                    alt={col.title}
-                    className="h-full w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.02]"
-                  />
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+            <div className="flex w-full items-center justify-center -space-x-12">
+              {[-1, 0, 1].map((offset, slotIndex) => {
+                const index =
+                  (activeCollection + offset + COLLECTIONS_SHOWCASE.length) %
+                  COLLECTIONS_SHOWCASE.length;
+                const col = COLLECTIONS_SHOWCASE[index];
+                const slot = COLLECTION_MOBILE_SLOT_LAYOUT[slotIndex];
+                const isCenter = slotIndex === 1;
 
-          <div className="flex items-center justify-center gap-10 pt-2">
+                return (
+                  <motion.div
+                    key={col.title}
+                    layout
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ zIndex: isCenter ? 5 : 2 }}
+                    className={`relative flex-shrink-0 ${slot.width} ${slot.height}`}
+                  >
+                    {isCenter ? (
+                      <Link
+                        to={col.to}
+                        onClick={(e) => {
+                          if (collectionSwipedRef.current) {
+                            e.preventDefault();
+                            collectionSwipedRef.current = false;
+                          }
+                        }}
+                        className="group relative flex h-full w-full items-center justify-center overflow-hidden rounded-[10px] bg-[#0a1626] shadow-[0_0_20px_rgba(0,0,0,0.28)]"
+                      >
+                        <img
+                          src={col.img}
+                          alt={col.title}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label={`Show ${col.title}`}
+                        onClick={() => setActiveCollection(index)}
+                        className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[10px] bg-[#0a1626] shadow-[0_0_20px_rgba(0,0,0,0.28)]"
+                      >
+                        <img
+                          src={col.img}
+                          alt={col.title}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </button>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="relative z-20 flex items-center justify-center gap-4 sm:gap-10 pt-2">
             <button
               type="button"
               onClick={() => scrollCollections('prev')}
               aria-label="Previous collection"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/65 text-white transition hover:border-white hover:bg-white/10"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/65 text-white transition hover:border-white hover:bg-white/10"
             >
               <ChevronLeft size={18} />
             </button>
 
             <Link
               to="/collections"
-              className="inline-flex min-w-[150px] items-center justify-center rounded-full border border-[#62e5ff]/60 bg-[#111111] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_0_18px_rgba(47,188,204,0.45)] transition hover:bg-[#1a1a1a]"
+              className="inline-flex min-w-[128px] sm:min-w-[150px] items-center justify-center rounded-full border border-[#62e5ff]/60 bg-[#111111] px-5 sm:px-7 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_0_18px_rgba(47,188,204,0.45)] transition hover:bg-[#1a1a1a]"
             >
               Shop Now!
             </Link>
@@ -511,7 +527,7 @@ export const Home: React.FC = () => {
               type="button"
               onClick={() => scrollCollections('next')}
               aria-label="Next collection"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/65 text-white transition hover:border-white hover:bg-white/10"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/65 text-white transition hover:border-white hover:bg-white/10"
             >
               <ChevronRight size={18} />
             </button>
