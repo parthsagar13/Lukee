@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 @import "tailwindcss";
 
 /*
   Design system source: DESIGN-candere-com.md
   Accent: #2fbccc · Canvas: #ffffff · Text: #000000 · Secondary text: #6e7191
-  Fonts: Cormorant (display) + Lato (UI/body) · Radius 8px+ · 10px spacing grid
+  Font: DM Sans (all UI + headings) · Radius 8px+ · 10px spacing grid
 */
 
 @theme {
-  --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, monospace;
-  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 
   /* Semantic roles from design doc */
   --color-ink: #000000;
@@ -58,7 +58,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif text-ink;
+    @apply font-sans text-ink;
     font-weight: 600;
     letter-spacing: 0.15px;
   }
@@ -131,7 +131,7 @@
   color: #ffffff;
   border-radius: 8px;
   padding: 12px 24px;
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -155,7 +155,7 @@
   color: #ffffff;
   border-radius: 8px;
   padding: 12px 24px;
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -178,7 +178,7 @@
   color: #008696;
   border-radius: 8px;
   padding: 12px 24px;
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -201,7 +201,7 @@
   color: #2fbccc;
   border-radius: 8px;
   padding: 10px 16px;
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   border: none;
@@ -221,7 +221,7 @@
   color: #ffffff;
   border-radius: 8px;
   padding: 12px 24px;
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 700;
   border: none;
@@ -234,7 +234,7 @@
 }
 
 .section-eyebrow {
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.2px;
@@ -248,7 +248,7 @@
   border: 1px solid #e8e8e8;
   border-radius: 8px;
   padding: 12px 16px;
-  font-family: "Lato", sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: #000000;
   transition: border-color 0.2s ease;
