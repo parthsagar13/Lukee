@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -172,6 +172,8 @@ const VIDEO_SLOT_LAYOUT = [
   { width: 'w-[160px] sm:w-[190px] lg:w-[220px]', scale: 0.92 },
 ] as const;
 
+const CATEGORY_CARDS_PER_PAGE = 4;
+
 const ProductSkeleton: React.FC = () => (
   <div className="animate-pulse space-y-3">
     <div className="aspect-[4/5] bg-line/60 rounded-xl" />
@@ -196,16 +198,12 @@ export const Home: React.FC = () => {
   const [activeVideo, setActiveVideo] = useState(0);
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoSwipeStartX, setVideoSwipeStartX] = useState<number | null>(null);
+  const [categoryPage, setCategoryPage] = useState(0);
+  const [categorySwipeStartX, setCategorySwipeStartX] = useState<number | null>(null);
+  const categorySwipedRef = useRef(false);
   const categorySliderRef = useRef<HTMLDivElement>(null);
   const feedItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-
-  const scrollCategories = (dir: 'prev' | 'next') => {
-    const el = categorySliderRef.current;
-    if (!el) return;
-    const amount = el.clientWidth * 0.75;
-    el.scrollBy({ left: dir === 'next' ? amount : -amount, behavior: 'smooth' });
-  };
 
   const scrollCollections = (dir: 'prev' | 'next') => {
     setActiveCollection((prev) =>
@@ -339,6 +337,41 @@ export const Home: React.FC = () => {
         }))
       : CATEGORY_TILES;
 
+  const categoryPages = useMemo(() => {
+    const pages: typeof categoryCards[] = [];
+    for (let i = 0; i < categoryCards.length; i += CATEGORY_CARDS_PER_PAGE) {
+      pages.push(categoryCards.slice(i, i + CATEGORY_CARDS_PER_PAGE));
+    }
+    return pages.length ? pages : [categoryCards];
+  }, [categoryCards]);
+
+  useEffect(() => {
+    setCategoryPage(0);
+  }, [categoryPages.length]);
+
+  const scrollCategories = (dir: 'prev' | 'next') => {
+    setCategoryPage((prev) => {
+      const last = categoryPages.length - 1;
+      if (dir === 'next') return Math.min(prev + 1, last);
+      return Math.max(prev - 1, 0);
+    });
+  };
+
+  const handleCategorySwipeStart = (clientX: number) => {
+    categorySwipedRef.current = false;
+    setCategorySwipeStartX(clientX);
+  };
+
+  const handleCategorySwipeEnd = (clientX: number) => {
+    if (categorySwipeStartX === null) return;
+    const delta = clientX - categorySwipeStartX;
+    if (Math.abs(delta) > 40) {
+      categorySwipedRef.current = true;
+      scrollCategories(delta < 0 ? 'next' : 'prev');
+    }
+    setCategorySwipeStartX(null);
+  };
+
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -347,12 +380,12 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div id="home-page" className="pb-0 font-sans text-ivory">
+    <div id="home-page" className="pb-0 bg-white text-ink font-sans">
       {/* 1. Hero */}
       <HeroBanner />
 
       {/* 2. Trust strip */}
-      <section className="border-b border-white/10">
+      <section className="border-b border-line bg-white">
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -371,10 +404,10 @@ export const Home: React.FC = () => {
               >
                 <Icon size={22} className="text-brand stroke-[1.5] mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="font-sans text-[0.7rem] uppercase tracking-[0.18em] text-white font-semibold">
+                  <h4 className="font-sans text-[0.7rem] uppercase tracking-[0.18em] text-ink font-semibold">
                     {item.title}
                   </h4>
-                  <p className="text-xs text-white/60 mt-1 font-light leading-relaxed">{item.text}</p>
+                  <p className="text-xs text-muted mt-1 font-light leading-relaxed">{item.text}</p>
                 </div>
               </motion.div>
             );
@@ -644,7 +677,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 5. Shop by Category — horizontal slider */}
-      <section className="py-16 md:py-24 border-y border-white/10 overflow-hidden">
+      <section className="py-16 md:py-24 bg-white border-y border-line overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -653,7 +686,7 @@ export const Home: React.FC = () => {
         >
           <div className="space-y-3 text-center sm:text-left">
             <p className="section-eyebrow">Shop by Category</p>
-            <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light">
+            <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light text-ink">
               Find your next sparkle
             </h2>
             <div className="w-14 h-px bg-brand mx-auto sm:mx-0" />
@@ -662,52 +695,77 @@ export const Home: React.FC = () => {
             <button
               type="button"
               onClick={() => scrollCategories('prev')}
+              disabled={categoryPage === 0}
               aria-label="Previous categories"
-              className="w-11 h-11 rounded-full border border-line bg-white text-ink flex items-center justify-center hover:bg-brand hover:border-brand transition-colors"
+              className="w-11 h-11 rounded-full border border-line bg-white text-ink flex items-center justify-center hover:bg-brand hover:border-brand hover:text-white transition-colors disabled:opacity-35 disabled:pointer-events-none"
             >
               <ChevronLeft size={20} />
             </button>
             <button
               type="button"
               onClick={() => scrollCategories('next')}
+              disabled={categoryPage >= categoryPages.length - 1}
               aria-label="Next categories"
-              className="w-11 h-11 rounded-full border border-line bg-white text-ink flex items-center justify-center hover:bg-brand hover:border-brand transition-colors"
+              className="w-11 h-11 rounded-full border border-line bg-white text-ink flex items-center justify-center hover:bg-brand hover:border-brand hover:text-white transition-colors disabled:opacity-35 disabled:pointer-events-none"
             >
               <ChevronRight size={20} />
             </button>
           </div>
         </motion.div>
 
-        <div
-          ref={categorySliderRef}
-          className="flex gap-4 sm:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {categoryCards.map((cat) => (
-            <Link
-              key={cat.name}
-              to={cat.path}
-              className="group relative flex-shrink-0 w-[70vw] sm:w-[42vw] md:w-[30vw] lg:w-[22rem] aspect-[4/5] overflow-hidden bg-white snap-start rounded-xl"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            ref={categorySliderRef}
+            className="overflow-hidden w-full touch-pan-y"
+            onTouchStart={(e) => handleCategorySwipeStart(e.touches[0].clientX)}
+            onTouchEnd={(e) => handleCategorySwipeEnd(e.changedTouches[0].clientX)}
+          >
+            <div
+              className="flex transition-transform duration-500 ease-out will-change-transform"
+              style={{
+                width: `${categoryPages.length * 100}%`,
+                transform: `translate3d(-${(categoryPage * 100) / categoryPages.length}%, 0, 0)`,
+              }}
             >
-              <img
-                src={cat.img}
-                alt={cat.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/20 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white">
-                <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide">
-                  {cat.name}
-                </h3>
-                <span className="mt-2 inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.22em] text-white/90 font-medium">
-                  Explore
-                  <ArrowRight
-                    size={12}
-                    className="transition-transform duration-300 group-hover:translate-x-1"
-                  />
-                </span>
-              </div>
-            </Link>
-          ))}
+              {categoryPages.map((page, pageIndex) => (
+                <div
+                  key={`category-page-${pageIndex}`}
+                  className="grid shrink-0 grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-5 min-w-0 overflow-hidden box-border"
+                  style={{ width: `${100 / categoryPages.length}%` }}
+                >
+                  {page.map((cat) => (
+                    <Link
+                      key={cat.name}
+                      to={cat.path}
+                      className="group relative aspect-[4/5] min-w-0 overflow-hidden bg-white rounded-xl"
+                      onClick={(e) => {
+                        if (categorySwipedRef.current) e.preventDefault();
+                      }}
+                    >
+                      <img
+                        src={cat.img}
+                        alt={cat.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white">
+                        <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide">
+                          {cat.name}
+                        </h3>
+                        <span className="mt-2 inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.22em] text-white/90 font-medium">
+                          Explore
+                          <ArrowRight
+                            size={12}
+                            className="transition-transform duration-300 group-hover:translate-x-1"
+                          />
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -717,11 +775,11 @@ export const Home: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
               <p className="section-eyebrow">Fresh from the vault</p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-light">New Arrivals</h2>
+              <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">New Arrivals</h2>
             </div>
             <Link
               to="/shop?newArrival=true"
-              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-white font-semibold hover:text-white/70 transition-colors"
+              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-ink font-semibold hover:text-brand-dark transition-colors"
             >
               View All <ArrowRight size={14} />
             </Link>
@@ -756,16 +814,16 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 6. Best Sellers */}
-      <section className="py-16 md:py-24 border-y border-white/10">
+      <section className="py-16 md:py-24 bg-white border-y border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
               <p className="section-eyebrow">Loved by thousands</p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-light">Best Sellers</h2>
+              <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">Best Sellers</h2>
             </div>
             <Link
               to="/shop?bestSeller=true"
-              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-white font-semibold hover:text-white/70 transition-colors"
+              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-ink font-semibold hover:text-brand-dark transition-colors"
             >
               View All <ArrowRight size={14} />
             </Link>
@@ -839,7 +897,7 @@ export const Home: React.FC = () => {
             className="text-center space-y-3"
           >
             <p className="section-eyebrow">Explore by mood</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-light">Collection Highlights</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">Collection Highlights</h2>
             <div className="w-14 h-px bg-brand mx-auto" />
           </motion.div>
 
@@ -878,7 +936,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 9. Gifts by Occasion */}
-      <section className="py-16 md:py-24 border-y border-white/10">
+      <section className="py-16 md:py-24 bg-white border-y border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -887,7 +945,7 @@ export const Home: React.FC = () => {
             className="text-center space-y-3"
           >
             <p className="section-eyebrow">Gifts that speak</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-light">
+            <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">
               Shop by Occasion
             </h2>
             <p className="text-sm text-muted font-light max-w-md mx-auto">
@@ -952,16 +1010,16 @@ export const Home: React.FC = () => {
               className="space-y-6"
             >
               <p className="section-eyebrow">Our story</p>
-              <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light leading-tight">
+              <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light leading-tight text-ink">
                 Why choose{' '}
-                <span className="italic text-white">Lukee Jewels</span>
+                <span className="italic text-brand-dark">Lukee Jewels</span>
               </h2>
               <p className="text-sm text-muted font-light leading-relaxed max-w-md">
                 Born from a love of luminous craftsmanship, Lukee blends certified diamonds and fine
                 gold with modern silhouettes. Every piece is designed to be gifted, worn daily, and
                 passed on — with concierge care from selection to lifetime exchange.
               </p>
-              <ul className="space-y-3 text-sm text-white/80">
+              <ul className="space-y-3 text-sm text-ink/80">
                 {[
                   'Conflict-free, lab-backed diamonds',
                   'Complimentary velvet packaging on every order',
@@ -983,7 +1041,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 11. Customer Testimonials */}
-      <section className="py-16 md:py-24 border-y border-white/10">
+      <section className="py-16 md:py-24 bg-white border-y border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -992,7 +1050,7 @@ export const Home: React.FC = () => {
             className="text-center space-y-3"
           >
             <p className="section-eyebrow">Real stories & smiles</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-light">
+            <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">
               What our clients say
             </h2>
             <div className="w-14 h-px bg-brand mx-auto" />
@@ -1121,16 +1179,16 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 13. Latest Blogs */}
-      <section className="py-16 md:py-24 border-y border-white/10">
+      <section className="py-16 md:py-24 bg-white border-y border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
               <p className="section-eyebrow">Journal</p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-light">Latest from Lukee</h2>
+              <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">Latest from Lukee</h2>
             </div>
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-white font-semibold hover:text-white/70 transition-colors"
+              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-ink font-semibold hover:text-brand-dark transition-colors"
             >
               View All <ArrowRight size={14} />
             </Link>
@@ -1154,13 +1212,13 @@ export const Home: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <time className="text-[0.65rem] uppercase tracking-[0.2em] text-white/55">
+                    <time className="text-[0.65rem] uppercase tracking-[0.2em] text-brand-dark">
                       {post.date}
                     </time>
-                    <h3 className="font-serif text-xl font-semibold text-white group-hover:text-white/80 transition-colors">
+                    <h3 className="font-serif text-xl font-semibold text-ink group-hover:text-brand-dark transition-colors">
                       {post.title}
                     </h3>
-                    <p className="text-sm text-white/60 font-light leading-relaxed">{post.excerpt}</p>
+                    <p className="text-sm text-muted font-light leading-relaxed">{post.excerpt}</p>
                   </div>
                 </Link>
               </motion.article>
@@ -1179,7 +1237,7 @@ export const Home: React.FC = () => {
             className="text-center space-y-3"
           >
             <p className="section-eyebrow">Helpful answers</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-light">
+            <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">
               Frequently asked questions
             </h2>
           </motion.div>
@@ -1222,7 +1280,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 15. Store Highlights */}
-      <section className="py-16 md:py-24 border-y border-white/10">
+      <section className="py-16 md:py-24 bg-white border-y border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1231,7 +1289,7 @@ export const Home: React.FC = () => {
             className="text-center space-y-3"
           >
             <p className="section-eyebrow">Visit us</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-light">Store Highlights</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink">Store Highlights</h2>
             <p className="text-sm text-muted font-light">
               Book a private viewing — trays prepared ahead of your visit.
             </p>

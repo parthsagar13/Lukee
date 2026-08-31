@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -17,12 +17,17 @@ const DEFAULT_SLIDES: HeroSlide[] = [
 ];
 
 const AUTO_MS = 3000;
+const DRAG_THRESHOLD_PX = 48;
 
 export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
   slides = DEFAULT_SLIDES,
 }) => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartXRef = useRef<number | null>(null);
+  const draggedRef = useRef(false);
   const count = slides.length;
 
   const goTo = useCallback(
@@ -33,10 +38,68 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
   );
 
   useEffect(() => {
-    if (paused || count <= 1) return;
+    if (paused || isDragging || count <= 1) return;
     const timer = window.setInterval(() => goTo(index + 1), AUTO_MS);
     return () => window.clearInterval(timer);
-  }, [index, paused, count, goTo]);
+  }, [index, paused, isDragging, count, goTo]);
+
+  const finishDrag = useCallback(
+    (clientX: number) => {
+      if (dragStartXRef.current === null) return;
+
+      const delta = clientX - dragStartXRef.current;
+      if (Math.abs(delta) > DRAG_THRESHOLD_PX) {
+        draggedRef.current = true;
+        goTo(delta < 0 ? index + 1 : index - 1);
+      }
+
+      dragStartXRef.current = null;
+      setDragOffset(0);
+      setIsDragging(false);
+    },
+    [goTo, index]
+  );
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (count <= 1 || e.button !== 0) return;
+    e.preventDefault();
+    draggedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    setIsDragging(true);
+    setDragOffset(0);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStartXRef.current === null) return;
+    const delta = e.clientX - dragStartXRef.current;
+    if (Math.abs(delta) > 6) draggedRef.current = true;
+    setDragOffset(delta);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStartXRef.current === null) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    finishDrag(e.clientX);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    dragStartXRef.current = null;
+    setDragOffset(0);
+    setIsDragging(false);
+  };
+
+  const trackTransform =
+    count <= 1
+      ? undefined
+      : isDragging
+        ? `translate3d(calc(-${(index * 100) / count}% + ${dragOffset}px), 0, 0)`
+        : `translate3d(-${(index * 100) / count}%, 0, 0)`;
 
   return (
     <section
@@ -45,36 +108,57 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative w-full aspect-[16/7] min-h-[280px] max-h-[960px] sm:min-h-[360px] md:min-h-[480px] lg:min-h-[560px]">
-        {slides.map((slide, i) => {
-          const isActive = i === index;
-          const content = (
-            <img
-              src={slide.image}
-              alt={slide.alt}
-              className="absolute inset-0 h-full w-full object-cover object-center"
-              draggable={false}
-            />
-          );
-
-          return (
+      <div
+        className={`relative w-full aspect-[16/7] min-h-[280px] max-h-[960px] sm:min-h-[360px] md:min-h-[480px] lg:min-h-[560px] overflow-hidden select-none touch-none ${
+          count > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
+        }`}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <div
+          className={`flex h-full ${isDragging ? '' : 'transition-transform duration-500 ease-out'}`}
+          style={{
+            width: `${count * 100}%`,
+            transform: trackTransform,
+          }}
+        >
+          {slides.map((slide) => (
             <div
               key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-700 ease-out ${
-                isActive ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
-              }`}
-              aria-hidden={!isActive}
+              className="relative h-full shrink-0"
+              style={{ width: `${100 / count}%` }}
             >
               {slide.to ? (
-                <Link to={slide.to} className="absolute inset-0 block" aria-label={slide.alt}>
-                  {content}
+                <Link
+                  to={slide.to}
+                  className="absolute inset-0 block"
+                  aria-label={slide.alt}
+                  draggable={false}
+                  onClick={(e) => {
+                    if (draggedRef.current) e.preventDefault();
+                  }}
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  <img
+                    src={slide.image}
+                    alt={slide.alt}
+                    className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"
+                    draggable={false}
+                  />
                 </Link>
               ) : (
-                content
+                <img
+                  src={slide.image}
+                  alt={slide.alt}
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  draggable={false}
+                />
               )}
             </div>
-          );
-        })}
+          ))}
+        </div>
 
         {count > 1 && (
           <>
@@ -95,14 +179,14 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
               <ChevronRight size={20} />
             </button>
 
-            <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-2 sm:bottom-5">
+            <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-2 sm:bottom-5 pointer-events-none">
               {slides.map((s, i) => (
                 <button
                   key={s.id}
                   type="button"
                   aria-label={`Go to banner ${i + 1}`}
                   onClick={() => goTo(i)}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                  className={`pointer-events-auto h-1.5 rounded-full transition-all duration-500 ${
                     i === index ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/75'
                   }`}
                 />

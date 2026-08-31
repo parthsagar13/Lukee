@@ -5,7 +5,7 @@ import { IMAGES } from '../data/luxuryContent.js';
 
 export const NotFound: React.FC = () => {
   return (
-    <div id="not-found-page" className="text-ivory min-h-[70vh] flex items-center">
+    <div id="not-found-page" className="bg-white text-ink min-h-[70vh] flex items-center">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div className="relative aspect-[4/5] sm:aspect-square lg:aspect-[4/5] overflow-hidden luxury-shadow order-2 lg:order-1">

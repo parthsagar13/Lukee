@@ -51,8 +51,7 @@
   }
 
   body {
-    @apply font-sans bg-dark antialiased;
-    color: #e6e8f2;
+    @apply font-sans bg-white text-ink antialiased;
     font-size: 16px;
     line-height: 1.5;
     letter-spacing: 0.15px;
@@ -60,15 +59,13 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans;
-    color: inherit;
+    @apply font-sans text-ink;
     font-weight: 600;
     letter-spacing: 0.15px;
   }
 
   p {
-    @apply font-sans;
-    color: inherit;
+    @apply font-sans text-muted;
     font-size: 16px;
     line-height: 1.5;
   }
@@ -250,7 +247,7 @@
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #9aa4cf;
+  color: #232c57;
 }
 
 .input-luxury {

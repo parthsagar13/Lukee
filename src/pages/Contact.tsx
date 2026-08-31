@@ -32,7 +32,7 @@ export const Contact: React.FC = () => {
   };
 
   return (
-    <div id="contact-page" className="text-ivory">
+    <div id="contact-page" className="bg-white text-ink">
       {/* Header */}
       <section className="relative py-16 md:py-20 overflow-hidden border-b border-line">
         <div

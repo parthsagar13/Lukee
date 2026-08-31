@@ -68,7 +68,7 @@ const COLLECTIONS_LIST: CollectionItem[] = [
 
 export const Collections: React.FC = () => {
   return (
-    <div id="collections-page" className="text-ivory font-sans">
+    <div id="collections-page" className="bg-white text-ink font-sans">
       {/* Hero */}
       <section className="relative w-full min-h-[52vh] sm:min-h-[60vh] overflow-hidden">
         <img
@@ -100,8 +100,8 @@ export const Collections: React.FC = () => {
       <section className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-12 sm:py-16 space-y-8">
         <div className="text-center space-y-2">
           <p className="section-eyebrow">Signature edits</p>
-          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ivory">Featured Collections</h2>
-          <div className="w-10 h-px bg-white/30 mx-auto mt-2" />
+          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">Featured Collections</h2>
+          <div className="w-10 h-px bg-brand mx-auto mt-2" />
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
@@ -137,8 +137,8 @@ export const Collections: React.FC = () => {
       <section className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 pb-12 sm:pb-16 space-y-8">
         <div className="text-center space-y-2">
           <p className="section-eyebrow">The full vault</p>
-          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ivory">Browse by Theme</h2>
-          <div className="w-10 h-px bg-white/30 mx-auto mt-2" />
+          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">Browse by Theme</h2>
+          <div className="w-10 h-px bg-brand mx-auto mt-2" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -188,8 +188,8 @@ export const Collections: React.FC = () => {
       <section className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 pb-16 sm:pb-20 space-y-8">
         <div className="text-center space-y-2">
           <p className="section-eyebrow">Gifts that speak</p>
-          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ivory">Shop by Occasion</h2>
-          <div className="w-10 h-px bg-white/30 mx-auto mt-2" />
+          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">Shop by Occasion</h2>
+          <div className="w-10 h-px bg-brand mx-auto mt-2" />
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">

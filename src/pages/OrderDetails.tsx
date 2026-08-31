@@ -40,7 +40,7 @@ export const OrderDetails: React.FC = () => {
   }, [id, email]);
 
   return (
-    <div className="text-ivory min-h-[50vh]">
+    <div className="bg-white text-ink min-h-[50vh]">
       <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
         <div>
           <h1 className="font-serif text-3xl font-light text-ink">Order Details</h1>

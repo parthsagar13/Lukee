@@ -61,7 +61,7 @@ export const OrderSuccess: React.FC = () => {
   }
 
   return (
-    <div className="text-ivory">
+    <div className="bg-white text-ink">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-16">
         <div className="text-center space-y-3 mb-10">
           <CheckCircle2 className="mx-auto text-brand" size={48} />
