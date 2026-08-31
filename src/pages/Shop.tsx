@@ -294,10 +294,10 @@ export const Shop: React.FC = () => {
   };
 
   return (
-    <div id="shop-page" className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-12 font-sans bg-white text-ink">
+    <div id="shop-page" className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-12 font-sans text-ivory">
       <div className="border-b border-line pb-8 mb-8 text-center sm:text-left space-y-3">
         <p className="section-eyebrow">Curated for you</p>
-        <h1 className="text-3xl sm:text-5xl font-serif font-light tracking-wide text-ink">
+        <h1 className="text-3xl sm:text-5xl font-serif font-light tracking-wide text-ivory">
           The Salon Collection
         </h1>
         <p className="text-xs sm:text-sm text-muted font-light max-w-2xl leading-relaxed">

@@ -98,7 +98,7 @@ export const Checkout: React.FC = () => {
         order_id: orderPayload.razorpayOrderId,
         prefill: orderPayload.prefill,
         notes: orderPayload.notes,
-        theme: { color: '#2fbccc' },
+        theme: { color: '#232c57' },
         handler: async (response: unknown) => {
           try {
             const raw = response as {
@@ -156,10 +156,10 @@ export const Checkout: React.FC = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="bg-white min-h-[50vh] flex items-center justify-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-5">
           <p className="section-eyebrow">Checkout</p>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink font-light">Your bag is empty</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl text-ivory font-light">Your bag is empty</h1>
           <p className="text-sm text-muted">Add pieces from the shop before checking out.</p>
           <Link to="/shop" className="btn-primary">
             Continue Shopping
@@ -170,7 +170,7 @@ export const Checkout: React.FC = () => {
   }
 
   return (
-    <div className="bg-white text-ink min-h-[60vh]">
+    <div className="text-ivory min-h-[60vh]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <Link
           to="/shop"
@@ -181,7 +181,7 @@ export const Checkout: React.FC = () => {
         </Link>
 
         <div className="text-center sm:text-left mb-10 space-y-2">
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-ink">Checkout</h1>
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-ivory">Checkout</h1>
           <p className="section-eyebrow">Secure payment powered by Razorpay</p>
         </div>
 
@@ -205,7 +205,7 @@ export const Checkout: React.FC = () => {
                     </span>
                     <span
                       className={`text-[0.65rem] uppercase tracking-[0.2em] ${
-                        current || done ? 'text-ink font-semibold' : 'text-muted'
+                        current || done ? 'text-white font-semibold' : 'text-white/50'
                       }`}
                     >
                       {step.label}

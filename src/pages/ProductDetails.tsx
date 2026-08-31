@@ -126,7 +126,7 @@ export const ProductDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-16 font-sans bg-white">
+      <div className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-16 font-sans">
         <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div className="aspect-square bg-line/60 rounded-xl" />
           <div className="space-y-4">
@@ -143,7 +143,7 @@ export const ProductDetails: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="text-center py-40 text-muted text-xs tracking-widest font-sans uppercase bg-white">
+      <div className="text-center py-40 text-muted text-xs tracking-widest font-sans uppercase">
         Product not found.
       </div>
     );
@@ -166,7 +166,7 @@ export const ProductDetails: React.FC = () => {
   return (
     <div
       id="product-details-page"
-      className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-12 font-sans bg-white text-ink"
+      className="w-full px-3 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-12 font-sans text-ivory"
     >
       <nav
         id="breadcrumbs"
@@ -191,7 +191,7 @@ export const ProductDetails: React.FC = () => {
           </>
         )}
         <ChevronRight size={10} className="text-line" />
-        <span className="text-ink font-light truncate">{product.name}</span>
+        <span className="text-white/80 font-light truncate">{product.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 xl:gap-16 items-start">
@@ -243,7 +243,7 @@ export const ProductDetails: React.FC = () => {
             <p className="section-eyebrow">
               {product.material} · {product.purity}
             </p>
-            <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight font-light">
+            <h1 className="font-serif text-3xl sm:text-4xl text-ivory leading-tight font-light">
               {product.name}
             </h1>
             <div className="flex items-center space-x-4 text-xs text-muted">
@@ -430,13 +430,13 @@ export const ProductDetails: React.FC = () => {
       </div>
 
       {/* Highlights & Specs */}
-      <section id="specifications-tabs" className="mt-16 sm:mt-20 pt-10 border-t border-line space-y-10">
+      <section id="specifications-tabs" className="mt-16 sm:mt-20 pt-10 border-t border-white/10 space-y-10">
         <div className="text-center space-y-2">
           <p className="section-eyebrow">Boutique reference</p>
-          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">
+          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ivory">
             Highlights & Specifications
           </h2>
-          <div className="w-8 h-px bg-brand mx-auto mt-2" />
+          <div className="w-8 h-px bg-white/30 mx-auto mt-2" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -484,7 +484,7 @@ export const ProductDetails: React.FC = () => {
         </div>
 
         <div className="space-y-4 pt-2 max-w-3xl mx-auto text-center sm:text-left">
-          <h3 className="font-serif text-lg text-ink font-light">The Design Narrative</h3>
+          <h3 className="font-serif text-lg text-ivory font-light">The Design Narrative</h3>
           <p className="text-xs sm:text-sm text-muted leading-relaxed font-light">{product.description}</p>
         </div>
       </section>
@@ -493,8 +493,8 @@ export const ProductDetails: React.FC = () => {
       <section id="reviews-section" className="mt-16 sm:mt-20 space-y-8">
         <div className="text-center space-y-2">
           <p className="section-eyebrow">Client voices</p>
-          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">Customer Reviews</h2>
-          <div className="w-12 h-px bg-brand mx-auto mt-3" />
+          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ivory">Customer Reviews</h2>
+          <div className="w-12 h-px bg-white/30 mx-auto mt-3" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -529,7 +529,7 @@ export const ProductDetails: React.FC = () => {
         <section id="related-products-section" className="mt-16 sm:mt-24 space-y-10">
           <div className="text-center space-y-2">
             <p className="section-eyebrow">You May Also Like</p>
-            <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">Complementary Pieces</h2>
+            <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ivory">Complementary Pieces</h2>
             <div className="w-12 h-px bg-brand mx-auto mt-4" />
           </div>
 
@@ -546,7 +546,7 @@ export const ProductDetails: React.FC = () => {
         <section id="recently-viewed" className="mt-16 sm:mt-20 space-y-6 border-t border-line pt-10">
           <div className="space-y-1">
             <p className="section-eyebrow">Continue browsing</p>
-            <h2 className="text-xl sm:text-2xl font-serif font-semibold text-ink">Recently Viewed</h2>
+            <h2 className="text-xl sm:text-2xl font-serif font-semibold text-ivory">Recently Viewed</h2>
           </div>
           <div className="flex flex-wrap gap-3">
             {recentItems.map((item) => (

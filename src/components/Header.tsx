@@ -113,8 +113,8 @@ export const Header: React.FC = () => {
       </div>
 
       <header
-        className={`sticky top-0 z-40 bg-white transition-shadow duration-300 ${
-          scrolled ? 'luxury-shadow' : 'border-b border-line'
+        className={`sticky top-0 z-40 bg-dark transition-shadow duration-300 ${
+          scrolled ? 'luxury-shadow' : 'border-b border-white/10'
         }`}
       >
         <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,7 +122,7 @@ export const Header: React.FC = () => {
             <div className="flex items-center gap-3 lg:gap-8 min-w-0 flex-1">
               <button
                 type="button"
-                className="lg:hidden p-2.5 text-ink hover:text-brand rounded-lg"
+                className="lg:hidden p-2.5 text-white hover:text-white/70 rounded-lg"
                 onClick={() => setIsMobileMenuOpen((v) => !v)}
                 aria-label="Open menu"
               >
@@ -133,7 +133,7 @@ export const Header: React.FC = () => {
                 <img
                   src="/lukee-logo.png"
                   alt="Lukee Jewels"
-                  className="h-[58px] sm:h-[68px] w-auto object-contain"
+                  className="h-[58px] sm:h-[68px] w-auto object-contain brightness-0 invert"
                 />
               </Link>
 
@@ -143,12 +143,12 @@ export const Header: React.FC = () => {
                     key={link.path}
                     to={link.path}
                     className={`relative text-[13px] font-bold tracking-[0.3px] transition-colors py-1 ${
-                      isActive(link.path) ? 'text-brand' : 'text-ink hover:text-brand'
+                      isActive(link.path) ? 'text-white' : 'text-white/75 hover:text-white'
                     }`}
                   >
                     {link.label}
                     {isActive(link.path) && (
-                      <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-brand rounded-full" />
+                      <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-white rounded-full" />
                     )}
                   </Link>
                 ))}
@@ -156,7 +156,7 @@ export const Header: React.FC = () => {
                   type="button"
                   onMouseEnter={() => setMegaOpen(true)}
                   onClick={() => setMegaOpen((v) => !v)}
-                  className="inline-flex items-center gap-1 text-[13px] font-bold tracking-[0.3px] text-ink hover:text-brand"
+                  className="inline-flex items-center gap-1 text-[13px] font-bold tracking-[0.3px] text-white/75 hover:text-white"
                 >
                   Jewellery
                   <ChevronDown size={14} className={`transition-transform ${megaOpen ? 'rotate-180' : ''}`} />
@@ -166,15 +166,15 @@ export const Header: React.FC = () => {
 
             <form
               onSubmit={handleSearchSubmit}
-              className="hidden md:flex flex-1 max-w-sm items-center border border-line bg-surface rounded-lg px-3 py-2.5 focus-within:border-brand transition-colors"
+              className="hidden md:flex flex-1 max-w-sm items-center border border-white/15 bg-white/10 rounded-lg px-3 py-2.5 focus-within:border-white/40 transition-colors"
             >
-              <Search size={15} className="text-brand flex-shrink-0" />
+              <Search size={15} className="text-white/70 flex-shrink-0" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rings, diamonds, gold…"
-                className="w-full ml-2 bg-transparent text-sm text-ink placeholder:text-muted focus:outline-none"
+                className="w-full ml-2 bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
                 aria-label="Search products"
               />
             </form>
@@ -183,14 +183,14 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="md:hidden p-2.5 text-ink hover:text-brand rounded-lg"
+                className="md:hidden p-2.5 text-white hover:text-white/70 rounded-lg"
                 aria-label="Search"
               >
                 <Search size={18} />
               </button>
               <Link
                 to="/shop"
-                className="hidden sm:inline-flex p-2.5 text-ink hover:text-brand rounded-lg"
+                className="hidden sm:inline-flex p-2.5 text-white hover:text-white/70 rounded-lg"
                 aria-label="Wishlist"
               >
                 <Heart size={18} />
@@ -198,7 +198,7 @@ export const Header: React.FC = () => {
               <Link
                 to={isAuthenticated ? '/admin' : '/admin/login'}
                 className={`p-2.5 rounded-lg transition-colors ${
-                  isAuthenticated ? 'text-brand-dark' : 'text-ink hover:text-brand'
+                  isAuthenticated ? 'text-white' : 'text-white hover:text-white/70'
                 }`}
                 title={isAuthenticated ? 'Admin' : 'Account'}
               >
@@ -207,12 +207,12 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={toggleCart}
-                className="relative p-2.5 text-ink hover:text-brand rounded-lg"
+                className="relative p-2.5 text-white hover:text-white/70 rounded-lg"
                 aria-label="Open cart"
               >
                 <ShoppingBag size={18} />
                 {getCartCount() > 0 && (
-                  <span className="absolute top-1 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-brand text-white text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute top-1 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-white text-dark text-[9px] font-bold flex items-center justify-center">
                     {getCartCount()}
                   </span>
                 )}
@@ -223,7 +223,7 @@ export const Header: React.FC = () => {
 
         {megaOpen && (
           <div
-            className="hidden lg:block absolute left-0 right-0 top-full bg-white border-t border-line luxury-shadow-lg"
+            className="hidden lg:block absolute left-0 right-0 top-full bg-dark border-t border-white/10 luxury-shadow-lg"
             onMouseLeave={() => setMegaOpen(false)}
           >
             <div className="max-w-[1440px] mx-auto px-8 py-8 grid grid-cols-4 gap-8">
@@ -234,7 +234,7 @@ export const Header: React.FC = () => {
                     <li key={item.label}>
                       <Link
                         to={item.to}
-                        className="text-sm font-medium text-ink hover:text-brand transition-colors"
+                        className="text-sm font-medium text-white/80 hover:text-white transition-colors"
                       >
                         {item.label}
                       </Link>
@@ -265,7 +265,7 @@ export const Header: React.FC = () => {
           </div>
         )}
 
-        <nav className="bg-surface border-t border-line" aria-label="Product categories">
+        <nav className="bg-[#161c3a] border-t border-white/10" aria-label="Product categories">
           <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
             <ul className="flex items-center gap-1 overflow-x-auto scrollbar-none py-2">
               {categoryNav.map((item) => {
@@ -276,10 +276,10 @@ export const Header: React.FC = () => {
                       to={item.to}
                       className={`block px-3 py-1.5 text-[12px] font-bold tracking-[0.3px] whitespace-nowrap rounded-full transition-colors ${
                         active
-                          ? 'bg-brand text-white'
+                          ? 'bg-white text-dark'
                           : item.highlight
-                            ? 'text-brand hover:bg-brand-soft'
-                            : 'text-ink/80 hover:bg-white hover:text-brand'
+                            ? 'text-white hover:bg-white/10'
+                            : 'text-white/70 hover:bg-white/10 hover:text-white'
                       }`}
                     >
                       {item.label}
@@ -292,36 +292,36 @@ export const Header: React.FC = () => {
         </nav>
 
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-line bg-white py-4 px-5 space-y-1 max-h-[70vh] overflow-y-auto">
+          <div className="lg:hidden border-t border-white/10 bg-dark py-4 px-5 space-y-1 max-h-[70vh] overflow-y-auto">
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center border border-line rounded-lg px-3 py-2.5 mb-3 bg-surface"
+              className="flex items-center border border-white/15 rounded-lg px-3 py-2.5 mb-3 bg-white/10"
             >
-              <Search size={16} className="text-brand" />
+              <Search size={16} className="text-white/70" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search jewellery…"
-                className="w-full ml-2 bg-transparent text-sm focus:outline-none"
+                className="w-full ml-2 bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
               />
             </form>
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className="block py-3 text-sm font-bold text-ink border-b border-line"
+                className="block py-3 text-sm font-bold text-white border-b border-white/10"
               >
                 {link.label}
               </Link>
             ))}
-            <p className="pt-3 text-[11px] uppercase tracking-wider text-muted font-bold">Categories</p>
+            <p className="pt-3 text-[11px] uppercase tracking-wider text-white/50 font-bold">Categories</p>
             {categoryNav.map((item) => (
               <Link
                 key={item.label}
                 to={item.to}
                 className={`block text-sm py-2 ${
-                  item.highlight ? 'text-brand font-bold' : 'text-muted font-medium'
+                  item.highlight ? 'text-white font-bold' : 'text-white/70 font-medium'
                 }`}
               >
                 {item.label}
@@ -331,7 +331,7 @@ export const Header: React.FC = () => {
         )}
 
         {isSearchOpen && (
-          <div className="md:hidden border-t border-line bg-white py-4 px-4">
+          <div className="md:hidden border-t border-white/10 bg-dark py-4 px-4">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
               <input
                 type="text"

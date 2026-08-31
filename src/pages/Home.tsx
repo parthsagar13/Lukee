@@ -347,12 +347,12 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div id="home-page" className="pb-0 bg-white text-ink font-sans">
+    <div id="home-page" className="pb-0 font-sans text-ivory">
       {/* 1. Hero */}
       <HeroBanner />
 
       {/* 2. Trust strip */}
-      <section className="border-b border-line bg-white">
+      <section className="border-b border-white/10">
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -371,10 +371,10 @@ export const Home: React.FC = () => {
               >
                 <Icon size={22} className="text-brand stroke-[1.5] mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="font-sans text-[0.7rem] uppercase tracking-[0.18em] text-ink font-semibold">
+                  <h4 className="font-sans text-[0.7rem] uppercase tracking-[0.18em] text-white font-semibold">
                     {item.title}
                   </h4>
-                  <p className="text-xs text-muted mt-1 font-light leading-relaxed">{item.text}</p>
+                  <p className="text-xs text-white/60 mt-1 font-light leading-relaxed">{item.text}</p>
                 </div>
               </motion.div>
             );
@@ -387,11 +387,11 @@ export const Home: React.FC = () => {
         className="relative overflow-hidden py-20 md:py-28"
         style={{
           background:
-            'radial-gradient(circle at center, rgba(12,38,69,0.52) 0%, rgba(5,13,25,0.96) 28%, rgba(1,6,14,1) 58%, rgba(1,4,10,1) 100%)',
+            'radial-gradient(circle at center, rgba(58,70,128,0.45) 0%, rgba(28,34,70,0.96) 30%, rgba(12,15,32,1) 60%, rgba(0,0,0,1) 100%)',
         }}
       >
         <div className="pointer-events-none absolute inset-0 opacity-60">
-          <div className="absolute left-1/2 top-[46%] h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#295c8f]/20 blur-3xl" />
+          <div className="absolute left-1/2 top-[46%] h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3a4680]/30 blur-3xl" />
           <div className="absolute left-1/2 top-[46%] h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
         </div>
 
@@ -518,7 +518,7 @@ export const Home: React.FC = () => {
 
             <Link
               to="/collections"
-              className="inline-flex min-w-[128px] sm:min-w-[150px] items-center justify-center rounded-full border border-[#62e5ff]/60 bg-[#111111] px-5 sm:px-7 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_0_18px_rgba(47,188,204,0.45)] transition hover:bg-[#1a1a1a]"
+              className="inline-flex min-w-[128px] sm:min-w-[150px] items-center justify-center rounded-full border border-[#5c6699]/70 bg-[#1c2246] px-5 sm:px-7 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_0_18px_rgba(58,70,128,0.55)] transition hover:bg-[#232c57]"
             >
               Shop Now!
             </Link>
@@ -644,7 +644,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 5. Shop by Category — horizontal slider */}
-      <section className="py-16 md:py-24 bg-white border-y border-line overflow-hidden">
+      <section className="py-16 md:py-24 border-y border-white/10 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -721,7 +721,7 @@ export const Home: React.FC = () => {
             </div>
             <Link
               to="/shop?newArrival=true"
-              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-ink font-semibold hover:text-brand-dark transition-colors"
+              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-white font-semibold hover:text-white/70 transition-colors"
             >
               View All <ArrowRight size={14} />
             </Link>
@@ -756,7 +756,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 6. Best Sellers */}
-      <section className="py-16 md:py-24 bg-white border-y border-line">
+      <section className="py-16 md:py-24 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
@@ -765,7 +765,7 @@ export const Home: React.FC = () => {
             </div>
             <Link
               to="/shop?bestSeller=true"
-              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-ink font-semibold hover:text-brand-dark transition-colors"
+              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-white font-semibold hover:text-white/70 transition-colors"
             >
               View All <ArrowRight size={14} />
             </Link>
@@ -878,7 +878,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 9. Gifts by Occasion */}
-      <section className="py-16 md:py-24 bg-white border-y border-line">
+      <section className="py-16 md:py-24 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -954,14 +954,14 @@ export const Home: React.FC = () => {
               <p className="section-eyebrow">Our story</p>
               <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light leading-tight">
                 Why choose{' '}
-                <span className="italic text-brand-dark">Lukee Jewels</span>
+                <span className="italic text-white">Lukee Jewels</span>
               </h2>
               <p className="text-sm text-muted font-light leading-relaxed max-w-md">
                 Born from a love of luminous craftsmanship, Lukee blends certified diamonds and fine
                 gold with modern silhouettes. Every piece is designed to be gifted, worn daily, and
                 passed on — with concierge care from selection to lifetime exchange.
               </p>
-              <ul className="space-y-3 text-sm text-ink/80">
+              <ul className="space-y-3 text-sm text-white/80">
                 {[
                   'Conflict-free, lab-backed diamonds',
                   'Complimentary velvet packaging on every order',
@@ -983,7 +983,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 11. Customer Testimonials */}
-      <section className="py-16 md:py-24 bg-white border-y border-line">
+      <section className="py-16 md:py-24 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1121,7 +1121,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 13. Latest Blogs */}
-      <section className="py-16 md:py-24 bg-white border-y border-line">
+      <section className="py-16 md:py-24 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
@@ -1130,7 +1130,7 @@ export const Home: React.FC = () => {
             </div>
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-ink font-semibold hover:text-brand-dark transition-colors"
+              className="inline-flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.22em] text-white font-semibold hover:text-white/70 transition-colors"
             >
               View All <ArrowRight size={14} />
             </Link>
@@ -1154,13 +1154,13 @@ export const Home: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <time className="text-[0.65rem] uppercase tracking-[0.2em] text-brand-dark">
+                    <time className="text-[0.65rem] uppercase tracking-[0.2em] text-white/55">
                       {post.date}
                     </time>
-                    <h3 className="font-serif text-xl font-semibold text-ink group-hover:text-brand-dark transition-colors">
+                    <h3 className="font-serif text-xl font-semibold text-white group-hover:text-white/80 transition-colors">
                       {post.title}
                     </h3>
-                    <p className="text-sm text-muted font-light leading-relaxed">{post.excerpt}</p>
+                    <p className="text-sm text-white/60 font-light leading-relaxed">{post.excerpt}</p>
                   </div>
                 </Link>
               </motion.article>
@@ -1222,7 +1222,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 15. Store Highlights */}
-      <section className="py-16 md:py-24 bg-white border-y border-line">
+      <section className="py-16 md:py-24 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -41,7 +41,7 @@ export const OrderSuccess: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-[50vh] flex items-center justify-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <p className="text-xs uppercase tracking-widest text-muted">Confirming your order…</p>
       </div>
     );
@@ -49,7 +49,7 @@ export const OrderSuccess: React.FC = () => {
 
   if (error || !order) {
     return (
-      <div className="bg-white min-h-[50vh] flex items-center justify-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
           <p className="text-red-600 text-sm">{error || 'Order not found.'}</p>
           <Link to="/shop" className="btn-primary">
@@ -61,7 +61,7 @@ export const OrderSuccess: React.FC = () => {
   }
 
   return (
-    <div className="bg-white text-ink">
+    <div className="text-ivory">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-16">
         <div className="text-center space-y-3 mb-10">
           <CheckCircle2 className="mx-auto text-brand" size={48} />

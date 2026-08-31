@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export const Terms: React.FC = () => {
   return (
-    <div className="bg-white min-h-[60vh]">
+    <div className="text-ivory min-h-[60vh]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 md:py-24 font-sans space-y-8">
         <div className="text-center space-y-3 border-b border-line pb-8 mb-4">
           <p className="section-eyebrow">Legal</p>

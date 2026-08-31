@@ -64,7 +64,7 @@ const CRAFT_IMAGES = [
 
 export const About: React.FC = () => {
   return (
-    <div id="about-page" className="bg-white text-ink">
+    <div id="about-page" className="text-ivory">
       {/* Hero */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
         <img
@@ -126,7 +126,7 @@ export const About: React.FC = () => {
       </section>
 
       {/* Values */}
-      <section className="py-16 md:py-20 bg-white border-y border-line">
+      <section className="py-16 md:py-20 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-3">
             <p className="section-eyebrow">What We Stand For</p>
@@ -199,7 +199,7 @@ export const About: React.FC = () => {
       </section>
 
       {/* Timeline */}
-      <section className="py-16 md:py-24 bg-white border-y border-line">
+      <section className="py-16 md:py-24 border-y border-white/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-3">
             <p className="section-eyebrow">Milestones</p>

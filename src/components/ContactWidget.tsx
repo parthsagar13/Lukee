@@ -45,7 +45,7 @@ export const ContactWidget: React.FC = () => {
           <span className="bg-white text-ink text-[12px] font-bold px-3 py-1.5 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.18)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             Call · {PHONE_DISPLAY}
           </span>
-          <div className="w-[52px] h-[52px] rounded-full bg-brand flex items-center justify-center shadow-[0_4px_16px_rgba(47,188,204,0.4)] hover:scale-105 transition-transform">
+          <div className="w-[52px] h-[52px] rounded-full bg-brand flex items-center justify-center shadow-[0_4px_16px_rgba(35,44,87,0.45)] hover:scale-105 transition-transform">
             <Phone size={22} color="white" />
           </div>
         </a>

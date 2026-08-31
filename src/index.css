@@ -3,7 +3,8 @@
 
 /*
   Design system source: DESIGN-candere-com.md
-  Accent: #2fbccc · Canvas: #ffffff · Text: #000000 · Secondary text: #6e7191
+  Theme: Lukee navy (logo) · White · Black
+  Accent: #232c57 · Canvas: #ffffff · Text: #000000 · Secondary text: #5b6172
   Font: DM Sans (all UI + headings) · Radius 8px+ · 10px spacing grid
 */
 
@@ -13,30 +14,30 @@
   --font-mono: ui-monospace, SFMono-Regular, monospace;
   --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* Semantic roles from design doc */
+  /* Semantic roles — Lukee logo navy / white / black theme */
   --color-ink: #000000;
   --color-ivory: #ffffff;
-  --color-line: #f0f0f0;
-  --color-muted: #6e7191;
-  --color-surface: #f9f9f9;
-  --color-brand: #2fbccc;
-  --color-brand-2: #4abccd;
-  --color-brand-dark: #008696;
-  --color-brand-soft: #e2fafc;
-  --color-dark: #0a0a0a;
-  --color-btn-dark: #28292b;
+  --color-line: #e7e9f1;
+  --color-muted: #7e87a6;
+  --color-surface: #f5f6fb;
+  --color-brand: #232c57;
+  --color-brand-2: #3a4680;
+  --color-brand-dark: #161c3a;
+  --color-brand-soft: #ececf4;
+  --color-dark: #1c2246;
+  --color-btn-dark: #10152b;
 
-  /* Map gold-* (legacy class names) → teal brand palette for gradual migration */
-  --color-gold-50: #e2fafc;
-  --color-gold-100: #d0f5f9;
-  --color-gold-200: #a8ebf2;
-  --color-gold-300: #6fdbe6;
-  --color-gold-400: #4abccd;
-  --color-gold-500: #2fbccc;
-  --color-gold-600: #008696;
-  --color-gold-700: #1a6770;
-  --color-gold-800: #145055;
-  --color-gold-900: #0d383c;
+  /* Map gold-* (legacy class names) → navy brand palette for gradual migration */
+  --color-gold-50: #f0f1f7;
+  --color-gold-100: #dcdfec;
+  --color-gold-200: #b9bfd8;
+  --color-gold-300: #8b93b8;
+  --color-gold-400: #5c6699;
+  --color-gold-500: #3a4680;
+  --color-gold-600: #2a3462;
+  --color-gold-700: #232c57;
+  --color-gold-800: #1a2140;
+  --color-gold-900: #141931;
 
   --radius-button: 8px;
   --radius-card: 12px;
@@ -50,7 +51,8 @@
   }
 
   body {
-    @apply font-sans bg-white text-ink antialiased;
+    @apply font-sans bg-dark antialiased;
+    color: #e6e8f2;
     font-size: 16px;
     line-height: 1.5;
     letter-spacing: 0.15px;
@@ -58,13 +60,15 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans text-ink;
+    @apply font-sans;
+    color: inherit;
     font-weight: 600;
     letter-spacing: 0.15px;
   }
 
   p {
-    @apply font-sans text-muted;
+    @apply font-sans;
+    color: inherit;
     font-size: 16px;
     line-height: 1.5;
   }
@@ -72,6 +76,13 @@
   a {
     @apply transition-colors duration-200;
   }
+}
+
+/* Dark navy theme: white surfaces keep dark text automatically */
+.bg-white,
+.card-surface,
+.input-luxury {
+  color: var(--color-ink);
 }
 
 ::-webkit-scrollbar {
@@ -84,12 +95,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a8ebf2;
+  background: #b9bfd8;
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2fbccc;
+  background: #232c57;
 }
 
 /* Elevation from design doc */
@@ -102,11 +113,11 @@
 }
 
 .gold-gradient {
-  background: linear-gradient(135deg, #2fbccc 0%, #4abccd 50%, #e2fafc 100%);
+  background: linear-gradient(135deg, #232c57 0%, #3a4680 50%, #ececf4 100%);
 }
 
 .gold-gradient-text {
-  background: linear-gradient(135deg, #2fbccc 0%, #008696 100%);
+  background: linear-gradient(135deg, #2a3462 0%, #161c3a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -127,7 +138,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #2fbccc;
+  background: #232c57;
   color: #ffffff;
   border-radius: 8px;
   padding: 12px 24px;
@@ -141,7 +152,7 @@
 }
 
 .btn-primary:hover {
-  background: #008696;
+  background: #161c3a;
   color: #ffffff;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
@@ -151,7 +162,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #2fbccc;
+  background: #232c57;
   color: #ffffff;
   border-radius: 8px;
   padding: 12px 24px;
@@ -165,7 +176,7 @@
 }
 
 .btn-gold:hover {
-  background: #008696;
+  background: #161c3a;
   color: #ffffff;
 }
 
@@ -174,8 +185,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #e2fafc;
-  color: #008696;
+  background: #ececf4;
+  color: #161c3a;
   border-radius: 8px;
   padding: 12px 24px;
   font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -188,7 +199,7 @@
 }
 
 .btn-secondary:hover {
-  background: #2fbccc;
+  background: #232c57;
   color: #ffffff;
 }
 
@@ -198,7 +209,7 @@
   justify-content: center;
   gap: 6px;
   background: transparent;
-  color: #2fbccc;
+  color: #232c57;
   border-radius: 8px;
   padding: 10px 16px;
   font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -209,7 +220,7 @@
 }
 
 .btn-ghost:hover {
-  color: #008696;
+  color: #161c3a;
 }
 
 .btn-dark {
@@ -230,7 +241,7 @@
 }
 
 .btn-dark:hover {
-  background: #2fbccc;
+  background: #232c57;
 }
 
 .section-eyebrow {
@@ -239,7 +250,7 @@
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #2fbccc;
+  color: #9aa4cf;
 }
 
 .input-luxury {
@@ -260,7 +271,7 @@
 
 .input-luxury:focus {
   outline: none;
-  border-color: #2fbccc;
+  border-color: #232c57;
 }
 
 .card-surface {
