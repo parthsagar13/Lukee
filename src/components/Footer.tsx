@@ -75,7 +75,7 @@ export const Footer: React.FC = () => {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noreferrer"
-                className="p-2.5 rounded-lg border border-white/15 hover:border-brand hover:text-brand transition-colors"
+                className="p-2.5 rounded-lg border border-white/15 text-white/70 hover:border-white/40 hover:text-white transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram size={16} />
@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noreferrer"
-                className="p-2.5 rounded-lg border border-white/15 hover:border-brand hover:text-brand transition-colors"
+                className="p-2.5 rounded-lg border border-white/15 text-white/70 hover:border-white/40 hover:text-white transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook size={16} />
@@ -95,32 +95,32 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Shop</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/shop" className="hover:text-brand transition-colors">Shop All</Link></li>
-              <li><Link to="/shop?bestSeller=true" className="hover:text-brand transition-colors">Bestsellers</Link></li>
-              <li><Link to="/shop?newArrival=true" className="hover:text-brand transition-colors">New Arrivals</Link></li>
-              <li><Link to="/collections" className="hover:text-brand transition-colors">Collections</Link></li>
-              <li><Link to="/shop?search=ring" className="hover:text-brand transition-colors">Engagement Rings</Link></li>
+              <li><Link to="/shop" className="hover:text-white transition-colors">Shop All</Link></li>
+              <li><Link to="/shop?bestSeller=true" className="hover:text-white transition-colors">Bestsellers</Link></li>
+              <li><Link to="/shop?newArrival=true" className="hover:text-white transition-colors">New Arrivals</Link></li>
+              <li><Link to="/collections" className="hover:text-white transition-colors">Collections</Link></li>
+              <li><Link to="/shop?search=ring" className="hover:text-white transition-colors">Engagement Rings</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Company</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/about" className="hover:text-brand transition-colors">Our Story</Link></li>
-              <li><Link to="/contact" className="hover:text-brand transition-colors">Book a Visit</Link></li>
-              <li><Link to="/contact" className="hover:text-brand transition-colors">Stores</Link></li>
-              <li><Link to="/privacy-policy" className="hover:text-brand transition-colors">Privacy</Link></li>
-              <li><Link to="/terms" className="hover:text-brand transition-colors">Terms</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">Our Story</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Book a Visit</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Stores</Link></li>
+              <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors">Terms</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Support</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/contact" className="hover:text-brand transition-colors">Concierge</Link></li>
-              <li><Link to="/contact" className="hover:text-brand transition-colors">Track Order</Link></li>
-              <li><Link to="/about" className="hover:text-brand transition-colors">Exchange Policy</Link></li>
-              <li><Link to="/contact" className="hover:text-brand transition-colors">Size Guide</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Concierge</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Track Order</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">Exchange Policy</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Size Guide</Link></li>
             </ul>
           </div>
 
