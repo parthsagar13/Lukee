@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { dbService } from './dbService.js';
 import { Category } from '../types.js';
 import { UniqueImageAssigner } from './productImages.js';
+import { metalNameFromMaterial, metalPurityLabel } from './productSpecs.js';
 import process from 'process';
 
 const MATERIALS = [
@@ -148,7 +149,21 @@ async function runSeed() {
       status: 'active',
       images: productImages,
       seoTitle: `${name} in ${material.name} | Lukee Jewels`,
-      seoDescription: `${shortDescription} Shop premium engagement, wedding, and diamond collection items with free worldwide courier shipping.`
+      seoDescription: `${shortDescription} Shop premium engagement, wedding, and diamond collection items with free worldwide courier shipping.`,
+      diamondDetails: {
+        totalCount: 13,
+        totalWeight: '0.22ct',
+        settingType: i % 2 === 0 ? 'Prong' : 'Pavé',
+        groups: [
+          { count: 12, clarity: 'SI', color: 'IJ', shape: 'Round', weightApprox: '0.07ct' },
+          { count: 1, clarity: 'SI', color: 'IJ', shape: 'Round', weightApprox: '0.15ct' },
+        ],
+      },
+      metalDetails: {
+        name: metalNameFromMaterial(material.name),
+        purity: metalPurityLabel(material.purity),
+        weight: `${weight}g`,
+      },
     });
   }
 

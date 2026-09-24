@@ -20,6 +20,40 @@ import {
   ShippingAddress,
   OrderItem,
 } from '../types.js';
+import { normalizeDiamondDetails, normalizeMetalDetails } from './productSpecs.js';
+
+function toProduct(doc: any): Product {
+  return {
+    _id: String(doc._id),
+    name: doc.name,
+    slug: doc.slug,
+    description: doc.description,
+    shortDescription: doc.shortDescription,
+    category: doc.category,
+    sku: doc.sku,
+    price: doc.price,
+    salePrice: doc.salePrice,
+    material: doc.material,
+    purity: doc.purity,
+    weight: doc.weight,
+    stock: doc.stock,
+    featured: doc.featured,
+    bestSeller: doc.bestSeller,
+    newArrival: doc.newArrival,
+    status: doc.status,
+    images: doc.images,
+    seoTitle: doc.seoTitle,
+    seoDescription: doc.seoDescription,
+    diamondDetails: normalizeDiamondDetails(doc.diamondDetails),
+    metalDetails: normalizeMetalDetails(doc.metalDetails, doc),
+    createdAt: doc.createdAt
+      ? (typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt.toISOString())
+      : undefined,
+    updatedAt: doc.updatedAt
+      ? (typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt.toISOString())
+      : undefined,
+  };
+}
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -484,30 +518,7 @@ class DbService {
         .limit(limit)
         .lean();
 
-      const mappedProducts = docs.map((d: any) => ({
-        _id: d._id.toString(),
-        name: d.name,
-        slug: d.slug,
-        description: d.description,
-        shortDescription: d.shortDescription,
-        category: d.category,
-        sku: d.sku,
-        price: d.price,
-        salePrice: d.salePrice,
-        material: d.material,
-        purity: d.purity,
-        weight: d.weight,
-        stock: d.stock,
-        featured: d.featured,
-        bestSeller: d.bestSeller,
-        newArrival: d.newArrival,
-        status: d.status,
-        images: d.images,
-        seoTitle: d.seoTitle,
-        seoDescription: d.seoDescription,
-        createdAt: d.createdAt ? d.createdAt.toISOString() : undefined,
-        updatedAt: d.updatedAt ? d.updatedAt.toISOString() : undefined,
-      }));
+      const mappedProducts = docs.map((d: any) => toProduct(d));
 
       return { products: mappedProducts, total };
     } else {
@@ -597,30 +608,7 @@ class DbService {
       try {
         const doc = await MongooseProduct.findById(id).lean();
         if (!doc) return null;
-        return {
-          _id: doc._id.toString(),
-          name: doc.name,
-          slug: doc.slug,
-          description: doc.description,
-          shortDescription: doc.shortDescription,
-          category: doc.category,
-          sku: doc.sku,
-          price: doc.price,
-          salePrice: doc.salePrice,
-          material: doc.material,
-          purity: doc.purity,
-          weight: doc.weight,
-          stock: doc.stock,
-          featured: doc.featured,
-          bestSeller: doc.bestSeller,
-          newArrival: doc.newArrival,
-          status: doc.status,
-          images: doc.images,
-          seoTitle: doc.seoTitle,
-          seoDescription: doc.seoDescription,
-          createdAt: doc.createdAt ? doc.createdAt.toISOString() : undefined,
-          updatedAt: doc.updatedAt ? doc.updatedAt.toISOString() : undefined,
-        };
+        return toProduct(doc);
       } catch {
         return null;
       }
@@ -634,30 +622,7 @@ class DbService {
     if (this.isMongoConnected) {
       const doc = await MongooseProduct.findOne({ slug }).lean();
       if (!doc) return null;
-      return {
-        _id: doc._id.toString(),
-        name: doc.name,
-        slug: doc.slug,
-        description: doc.description,
-        shortDescription: doc.shortDescription,
-        category: doc.category,
-        sku: doc.sku,
-        price: doc.price,
-        salePrice: doc.salePrice,
-        material: doc.material,
-        purity: doc.purity,
-        weight: doc.weight,
-        stock: doc.stock,
-        featured: doc.featured,
-        bestSeller: doc.bestSeller,
-        newArrival: doc.newArrival,
-        status: doc.status,
-        images: doc.images,
-        seoTitle: doc.seoTitle,
-        seoDescription: doc.seoDescription,
-        createdAt: doc.createdAt ? doc.createdAt.toISOString() : undefined,
-        updatedAt: doc.updatedAt ? doc.updatedAt.toISOString() : undefined,
-      };
+      return toProduct(doc);
     } else {
       this.readLocalDb();
       return this.localDb.products.find(p => p.slug === slug) || null;
@@ -666,29 +631,16 @@ class DbService {
 
   async createProduct(prodData: Partial<Product>): Promise<Product> {
     if (this.isMongoConnected) {
-      const doc = await MongooseProduct.create(prodData);
-      return {
-        _id: doc._id.toString(),
-        name: doc.name,
-        slug: doc.slug,
-        description: doc.description,
-        shortDescription: doc.shortDescription,
-        category: doc.category,
-        sku: doc.sku,
-        price: doc.price,
-        salePrice: doc.salePrice,
-        material: doc.material,
-        purity: doc.purity,
-        weight: doc.weight,
-        stock: doc.stock,
-        featured: doc.featured,
-        bestSeller: doc.bestSeller,
-        newArrival: doc.newArrival,
-        status: doc.status,
-        images: doc.images,
-        seoTitle: doc.seoTitle,
-        seoDescription: doc.seoDescription
-      };
+      const doc = await MongooseProduct.create({
+        ...prodData,
+        diamondDetails: normalizeDiamondDetails(prodData.diamondDetails),
+        metalDetails: normalizeMetalDetails(prodData.metalDetails, {
+          material: prodData.material || '',
+          purity: prodData.purity || '',
+          weight: Number(prodData.weight) || 0,
+        }),
+      });
+      return toProduct(doc);
     } else {
       this.readLocalDb();
       const newProd: Product = {
@@ -712,6 +664,12 @@ class DbService {
         images: Array.isArray(prodData.images) ? prodData.images : [],
         seoTitle: prodData.seoTitle || '',
         seoDescription: prodData.seoDescription || '',
+        diamondDetails: normalizeDiamondDetails(prodData.diamondDetails),
+        metalDetails: normalizeMetalDetails(prodData.metalDetails, {
+          material: prodData.material || '',
+          purity: prodData.purity || '',
+          weight: Number(prodData.weight) || 0,
+        }),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -724,30 +682,20 @@ class DbService {
   async updateProduct(id: string, prodData: Partial<Product>): Promise<Product | null> {
     if (this.isMongoConnected) {
       try {
-        const doc = await MongooseProduct.findByIdAndUpdate(id, prodData, { new: true }).lean();
+        const updatePayload: Record<string, unknown> = { ...prodData };
+        if (prodData.diamondDetails !== undefined) {
+          updatePayload.diamondDetails = normalizeDiamondDetails(prodData.diamondDetails);
+        }
+        if (prodData.metalDetails !== undefined || prodData.material || prodData.purity || prodData.weight !== undefined) {
+          updatePayload.metalDetails = normalizeMetalDetails(prodData.metalDetails, {
+            material: prodData.material || '',
+            purity: prodData.purity || '',
+            weight: prodData.weight as number,
+          });
+        }
+        const doc = await MongooseProduct.findByIdAndUpdate(id, updatePayload, { new: true }).lean();
         if (!doc) return null;
-        return {
-          _id: doc._id.toString(),
-          name: doc.name,
-          slug: doc.slug,
-          description: doc.description,
-          shortDescription: doc.shortDescription,
-          category: doc.category,
-          sku: doc.sku,
-          price: doc.price,
-          salePrice: doc.salePrice,
-          material: doc.material,
-          purity: doc.purity,
-          weight: doc.weight,
-          stock: doc.stock,
-          featured: doc.featured,
-          bestSeller: doc.bestSeller,
-          newArrival: doc.newArrival,
-          status: doc.status,
-          images: doc.images,
-          seoTitle: doc.seoTitle,
-          seoDescription: doc.seoDescription
-        };
+        return toProduct(doc);
       } catch {
         return null;
       }
@@ -755,7 +703,7 @@ class DbService {
       this.readLocalDb();
       const idx = this.localDb.products.findIndex(p => p._id === id);
       if (idx === -1) return null;
-      const updated: Product = {
+      const merged = {
         ...this.localDb.products[idx],
         ...prodData,
         price: prodData.price !== undefined ? Number(prodData.price) : this.localDb.products[idx].price,
@@ -763,6 +711,11 @@ class DbService {
         weight: prodData.weight !== undefined ? Number(prodData.weight) : this.localDb.products[idx].weight,
         stock: prodData.stock !== undefined ? Number(prodData.stock) : this.localDb.products[idx].stock,
         updatedAt: new Date().toISOString()
+      };
+      const updated: Product = {
+        ...merged,
+        diamondDetails: normalizeDiamondDetails(merged.diamondDetails),
+        metalDetails: normalizeMetalDetails(merged.metalDetails, merged),
       };
       this.localDb.products[idx] = updated;
       this.saveLocalDb();

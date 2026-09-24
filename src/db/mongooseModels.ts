@@ -59,9 +59,47 @@ export interface IProductDoc extends Document {
   images: string[];
   seoTitle: string;
   seoDescription: string;
+  diamondDetails?: {
+    totalCount?: number;
+    totalWeight?: string;
+    settingType?: string;
+    groups?: {
+      count?: number;
+      clarity?: string;
+      color?: string;
+      shape?: string;
+      weightApprox?: string;
+    }[];
+  };
+  metalDetails?: {
+    name?: string;
+    purity?: string;
+    weight?: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+const DiamondGroupSchema = new Schema({
+  count: { type: Number },
+  clarity: { type: String, default: '' },
+  color: { type: String, default: '' },
+  shape: { type: String, default: '' },
+  weightApprox: { type: String, default: '' },
+}, { _id: false });
+
+const DiamondDetailsSchema = new Schema({
+  totalCount: { type: Number },
+  totalWeight: { type: String, default: '' },
+  settingType: { type: String, default: '' },
+  groups: { type: [DiamondGroupSchema], default: [] },
+}, { _id: false });
+
+const MetalDetailsSchema = new Schema({
+  name: { type: String, default: '' },
+  purity: { type: String, default: '' },
+  weight: { type: String, default: '' },
+}, { _id: false });
 
 const ProductSchema = new Schema<IProductDoc>({
   name: { type: String, required: true },
@@ -83,6 +121,8 @@ const ProductSchema = new Schema<IProductDoc>({
   images: { type: [String], default: [] },
   seoTitle: { type: String, default: '' },
   seoDescription: { type: String, default: '' },
+  diamondDetails: { type: DiamondDetailsSchema, default: undefined },
+  metalDetails: { type: MetalDetailsSchema, default: undefined },
 }, { timestamps: true });
 
 // 4. Order Schema

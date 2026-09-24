@@ -12,11 +12,13 @@ import {
   ChevronRight,
   MapPin,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
-import { Product, Category } from '../types.js';
+import { Product, Category, DiamondDetails, MetalDetails } from '../types.js';
 import { useCart } from '../contexts/CartContext.js';
 import { ProductCard } from '../components/ProductCard.js';
 import { DUMMY_REVIEWS } from '../data/luxuryContent.js';
+import { hasDiamondDetails, normalizeMetalDetails } from '../db/productSpecs.js';
 
 const RING_SIZES = ['5', '6', '7', '8', '9', '10'];
 const RECENT_KEY = 'lukee_recent';
@@ -55,6 +57,95 @@ const HIGHLIGHTS = [
   'Complimentary resizing within 30 days',
   'Insured express delivery across India',
 ];
+
+function SpecAccordion({
+  title,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="bg-white border border-line rounded-xl overflow-hidden luxury-shadow">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left"
+      >
+        <span className="text-[0.7rem] tracking-[0.18em] uppercase text-ink font-semibold">
+          {title}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-muted transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && <div className="border-t border-line">{children}</div>}
+    </div>
+  );
+}
+
+function SpecRow({
+  label,
+  values,
+  cols,
+}: {
+  label: string;
+  values: Array<string | number | undefined>;
+  cols: number;
+}) {
+  const cells = Array.from({ length: Math.max(cols, 1) }, (_, i) => values[i]);
+  return (
+    <div className="grid items-center gap-3 px-5 py-3.5 border-b border-line last:border-b-0 text-sm"
+      style={{ gridTemplateColumns: `minmax(0,1fr) repeat(${cells.length}, minmax(4.5rem, 7rem))` }}
+    >
+      <span className="text-muted">{label}</span>
+      {cells.map((value, idx) => (
+        <span key={`${label}-${idx}`} className="text-ink text-right font-medium">
+          {value ?? ''}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DiamondDetailsTable({ details }: { details: DiamondDetails }) {
+  const groups = details.groups && details.groups.length > 0 ? details.groups : [{}];
+  const cols = groups.length;
+  const lastCol = (value: string | number | undefined) => [
+    ...Array(Math.max(cols - 1, 0)).fill(''),
+    value,
+  ];
+  return (
+    <div>
+      <SpecRow label="Total No. of Diamonds" values={lastCol(details.totalCount)} cols={cols} />
+      <SpecRow label="Total Weight" values={lastCol(details.totalWeight)} cols={cols} />
+      <SpecRow label="Clarity" values={groups.map((g) => g.clarity)} cols={cols} />
+      <SpecRow label="Color" values={groups.map((g) => g.color)} cols={cols} />
+      <SpecRow label="No of diamonds" values={groups.map((g) => g.count)} cols={cols} />
+      <SpecRow label="Setting Type" values={lastCol(details.settingType)} cols={cols} />
+      <SpecRow label="Shape" values={groups.map((g) => g.shape)} cols={cols} />
+      <SpecRow
+        label="Diamond Weight (Approx)"
+        values={groups.map((g) => g.weightApprox)}
+        cols={cols}
+      />
+    </div>
+  );
+}
+
+function MetalDetailsTable({ details }: { details: MetalDetails }) {
+  return (
+    <div>
+      <SpecRow label="Metal Name" values={[details.name]} cols={1} />
+      <SpecRow label="Purity" values={[details.purity]} cols={1} />
+      <SpecRow label="Metal Weight" values={[details.weight]} cols={1} />
+    </div>
+  );
+}
 
 export const ProductDetails: React.FC = () => {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
@@ -455,30 +546,36 @@ export const ProductDetails: React.FC = () => {
             </ul>
           </div>
 
-          <div className="bg-white border border-line rounded-xl p-6 luxury-shadow space-y-3 text-xs text-muted font-light">
-            <div className="flex justify-between border-b border-line pb-2.5">
-              <span className="text-muted uppercase tracking-wider text-[0.65rem]">Precious Metal</span>
-              <span className="text-ink font-semibold">{product.material}</span>
-            </div>
-            <div className="flex justify-between border-b border-line pb-2.5">
-              <span className="text-muted uppercase tracking-wider text-[0.65rem]">Metal Purity</span>
-              <span className="text-ink font-semibold">{product.purity}</span>
-            </div>
-            <div className="flex justify-between border-b border-line pb-2.5">
-              <span className="text-muted uppercase tracking-wider text-[0.65rem]">Total Metal Weight</span>
-              <span className="text-ink font-semibold font-mono">{product.weight} grams</span>
-            </div>
-            <div className="flex justify-between border-b border-line pb-2.5">
-              <span className="text-muted uppercase tracking-wider text-[0.65rem]">SKU Reference</span>
-              <span className="text-ink font-semibold font-mono">{product.sku}</span>
-            </div>
-            <div className="flex justify-between border-b border-line pb-2.5">
-              <span className="text-muted uppercase tracking-wider text-[0.65rem]">Casting Salon</span>
-              <span className="text-ink font-semibold">Lukee Boutique Salon</span>
-            </div>
-            <div className="flex justify-between pb-1">
-              <span className="text-muted uppercase tracking-wider text-[0.65rem]">Bespoke Sizing</span>
-              <span className="text-ink font-semibold text-right">Complimentary Custom Engravings</span>
+          <div className="space-y-4">
+            {hasDiamondDetails(product.diamondDetails) && product.diamondDetails && (
+              <SpecAccordion title="Diamond Details">
+                <DiamondDetailsTable details={product.diamondDetails} />
+              </SpecAccordion>
+            )}
+            <SpecAccordion title="Metal Details">
+              <MetalDetailsTable
+                details={
+                  normalizeMetalDetails(product.metalDetails, product) || {
+                    name: product.material,
+                    purity: product.purity,
+                    weight: `${product.weight}g`,
+                  }
+                }
+              />
+            </SpecAccordion>
+            <div className="bg-white border border-line rounded-xl p-6 luxury-shadow space-y-3 text-xs text-muted font-light">
+              <div className="flex justify-between border-b border-line pb-2.5">
+                <span className="text-muted uppercase tracking-wider text-[0.65rem]">SKU Reference</span>
+                <span className="text-ink font-semibold font-mono">{product.sku}</span>
+              </div>
+              <div className="flex justify-between border-b border-line pb-2.5">
+                <span className="text-muted uppercase tracking-wider text-[0.65rem]">Casting Salon</span>
+                <span className="text-ink font-semibold">Lukee Boutique Salon</span>
+              </div>
+              <div className="flex justify-between pb-1">
+                <span className="text-muted uppercase tracking-wider text-[0.65rem]">Bespoke Sizing</span>
+                <span className="text-ink font-semibold text-right">Complimentary Custom Engravings</span>
+              </div>
             </div>
           </div>
         </div>

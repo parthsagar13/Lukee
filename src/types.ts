@@ -11,6 +11,27 @@ export interface Category {
   updatedAt?: string;
 }
 
+export interface DiamondGroup {
+  count?: number;
+  clarity?: string;
+  color?: string;
+  shape?: string;
+  weightApprox?: string;
+}
+
+export interface DiamondDetails {
+  totalCount?: number;
+  totalWeight?: string;
+  settingType?: string;
+  groups?: DiamondGroup[];
+}
+
+export interface MetalDetails {
+  name?: string;
+  purity?: string;
+  weight?: string;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -32,6 +53,8 @@ export interface Product {
   images: string[];
   seoTitle: string;
   seoDescription: string;
+  diamondDetails?: DiamondDetails;
+  metalDetails?: MetalDetails;
   createdAt?: string;
   updatedAt?: string;
 }

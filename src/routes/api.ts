@@ -1,9 +1,18 @@
 import { Router, Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbService } from '../db/dbService.js';
 import { authMiddleware, AuthenticatedRequest, JWT_SECRET } from '../middleware/auth.js';
 import paymentsRouter from './payments.js';
+
+const PRODUCT_IMAGES_DIR = path.join(process.cwd(), 'public', 'products');
+const ALLOWED_IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+
+function ensureProductImagesDir() {
+  fs.mkdirSync(PRODUCT_IMAGES_DIR, { recursive: true });
+}
 
 const router = Router();
 
@@ -237,6 +246,71 @@ router.delete('/categories/:id', authMiddleware, async (req: Request, res: Respo
 
 
 // ==========================================
+// PRODUCT IMAGE UPLOADS
+// ==========================================
+
+router.get('/product-images', authMiddleware, (_req: Request, res: Response) => {
+  try {
+    ensureProductImagesDir();
+    const images = fs
+      .readdirSync(PRODUCT_IMAGES_DIR)
+      .filter((file) => ALLOWED_IMAGE_EXT.has(path.extname(file).toLowerCase()))
+      .filter((file) => !/\(\d+\)/.test(file))
+      .sort((a, b) => a.localeCompare(b))
+      .map((file) => `/products/${file}`);
+    res.json({ images });
+  } catch (err) {
+    console.error('Error listing product images:', err);
+    res.status(500).json({ error: 'Failed to list product images.' });
+  }
+});
+
+router.post('/product-images', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const { filename, data } = req.body as { filename?: string; data?: string };
+    if (!data || typeof data !== 'string') {
+      res.status(400).json({ error: 'Image data is required.' });
+      return;
+    }
+
+    const match = data.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) {
+      res.status(400).json({ error: 'Invalid image data. Use a JPG, PNG, WEBP, or GIF file.' });
+      return;
+    }
+
+    const mime = match[1].toLowerCase();
+    const extFromMime =
+      mime === 'image/jpeg' ? '.jpg' :
+      mime === 'image/png' ? '.png' :
+      mime === 'image/webp' ? '.webp' :
+      mime === 'image/gif' ? '.gif' :
+      '';
+    const extFromName = path.extname(filename || '').toLowerCase();
+    const ext = ALLOWED_IMAGE_EXT.has(extFromName) ? (extFromName === '.jpeg' ? '.jpg' : extFromName) : extFromMime;
+
+    if (!ext || !ALLOWED_IMAGE_EXT.has(ext)) {
+      res.status(400).json({ error: 'Only JPG, PNG, WEBP, and GIF images are allowed.' });
+      return;
+    }
+
+    const buffer = Buffer.from(match[2], 'base64');
+    if (buffer.length > 8 * 1024 * 1024) {
+      res.status(400).json({ error: 'Image must be 8MB or smaller.' });
+      return;
+    }
+
+    ensureProductImagesDir();
+    const safeName = `product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    fs.writeFileSync(path.join(PRODUCT_IMAGES_DIR, safeName), buffer);
+    res.status(201).json({ url: `/products/${safeName}` });
+  } catch (err) {
+    console.error('Error uploading product image:', err);
+    res.status(500).json({ error: 'Failed to upload product image.' });
+  }
+});
+
+// ==========================================
 // PRODUCTS ENDPOINTS
 // ==========================================
 
@@ -335,7 +409,9 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
     status,
     images,
     seoTitle,
-    seoDescription
+    seoDescription,
+    diamondDetails,
+    metalDetails
   } = req.body;
 
   // Validations
@@ -375,7 +451,9 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
         'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80'
       ],
       seoTitle: seoTitle || `${name} in Premium ${material} | Lukee Jewels`,
-      seoDescription: seoDescription || shortDescription || `${name} luxury fine jewelry accessory.`
+      seoDescription: seoDescription || shortDescription || `${name} luxury fine jewelry accessory.`,
+      diamondDetails,
+      metalDetails: metalDetails || { name: material, purity, weight: `${Number(weight)}g` },
     });
 
     res.status(201).json(newProd);
@@ -407,7 +485,9 @@ router.put('/products/:id', authMiddleware, async (req: Request, res: Response) 
     status,
     images,
     seoTitle,
-    seoDescription
+    seoDescription,
+    diamondDetails,
+    metalDetails
   } = req.body;
 
   try {
@@ -442,7 +522,11 @@ router.put('/products/:id', authMiddleware, async (req: Request, res: Response) 
       status,
       images,
       seoTitle,
-      seoDescription
+      seoDescription,
+      diamondDetails,
+      metalDetails: metalDetails || (material || purity || weight !== undefined
+        ? { name: material, purity, weight: weight !== undefined ? `${Number(weight)}g` : undefined }
+        : undefined),
     };
 
     if (name && name !== current.name) {

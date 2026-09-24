@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Search, X, Check, Eye, Sparkles, Image as ImageIcon } from 'lucide-react';
-import { Product, Category } from '../../types.js';
+import { Plus, Edit2, Trash2, Search, X, Image as ImageIcon, Upload, Link2, FolderOpen } from 'lucide-react';
+import { Product, Category, DiamondGroup } from '../../types.js';
 import { useAdmin } from '../../contexts/AdminContext.js';
+import { emptyDiamondGroup, metalNameFromMaterial, metalPurityLabel } from '../../db/productSpecs.js';
 
 const MATERIALS_PRESETS = [
   { name: '18k Yellow Gold', purity: '18K (750)' },
@@ -42,8 +43,19 @@ export const AdminProducts: React.FC = () => {
   const [formNewArrival, setFormNewArrival] = useState(false);
   const [formStatus, setFormStatus] = useState<'active' | 'inactive'>('active');
   const [formImages, setFormImages] = useState<string[]>(['']);
+  const [showImageUrl, setShowImageUrl] = useState<boolean[]>([false]);
+  const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(null);
+  const [libraryImages, setLibraryImages] = useState<string[]>([]);
+  const [libraryOpenFor, setLibraryOpenFor] = useState<number | null>(null);
   const [formSeoTitle, setFormSeoTitle] = useState('');
   const [formSeoDesc, setFormSeoDesc] = useState('');
+  const [formDiamondTotalCount, setFormDiamondTotalCount] = useState('');
+  const [formDiamondTotalWeight, setFormDiamondTotalWeight] = useState('');
+  const [formSettingType, setFormSettingType] = useState('');
+  const [formDiamondGroups, setFormDiamondGroups] = useState<DiamondGroup[]>([
+    emptyDiamondGroup(),
+    emptyDiamondGroup(),
+  ]);
   
   const [error, setError] = useState('');
 
@@ -109,9 +121,15 @@ export const AdminProducts: React.FC = () => {
     setFormBestSeller(false);
     setFormNewArrival(true);
     setFormStatus('active');
-    setFormImages(['https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80', '', '']);
+    setFormImages(['']);
+    setShowImageUrl([false]);
+    setLibraryOpenFor(null);
     setFormSeoTitle('');
     setFormSeoDesc('');
+    setFormDiamondTotalCount('');
+    setFormDiamondTotalWeight('');
+    setFormSettingType('');
+    setFormDiamondGroups([emptyDiamondGroup(), emptyDiamondGroup()]);
     setIsFormOpen(true);
   };
 
@@ -142,24 +160,121 @@ export const AdminProducts: React.FC = () => {
     setFormBestSeller(prod.bestSeller || false);
     setFormNewArrival(prod.newArrival || false);
     setFormStatus(prod.status || 'active');
-    setFormImages(prod.images && prod.images.length > 0 ? [...prod.images] : ['']);
+    const nextImages = prod.images && prod.images.length > 0 ? [...prod.images] : [''];
+    setFormImages(nextImages);
+    setShowImageUrl(nextImages.map((img) => /^https?:\/\//i.test(img)));
+    setLibraryOpenFor(null);
     setFormSeoTitle(prod.seoTitle || '');
     setFormSeoDesc(prod.seoDescription || '');
+    setFormDiamondTotalCount(
+      prod.diamondDetails?.totalCount != null ? String(prod.diamondDetails.totalCount) : ''
+    );
+    setFormDiamondTotalWeight(prod.diamondDetails?.totalWeight || '');
+    setFormSettingType(prod.diamondDetails?.settingType || '');
+    const groups = prod.diamondDetails?.groups || [];
+    setFormDiamondGroups([
+      { ...emptyDiamondGroup(), ...groups[0] },
+      { ...emptyDiamondGroup(), ...groups[1] },
+    ]);
     setIsFormOpen(true);
   };
 
   const handleAddImageUrl = () => {
     setFormImages([...formImages, '']);
+    setShowImageUrl([...showImageUrl, false]);
   };
 
   const handleRemoveImageUrl = (idx: number) => {
     setFormImages(formImages.filter((_, i) => i !== idx));
+    setShowImageUrl(showImageUrl.filter((_, i) => i !== idx));
+    if (libraryOpenFor === idx) setLibraryOpenFor(null);
   };
 
   const handleImageUrlChange = (idx: number, val: string) => {
-    const updated = [...formImages];
-    updated[idx] = val;
-    setFormImages(updated);
+    setFormImages((prev) => {
+      const updated = [...prev];
+      updated[idx] = val;
+      return updated;
+    });
+  };
+
+  const fetchLibraryImages = async () => {
+    try {
+      const res = await fetch('/api/product-images', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setLibraryImages(Array.isArray(data.images) ? data.images : []);
+    } catch (err) {
+      console.error('Failed to load image library:', err);
+    }
+  };
+
+  const handlePickLibraryImage = (idx: number, url: string) => {
+    handleImageUrlChange(idx, url);
+    setLibraryOpenFor(null);
+  };
+
+  const handleImageFilePick = async (idx: number, file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose a JPG, PNG, WEBP, or GIF image.');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('Image must be 8MB or smaller.');
+      return;
+    }
+
+    setError('');
+    setUploadingImageIdx(idx);
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const data = typeof reader.result === 'string' ? reader.result : '';
+        const res = await fetch('/api/product-images', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ filename: file.name, data }),
+        });
+        const payload = await res.json();
+        if (!res.ok || !payload.url) {
+          setError(payload.error || 'Failed to upload image.');
+          return;
+        }
+        handleImageUrlChange(idx, payload.url);
+        setLibraryImages((prev) => (prev.includes(payload.url) ? prev : [payload.url, ...prev]));
+      } catch (err) {
+        console.error('Image upload failed:', err);
+        setError('Connection failure during image upload.');
+      } finally {
+        setUploadingImageIdx(null);
+      }
+    };
+    reader.onerror = () => {
+      setUploadingImageIdx(null);
+      setError('Could not read the selected image.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDiamondGroupChange = (
+    idx: number,
+    field: keyof DiamondGroup,
+    value: string
+  ) => {
+    setFormDiamondGroups((prev) => {
+      const next = [...prev];
+      next[idx] = {
+        ...next[idx],
+        [field]: field === 'count' ? (value === '' ? undefined : Number(value)) : value,
+      };
+      return next;
+    });
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -207,7 +322,24 @@ export const AdminProducts: React.FC = () => {
       status: formStatus,
       images: cleanedImages,
       seoTitle: formSeoTitle.trim() || `${formName} in Premium ${material} | Lukee Jewels`,
-      seoDescription: formSeoDesc.trim() || formShortDesc.trim()
+      seoDescription: formSeoDesc.trim() || formShortDesc.trim(),
+      diamondDetails: {
+        totalCount: formDiamondTotalCount.trim() !== '' ? Number(formDiamondTotalCount) : undefined,
+        totalWeight: formDiamondTotalWeight.trim(),
+        settingType: formSettingType.trim(),
+        groups: formDiamondGroups.map((group) => ({
+          count: group.count != null && String(group.count) !== '' ? Number(group.count) : undefined,
+          clarity: group.clarity || '',
+          color: group.color || '',
+          shape: group.shape || '',
+          weightApprox: group.weightApprox || '',
+        })),
+      },
+      metalDetails: {
+        name: metalNameFromMaterial(material),
+        purity: metalPurityLabel(purity),
+        weight: `${Number(formWeight) || 1.0}g`,
+      },
     };
 
     const url = editingId ? `/api/products/${editingId}` : '/api/products';
@@ -550,6 +682,14 @@ export const AdminProducts: React.FC = () => {
                 </div>
               </div>
 
+              {/* Metal Details */}
+              <div className="border-t border-gold-100 pt-4 space-y-3">
+                <h4 className="font-serif text-sm text-brand-dark font-medium">Metal Details</h4>
+                <p className="text-[0.65rem] text-gray-400 font-light">
+                  Metal name, purity, and weight are saved with the product and shown on the storefront.
+                </p>
+              </div>
+
               {/* Custom metal inputs if selected */}
               {formMaterialIdx === 'custom' && (
                 <div className="grid grid-cols-2 gap-4 bg-gold-50/20 border border-gold-100 p-4 rounded-sm">
@@ -575,6 +715,109 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Diamond Details */}
+              <div className="border-t border-gold-100 pt-4 space-y-4">
+                <h4 className="font-serif text-sm text-brand-dark font-medium">Diamond Details</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Total No. of Diamonds</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formDiamondTotalCount}
+                      onChange={(e) => setFormDiamondTotalCount(e.target.value)}
+                      placeholder="e.g. 13"
+                      className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Total Weight</label>
+                    <input
+                      type="text"
+                      value={formDiamondTotalWeight}
+                      onChange={(e) => setFormDiamondTotalWeight(e.target.value)}
+                      placeholder="e.g. 0.22ct"
+                      className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Setting Type</label>
+                    <input
+                      type="text"
+                      value={formSettingType}
+                      onChange={(e) => setFormSettingType(e.target.value)}
+                      placeholder="e.g. Prong / Pavé"
+                      className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {formDiamondGroups.map((group, idx) => (
+                    <div key={idx} className="bg-gold-50/20 border border-gold-100 p-4 rounded-sm space-y-3">
+                      <p className="text-[0.65rem] uppercase tracking-wider text-brand-dark font-medium">
+                        Diamond Group {idx + 1}
+                      </p>
+                      <div className="space-y-2">
+                        <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">No of diamonds</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={group.count ?? ''}
+                          onChange={(e) => handleDiamondGroupChange(idx, 'count', e.target.value)}
+                          placeholder={idx === 0 ? 'e.g. 12' : 'e.g. 1'}
+                          className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm font-mono"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Clarity</label>
+                          <input
+                            type="text"
+                            value={group.clarity || ''}
+                            onChange={(e) => handleDiamondGroupChange(idx, 'clarity', e.target.value)}
+                            placeholder="e.g. SI"
+                            className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Color</label>
+                          <input
+                            type="text"
+                            value={group.color || ''}
+                            onChange={(e) => handleDiamondGroupChange(idx, 'color', e.target.value)}
+                            placeholder="e.g. IJ"
+                            className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Shape</label>
+                          <input
+                            type="text"
+                            value={group.shape || ''}
+                            onChange={(e) => handleDiamondGroupChange(idx, 'shape', e.target.value)}
+                            placeholder="e.g. Round"
+                            className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Diamond Weight (Approx)</label>
+                          <input
+                            type="text"
+                            value={group.weightApprox || ''}
+                            onChange={(e) => handleDiamondGroupChange(idx, 'weightApprox', e.target.value)}
+                            placeholder={idx === 0 ? 'e.g. 0.07ct' : 'e.g. 0.15ct'}
+                            className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* Pricing & Stock */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -611,41 +854,127 @@ export const AdminProducts: React.FC = () => {
                 </div>
               </div>
 
-              {/* Multiple Image URL Lists (Strictly entered via text input as mandated) */}
+              {/* Image picker, with optional URL input */}
               <div className="space-y-3.5 border-t border-gold-100 pt-4">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-serif text-sm text-brand-dark font-medium">Pre-loaded Image URL Registry</h4>
+                  <h4 className="font-serif text-sm text-brand-dark font-medium">Product Images</h4>
                   <button
                     type="button"
                     onClick={handleAddImageUrl}
                     className="text-[0.65rem] font-bold tracking-widest uppercase text-[#be903c] border-b border-brand/30 hover:text-[#aa7a30]"
                   >
-                    + Append URL Row
+                    + Add image
                   </button>
                 </div>
-                
+
                 <p className="text-[0.65rem] text-gray-400 leading-relaxed font-light">
-                  Provide high-resolution image URLs (Unsplash/Pexels or salon public folders). Ensure at least 3 URLs for optimal slide viewing.
+                  Pick an image from your computer or library. You can also paste an image URL if you prefer.
                 </p>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {formImages.map((imgUrl, idx) => (
-                    <div key={idx} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        placeholder="https://images.unsplash.com/..."
-                        value={imgUrl}
-                        onChange={(e) => handleImageUrlChange(idx, e.target.value)}
-                        className="flex-1 text-xs bg-gray-50 border border-line py-2 px-3 rounded-sm text-gray-600 font-light"
-                      />
-                      {formImages.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImageUrl(idx)}
-                          className="text-gray-400 hover:text-red-500 p-1"
-                        >
-                          <X size={14} />
-                        </button>
+                    <div key={idx} className="border border-gold-100 rounded-sm p-3 space-y-3 bg-[#fcfbf9]">
+                      <div className="flex gap-3 items-start">
+                        <div className="w-20 h-20 bg-white border border-line rounded-sm overflow-hidden flex items-center justify-center flex-shrink-0">
+                          {imgUrl ? (
+                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon size={18} className="text-gray-300" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 space-y-2 min-w-0">
+                          <div className="flex flex-wrap gap-2">
+                            <label className="inline-flex items-center gap-1.5 bg-[#1c1a17] text-gold-200 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm cursor-pointer hover:bg-brand hover:text-white transition-colors">
+                              <Upload size={12} />
+                              {uploadingImageIdx === idx ? 'Uploading…' : 'Choose image'}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                className="hidden"
+                                disabled={uploadingImageIdx === idx}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  e.target.value = '';
+                                  void handleImageFilePick(idx, file);
+                                }}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = libraryOpenFor === idx ? null : idx;
+                                setLibraryOpenFor(next);
+                                if (next !== null && libraryImages.length === 0) {
+                                  void fetchLibraryImages();
+                                }
+                              }}
+                              className="inline-flex items-center gap-1.5 border border-line text-gray-600 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm hover:border-brand hover:text-brand-dark"
+                            >
+                              <FolderOpen size={12} />
+                              Library
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowImageUrl((prev) => {
+                                  const next = [...prev];
+                                  next[idx] = !next[idx];
+                                  return next;
+                                });
+                              }}
+                              className="inline-flex items-center gap-1.5 border border-line text-gray-600 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm hover:border-brand hover:text-brand-dark"
+                            >
+                              <Link2 size={12} />
+                              {showImageUrl[idx] ? 'Hide URL' : 'or paste URL'}
+                            </button>
+                          </div>
+
+                          {showImageUrl[idx] && (
+                            <input
+                              type="text"
+                              placeholder="https://… or /products/blacky_11.jpg"
+                              value={imgUrl}
+                              onChange={(e) => handleImageUrlChange(idx, e.target.value)}
+                              className="w-full text-xs bg-white border border-line py-2 px-3 rounded-sm text-gray-600 font-light"
+                            />
+                          )}
+                        </div>
+
+                        {formImages.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImageUrl(idx)}
+                            className="text-gray-400 hover:text-red-500 p-1"
+                            title="Remove image"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      {libraryOpenFor === idx && (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto border-t border-gold-100 pt-3">
+                          {libraryImages.length === 0 ? (
+                            <p className="col-span-full text-[0.65rem] text-gray-400">
+                              No uploaded images yet. Choose a file to add one.
+                            </p>
+                          ) : (
+                            libraryImages.map((src) => (
+                              <button
+                                key={src}
+                                type="button"
+                                onClick={() => handlePickLibraryImage(idx, src)}
+                                className={`aspect-square border rounded-sm overflow-hidden ${
+                                  imgUrl === src ? 'border-brand ring-1 ring-brand' : 'border-line hover:border-brand'
+                                }`}
+                                title={src}
+                              >
+                                <img src={src} alt="" className="w-full h-full object-cover" />
+                              </button>
+                            ))
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}

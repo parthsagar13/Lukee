@@ -12,6 +12,7 @@
     "build:client": "vite build",
     "start": "node dist/server.cjs",
     "seed": "tsx src/db/seed.ts",
+    "seed:products": "tsx src/db/seedProducts.ts",
     "clean": "rm -rf dist server.js data",
     "lint": "tsc --noEmit"
   },
