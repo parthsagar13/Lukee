@@ -33,7 +33,7 @@ const COLLECTIONS_LIST: CollectionItem[] = [
     link: '/shop?search=gold',
   },
   {
-    title: 'Bridal & Solitaire Salon',
+    title: 'Bridal & Solitaire Collection',
     subtitle: 'Heirlooms of Love',
     description:
       'Meticulously planned engagement solitaires, wedding bands, and anniversary halo creations built for lifetimes.',
@@ -89,7 +89,7 @@ export const Collections: React.FC = () => {
               visual and thematic inspiration.
             </p>
             <Link to="/shop" className="btn-gold inline-flex mt-2">
-              Shop The Salon
+              Shop The Collection
               <ArrowRight size={14} />
             </Link>
           </div>

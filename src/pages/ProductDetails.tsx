@@ -569,8 +569,8 @@ export const ProductDetails: React.FC = () => {
                 <span className="text-ink font-semibold font-mono">{product.sku}</span>
               </div>
               <div className="flex justify-between border-b border-line pb-2.5">
-                <span className="text-muted uppercase tracking-wider text-[0.65rem]">Casting Salon</span>
-                <span className="text-ink font-semibold">Lukee Boutique Salon</span>
+                <span className="text-muted uppercase tracking-wider text-[0.65rem]">Atelier</span>
+                <span className="text-ink font-semibold">Lukee Boutique</span>
               </div>
               <div className="flex justify-between pb-1">
                 <span className="text-muted uppercase tracking-wider text-[0.65rem]">Bespoke Sizing</span>

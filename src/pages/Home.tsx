@@ -1346,7 +1346,7 @@ export const Home: React.FC = () => {
             Join the Lukee circle
           </h2>
           <p className="text-sm text-white/65 font-light max-w-md mx-auto">
-            Early access to drops, private salon invites, and styling notes — straight to your
+            Early access to drops, private boutique invites, and styling notes — straight to your
             inbox.
           </p>
           {newsletterDone ? (

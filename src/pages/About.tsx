@@ -35,8 +35,8 @@ const TIMELINE = [
   },
   {
     year: '2016',
-    title: 'First Flagship Salon',
-    text: 'Our Bandra salon opens — inviting clients into private viewing rooms and bespoke consultations.',
+    title: 'First Flagship Boutique',
+    text: 'Our Bandra boutique opens — inviting clients into private viewing rooms and bespoke consultations.',
   },
   {
     year: '2020',

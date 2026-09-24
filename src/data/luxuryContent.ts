@@ -218,7 +218,7 @@ export const FAQS = [
 
 export const STORES = [
   {
-    name: 'Lukee Salon — Bandra',
+    name: 'Lukee Boutique — Bandra',
     address: 'Linking Road, Mumbai 400050',
     hours: '11:00 AM – 8:00 PM',
     img: IMAGES.store,

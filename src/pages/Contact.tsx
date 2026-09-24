@@ -44,13 +44,13 @@ export const Contact: React.FC = () => {
           }}
         />
         <div className="relative max-w-3xl mx-auto px-4 text-center space-y-4">
-          <p className="section-eyebrow">Salon Appointment</p>
+          <p className="section-eyebrow">Boutique Appointment</p>
           <h1 className="font-serif text-4xl sm:text-5xl font-light tracking-wide">
             Connect &amp; Reserve
           </h1>
           <div className="w-14 h-px bg-brand mx-auto" />
           <p className="text-sm text-muted font-light max-w-xl mx-auto leading-relaxed">
-            Book a private viewing at our salon, schedule a video concierge consultation, or enquire about
+            Book a private viewing at our boutique, schedule a video concierge consultation, or enquire about
             custom diamond commissioning.
           </p>
         </div>
@@ -101,14 +101,14 @@ export const Contact: React.FC = () => {
           <div className="lg:col-span-7 relative min-h-[280px] lg:min-h-full overflow-hidden border border-line luxury-shadow">
             <img
               src={IMAGES.store}
-              alt="Salon location map placeholder"
+              alt="Boutique location map placeholder"
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-ink/40" />
             <div className="absolute inset-0 flex items-end p-6 sm:p-8">
               <div className="bg-white/95 border border-line p-5 space-y-3 max-w-sm luxury-shadow">
                 <p className="section-eyebrow">Visit Us</p>
-                <h3 className="font-serif text-xl font-semibold text-ink">Salon Concierge</h3>
+                <h3 className="font-serif text-xl font-semibold text-ink">Boutique Concierge</h3>
                 <div className="space-y-2 text-xs text-muted">
                   <p className="flex items-center gap-2">
                     <Phone size={14} className="text-brand" />
@@ -135,7 +135,7 @@ export const Contact: React.FC = () => {
             <h2 className="font-serif text-3xl font-light">Request an Appointment</h2>
             <div className="w-14 h-px bg-brand" />
             <p className="text-sm text-muted leading-relaxed">
-              Share your preferences and preferred date. Our salon team will confirm a private viewing
+              Share your preferences and preferred date. Our boutique team will confirm a private viewing
               or virtual consultation within two hours.
             </p>
           </div>
@@ -148,7 +148,7 @@ export const Contact: React.FC = () => {
                 </div>
                 <h3 className="font-serif text-2xl text-ink font-light">Consultation Scheduled</h3>
                 <p className="text-sm text-muted max-w-md mx-auto leading-relaxed">
-                  Thank you, <span className="font-medium text-ink">{formData.name}</span>. Our salon
+                  Thank you, <span className="font-medium text-ink">{formData.name}</span>. Our boutique
                   concierge team is reviewing your details. A confirmation has been dispatched to{' '}
                   <span className="font-medium text-ink">{formData.email}</span>.
                 </p>
@@ -219,14 +219,14 @@ export const Contact: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[0.7rem] tracking-wider uppercase text-muted block">
-                      Salon Location
+                      Boutique Location
                     </label>
                     <select
                       value={formData.showroom}
                       onChange={(e) => setFormData({ ...formData, showroom: e.target.value })}
                       className="input-luxury"
                     >
-                      <option value="new-york">New York Salon (Fifth Ave)</option>
+                      <option value="new-york">New York Boutique (Fifth Ave)</option>
                       <option value="paris">Paris Atelier (Place Vendôme)</option>
                       <option value="geneva">Geneva Boutique (Rue du Rhône)</option>
                       <option value="virtual">Virtual Concierge (Video Link)</option>
@@ -241,7 +241,7 @@ export const Contact: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       { key: 'custom', label: 'Custom Engagement' },
-                      { key: 'viewing', label: 'Bespoke Salon Tour' },
+                      { key: 'viewing', label: 'Bespoke Boutique Tour' },
                       { key: 'sizing', label: 'Cleaning & Valuation' },
                     ].map((service) => {
                       const isChecked = formData.services.includes(service.key);

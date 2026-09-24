@@ -298,7 +298,7 @@ export const Shop: React.FC = () => {
       <div className="border-b border-line pb-8 mb-8 text-center sm:text-left space-y-3">
         <p className="section-eyebrow">Curated for you</p>
         <h1 className="text-3xl sm:text-5xl font-serif font-light tracking-wide text-ink">
-          The Salon Collection
+          The Collection
         </h1>
         <p className="text-xs sm:text-sm text-muted font-light max-w-2xl leading-relaxed">
           Exquisite custom jewels masterfully configured across metals, materials, and stone cuts.
