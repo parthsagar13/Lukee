@@ -5,6 +5,7 @@ import { CartProvider } from './contexts/CartContext.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 import { CartDrawer } from './components/CartDrawer.js';
+import { ContactWidget } from './components/ContactWidget.js';
 
 // Public User-Facing Pages
 import { Home } from './pages/Home.js';
@@ -16,6 +17,9 @@ import { Contact } from './pages/Contact.js';
 import { PrivacyPolicy } from './pages/PrivacyPolicy.js';
 import { Terms } from './pages/Terms.js';
 import { NotFound } from './pages/NotFound.js';
+import { Checkout } from './pages/Checkout.js';
+import { OrderSuccess } from './pages/OrderSuccess.js';
+import { OrderDetails } from './pages/OrderDetails.js';
 
 // Admin / Back-office Pages
 import { AdminLogin } from './pages/admin/AdminLogin.js';
@@ -23,32 +27,34 @@ import { AdminDashboard } from './pages/admin/AdminDashboard.js';
 import { AdminCategories } from './pages/admin/AdminCategories.js';
 import { AdminProducts } from './pages/admin/AdminProducts.js';
 import { AdminSettings } from './pages/admin/AdminSettings.js';
+import { AdminOrders } from './pages/admin/AdminOrders.js';
 import { AdminLayout } from './layouts/AdminLayout.js';
 
 // 1. Client Layout (Public Storefront wrapper with header, footer and sliding drawers)
 const ClientLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9f6]">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <div className="flex-grow">
         <Outlet />
       </div>
       <Footer />
       <CartDrawer />
+      <ContactWidget />
     </div>
   );
 };
 
 // 2. Protected Route Guard (Verifies JWT validation before rendering administrative panes)
 const ProtectedRoute: React.FC = () => {
-  const { isAuthenticated, loading } = useAdmin();
+  const { isAuthenticated, isLoading } = useAdmin();
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-gold-300 border-t-gold-600 rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs tracking-widest text-gray-400 uppercase font-sans">Verifying Key Clearance...</p>
+          <div className="w-10 h-10 border-2 border-brand-soft border-t-brand rounded-full animate-spin mx-auto" />
+          <p className="text-xs tracking-[0.8px] text-muted uppercase font-sans font-bold">Verifying access…</p>
         </div>
       </div>
     );
@@ -74,6 +80,9 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order-success/:id" element={<OrderSuccess />} />
+              <Route path="/orders/:id" element={<OrderDetails />} />
               <Route path="/404" element={<NotFound />} />
             </Route>
 
@@ -86,6 +95,7 @@ export default function App() {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/categories" element={<AdminCategories />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
               </Route>
             </Route>

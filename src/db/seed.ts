@@ -1,11 +1,9 @@
 import bcryptjs from 'bcryptjs';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { dbService } from './dbService.js';
 import { Category } from '../types.js';
 import { UniqueImageAssigner } from './productImages.js';
 import process from 'process';
-
-dotenv.config();
 
 const MATERIALS = [
   { name: '18k Yellow Gold', purity: '18K (750)' },

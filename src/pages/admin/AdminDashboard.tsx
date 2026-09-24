@@ -66,7 +66,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Welcome Title Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#1c1a17] text-white p-6 sm:p-8 rounded-sm luxury-shadow gap-4">
         <div>
-          <span className="text-[0.65rem] tracking-[0.4em] uppercase text-gold-400 block font-light">Management Console</span>
+          <span className="text-[0.65rem] tracking-[0.4em] uppercase text-brand block font-light">Management Console</span>
           <h1 className="font-serif text-2xl sm:text-3xl font-light text-white tracking-wide">Lukee Jewels Control Center</h1>
           <p className="text-[0.7rem] text-gray-400 font-light mt-1">
             Running database engine: <span className="text-gold-200 font-medium">{stats?.lowStockCount !== undefined ? (dbEngine || 'Persistent JSON Database') : 'Loading...'}</span>
@@ -74,7 +74,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
         <button
           onClick={fetchDashboardData}
-          className="flex items-center space-x-2 border border-gold-400/20 text-xs px-4 py-2 hover:bg-gold-500 hover:text-white transition-all text-gold-200 uppercase tracking-widest rounded-sm"
+          className="flex items-center space-x-2 border border-gold-400/20 text-xs px-4 py-2 hover:bg-brand hover:text-white transition-all text-gold-200 uppercase tracking-widest rounded-sm"
         >
           <RefreshCw size={12} />
           <span>Refresh Data</span>
@@ -90,7 +90,7 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[0.65rem] tracking-wider uppercase text-gray-400 font-medium block">Total Products</span>
             <span className="text-3xl font-serif text-gray-800 block">{stats?.totalProducts || 0}</span>
           </div>
-          <div className="p-3 bg-gold-50 border border-gold-100 text-gold-500 rounded-sm">
+          <div className="p-3 bg-gold-50 border border-gold-100 text-brand rounded-sm">
             <Package size={20} />
           </div>
         </div>
@@ -101,7 +101,7 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[0.65rem] tracking-wider uppercase text-gray-400 font-medium block">Active Categories</span>
             <span className="text-3xl font-serif text-gray-800 block">{stats?.totalCategories || 0}</span>
           </div>
-          <div className="p-3 bg-gold-50 border border-gold-100 text-gold-500 rounded-sm">
+          <div className="p-3 bg-gold-50 border border-gold-100 text-brand rounded-sm">
             <LayoutGrid size={20} />
           </div>
         </div>
@@ -110,10 +110,10 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-white border border-gold-100 p-6 rounded-sm flex items-center justify-between shadow-xs border-l-4 border-l-gold-500">
           <div className="space-y-1">
             <span className="text-[0.65rem] tracking-wider uppercase text-gray-400 font-medium block">Featured Designs</span>
-            <span className="text-3xl font-serif text-gold-600 block">{stats?.featuredCount || 0}</span>
+            <span className="text-3xl font-serif text-brand-dark block">{stats?.featuredCount || 0}</span>
           </div>
-          <div className="p-3 bg-gold-50 border border-gold-100 text-gold-500 rounded-sm">
-            <Star size={20} className="fill-gold-400 text-gold-400" />
+          <div className="p-3 bg-gold-50 border border-gold-100 text-brand rounded-sm">
+            <Star size={20} className="fill-gold-400 text-brand" />
           </div>
         </div>
 
@@ -201,7 +201,7 @@ export const AdminDashboard: React.FC = () => {
           </h3>
           <Link
             to="/admin/products"
-            className="text-[0.65rem] uppercase tracking-widest text-gold-600 hover:text-gold-800 font-semibold flex items-center gap-1"
+            className="text-[0.65rem] uppercase tracking-widest text-brand-dark hover:text-brand-dark font-semibold flex items-center gap-1"
           >
             Manage Products <ExternalLink size={10} />
           </Link>
@@ -237,7 +237,7 @@ export const AdminDashboard: React.FC = () => {
                     <td className="py-3 px-4 text-right">
                       <Link
                         to={`/admin/products?edit=${p._id}`}
-                        className="text-xs text-gold-600 hover:text-gold-800 border-b border-gold-300 font-medium"
+                        className="text-xs text-brand-dark hover:text-brand-dark border-b border-brand/30 font-medium"
                       >
                         Replenish
                       </Link>

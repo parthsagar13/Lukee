@@ -159,12 +159,12 @@ export const AdminCategories: React.FC = () => {
       {/* Title & Add Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gold-100 pb-5">
         <div>
-          <span className="text-[0.65rem] tracking-[0.3em] uppercase text-gold-600 block font-light">Structure Management</span>
+          <span className="text-[0.65rem] tracking-[0.3em] uppercase text-brand-dark block font-light">Structure Management</span>
           <h1 className="font-serif text-2xl sm:text-3xl font-light text-gray-800">Categories Management</h1>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest font-semibold px-4 py-2.5 hover:bg-gold-500 hover:text-white transition-all rounded-sm flex items-center gap-2"
+          className="bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest font-semibold px-4 py-2.5 hover:bg-brand hover:text-white transition-all rounded-sm flex items-center gap-2"
         >
           <Plus size={14} />
           <span>New Category</span>
@@ -179,7 +179,7 @@ export const AdminCategories: React.FC = () => {
             placeholder="Search category, slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs bg-white border border-gold-200 py-2 pl-8 pr-3 rounded-sm focus:outline-none focus:border-gold-500 text-gray-700"
+            className="w-full text-xs bg-white border border-line py-2 pl-8 pr-3 rounded-sm focus:outline-none focus:border-brand text-gray-700"
           />
           <Search size={14} className="absolute left-2.5 top-2.5 text-gray-400" />
         </div>
@@ -192,7 +192,7 @@ export const AdminCategories: React.FC = () => {
       {loading ? (
         <div className="text-center py-10 text-gray-400 text-xs">Opening cabinets...</div>
       ) : filteredCategories.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-xs border border-dashed border-gold-200 rounded-sm">
+        <div className="text-center py-10 text-gray-400 text-xs border border-dashed border-line rounded-sm">
           No categories found. Create a new category index above.
         </div>
       ) : (
@@ -237,14 +237,14 @@ export const AdminCategories: React.FC = () => {
                   <td className="py-4 px-4 text-right space-x-2">
                     <button
                       onClick={() => handleOpenEdit(cat)}
-                      className="p-1.5 border border-gold-200 text-gray-500 hover:text-gold-600 rounded-sm hover:bg-gold-50/20"
+                      className="p-1.5 border border-line text-gray-500 hover:text-brand-dark rounded-sm hover:bg-gold-50/20"
                       title="Edit Category"
                     >
                       <Edit2 size={12} />
                     </button>
                     <button
                       onClick={() => handleDelete(cat._id)}
-                      className="p-1.5 border border-gold-200 text-gray-400 hover:text-red-600 rounded-sm hover:bg-red-50/20"
+                      className="p-1.5 border border-line text-gray-400 hover:text-red-600 rounded-sm hover:bg-red-50/20"
                       title="Delete Category"
                     >
                       <Trash2 size={12} />
@@ -295,11 +295,11 @@ export const AdminCategories: React.FC = () => {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Engagement Rings"
-                  className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                  className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                 />
                 {formName && (
                   <span className="text-[0.6rem] font-mono text-gray-400 block">
-                    Pre-calculated slug: <span className="text-gold-600">
+                    Pre-calculated slug: <span className="text-brand-dark">
                       {formName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '')}
                     </span>
                   </span>
@@ -314,7 +314,7 @@ export const AdminCategories: React.FC = () => {
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                   placeholder="Detail the metals, gems, and style signatures featured in this range..."
-                  className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 resize-none"
+                  className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 resize-none"
                 />
               </div>
 
@@ -328,7 +328,7 @@ export const AdminCategories: React.FC = () => {
                     value={formOrder}
                     onChange={(e) => setFormOrder(e.target.value)}
                     placeholder="e.g. 5"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 font-mono"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
                   />
                 </div>
                 <div className="space-y-2">
@@ -336,7 +336,7 @@ export const AdminCategories: React.FC = () => {
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value as any)}
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                   >
                     <option value="active">Active (Visible in Shop)</option>
                     <option value="inactive">Inactive (Vaulted)</option>
@@ -346,7 +346,7 @@ export const AdminCategories: React.FC = () => {
 
               {/* SEO Subheading Divider */}
               <div className="border-t border-gold-100 pt-4 space-y-4">
-                <h4 className="font-serif text-sm text-gold-700 font-medium">Search Engine Optimization (SEO)</h4>
+                <h4 className="font-serif text-sm text-brand-dark font-medium">Search Engine Optimization (SEO)</h4>
                 
                 <div className="space-y-2">
                   <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">SEO Title Header</label>
@@ -355,7 +355,7 @@ export const AdminCategories: React.FC = () => {
                     value={formSeoTitle}
                     onChange={(e) => setFormSeoTitle(e.target.value)}
                     placeholder="e.g. Buy Luxury Engagement Rings Online | Lukee Jewels"
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
                   />
                 </div>
 
@@ -366,7 +366,7 @@ export const AdminCategories: React.FC = () => {
                     value={formSeoDesc}
                     onChange={(e) => setFormSeoDesc(e.target.value)}
                     placeholder="Provide a search snippet summarizing the collection..."
-                    className="w-full text-xs bg-gray-50 border border-gold-200 py-3 px-3.5 focus:outline-none focus:border-gold-500 rounded-sm text-gray-700 resize-none"
+                    className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 resize-none"
                   />
                 </div>
               </div>
@@ -375,13 +375,13 @@ export const AdminCategories: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="w-1/2 border border-gold-300 text-gold-800 text-xs uppercase tracking-widest py-3 hover:bg-gold-50 rounded-sm"
+                  className="w-1/2 border border-brand/30 text-brand-dark text-xs uppercase tracking-widest py-3 hover:bg-gold-50 rounded-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest py-3 hover:bg-gold-500 hover:text-white transition-all rounded-sm font-semibold"
+                  className="w-1/2 bg-[#1c1a17] text-gold-200 text-xs uppercase tracking-widest py-3 hover:bg-brand hover:text-white transition-all rounded-sm font-semibold"
                 >
                   Save Settings
                 </button>

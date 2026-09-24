@@ -3,8 +3,16 @@ import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbService } from '../db/dbService.js';
 import { authMiddleware, AuthenticatedRequest, JWT_SECRET } from '../middleware/auth.js';
+import paymentsRouter from './payments.js';
 
 const router = Router();
+
+router.use(paymentsRouter);
+
+// GET /api/db-status — verify production is using MongoDB (not ephemeral JSON)
+router.get('/db-status', async (_req: Request, res: Response) => {
+  res.json(dbService.getDbStatus());
+});
 
 // Helper to create slugs
 function slugify(text: string): string {
@@ -152,7 +160,9 @@ router.post('/categories', authMiddleware, async (req: Request, res: Response) =
 
     res.status(201).json(newCat);
   } catch (err) {
-    res.status(500).json({ error: 'Could not create category.' });
+    console.error('Create category error:', err);
+    const message = err instanceof Error ? err.message : 'Could not create category.';
+    res.status(500).json({ error: message });
   }
 });
 
@@ -371,7 +381,8 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
     res.status(201).json(newProd);
   } catch (err) {
     console.error('Error creating product:', err);
-    res.status(500).json({ error: 'Failed to create product.' });
+    const message = err instanceof Error ? err.message : 'Failed to create product.';
+    res.status(500).json({ error: message });
   }
 });
 

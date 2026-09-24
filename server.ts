@@ -1,27 +1,24 @@
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
-import { createServer as createViteServer } from 'vite';
+import 'dotenv/config';
 import { dbService } from './src/db/dbService.js';
 import apiRouter from './src/routes/api.js';
 
-// Register global error handlers FIRST
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[unhandledRejection]', reason);
-});
+const isProduction =
+  process.env.NODE_ENV === 'production' ||
+  Boolean(process.env.RAILWAY_ENVIRONMENT) ||
+  Boolean(process.env.RENDER) ||
+  Boolean(process.env.VERCEL);
 
-process.on('uncaughtException', (err) => {
-  console.error('[uncaughtException]', err);
-  process.exit(1);
-});
+/** Vercel runs Express as a serverless function (no app.listen). */
+const isServerless = Boolean(process.env.VERCEL);
 
-async function startServer() {
+function createApp() {
   const app = express();
-  const PORT = 3000;
 
   console.log('[server] Initializing Express app...');
 
-  // 1. Parse JSON body and support CORS
   app.use(express.json());
   app.use(cors({
     origin: '*',
@@ -29,63 +26,108 @@ async function startServer() {
   }));
   console.log('[server] Middleware configured');
 
-  // 2. Connect to Database (dynamic MongoDB / JSON fallback)
-  console.log('[server] Connecting to database...');
-  await dbService.connect();
-  console.log('[server] Database connected');
+  app.get('/health', async (_req, res) => {
+    try {
+      await dbService.ensureConnected();
+      res.status(200).json({ status: 'ok', db: dbService.getDbStatus() });
+    } catch (err) {
+      res.status(503).json({
+        status: 'degraded',
+        db: dbService.getDbStatus(),
+        error: err instanceof Error ? err.message : 'Database unavailable',
+      });
+    }
+  });
 
-  // 3. API Router
-  console.log('[server] Setting up API routes...');
+  app.use(async (_req, res, next) => {
+    try {
+      await dbService.ensureConnected();
+      next();
+    } catch (err) {
+      console.error('[server] Database not ready:', err);
+      res.status(503).json({
+        error: err instanceof Error ? err.message : 'Database unavailable.',
+        db: dbService.getDbStatus(),
+      });
+    }
+  });
+
   app.use('/api', apiRouter);
   console.log('[server] API routes configured');
 
-  // 4. Vite middleware or static serving
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[server] Starting development server with Vite middleware...');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    console.log('[server] Starting production server with static bundle serving...');
+  if (isProduction) {
+    console.log('[server] Serving production static files from dist/...');
     const distPath = path.join(process.cwd(), 'dist');
-    console.log('[server] Serving static files from:', distPath);
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      console.log('[server] Serving index.html for route:', req.path);
-      const indexPath = path.join(distPath, 'index.html');
-      res.sendFile(indexPath, (err) => {
-        if (err) {
-          console.error('[server] Error sending index.html:', err);
-          res.status(500).send('Internal Server Error');
-        }
+    app.use(express.static(distPath, { index: false }));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(path.join(distPath, 'index.html'), (err) => {
+        if (err) next(err);
       });
     });
+    console.log('[server] Static file serving configured');
   }
-  console.log('[server] Static file serving configured');
+
+  return app;
+}
+
+async function attachViteDev(app: express.Express) {
+  console.log('[server] Starting development server with Vite middleware...');
+  const { createServer: createViteServer } = await import('vite');
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'spa',
+  });
+  app.use(vite.middlewares);
+  console.log('[server] Vite middleware configured');
+}
+
+const app = createApp();
+
+async function startServer() {
+  const PORT = Number(process.env.PORT) || 4000;
+
+  if (!isProduction) {
+    await attachViteDev(app);
+  }
+
+  await dbService.ensureConnected().catch((err) => {
+    console.error('[server] Database ensureConnected warning:', err);
+  });
 
   console.log('[server] Starting HTTP server on port', PORT);
   const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[server] Lukee Jewels is shining at http://localhost:${PORT}`);
+    console.log(`[server] Lukee Jewels is shining on port ${PORT} (${isProduction ? 'production' : 'development'})`);
   });
 
-  // Handle server errors
   server.on('error', (err) => {
     console.error('[server] Server error:', err);
     process.exit(1);
   });
 
-  server.on('clientError', (err, socket) => {
-    console.error('[server] Client error:', err);
+  server.on('clientError', (_err, socket) => {
+    console.error('[server] Client error');
+    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('[unhandledRejection]', reason);
+  });
+
+  process.on('uncaughtException', (err) => {
+    console.error('[uncaughtException]', err);
+    process.exit(1);
   });
 
   console.log('[server] All error handlers registered');
 }
 
-console.log('[server] Starting application...');
-startServer().catch(err => {
-  console.error('[server] Fatal error launching server:', err);
-  process.exit(1);
-});
+if (!isServerless) {
+  console.log('[server] Starting application...');
+  startServer().catch((err) => {
+    console.error('[server] Fatal error launching server:', err);
+    process.exit(1);
+  });
+}
 
+export default app;

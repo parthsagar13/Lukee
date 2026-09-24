@@ -1,64 +1,332 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+/*
+  Design system source: DESIGN-candere-com.md
+  Theme: Lukee navy (logo) · White · Black
+  Accent: #232c57 · Canvas: #ffffff · Text: #000000 · Secondary text: #5b6172
+  Font: DM Sans (all UI + headings) · Radius 8px+ · 10px spacing grid
+*/
 
-  /* Custom luxury color expansions matched to the elegant beige & gold design */
-  --color-gold-50: #FDFCFB;
-  --color-gold-100: #F9F6F2;
-  --color-gold-200: #F2EDE4;
-  --color-gold-300: #E3D9C9;
-  --color-gold-400: #D4C3A6;
-  --color-gold-500: #C5A059;
-  --color-gold-600: #B28B45;
-  --color-gold-700: #977334;
-  --color-gold-800: #7C5D27;
-  --color-gold-900: #60471C;
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
+  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Semantic roles — Lukee logo navy / white / black theme */
+  --color-ink: #000000;
+  --color-ivory: #ffffff;
+  --color-line: #e7e9f1;
+  --color-muted: #7e87a6;
+  --color-surface: #f5f6fb;
+  --color-brand: #232c57;
+  --color-brand-2: #3a4680;
+  --color-brand-dark: #161c3a;
+  --color-brand-soft: #ececf4;
+  --color-dark: #1c2246;
+  --color-btn-dark: #10152b;
+
+  /* Map gold-* (legacy class names) → navy brand palette for gradual migration */
+  --color-gold-50: #f0f1f7;
+  --color-gold-100: #dcdfec;
+  --color-gold-200: #b9bfd8;
+  --color-gold-300: #8b93b8;
+  --color-gold-400: #5c6699;
+  --color-gold-500: #3a4680;
+  --color-gold-600: #2a3462;
+  --color-gold-700: #232c57;
+  --color-gold-800: #1a2140;
+  --color-gold-900: #141931;
+
+  --radius-button: 8px;
+  --radius-card: 12px;
+  --shadow-low: 0 0 4px rgba(0, 0, 0, 0.35);
+  --shadow-deep: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
 
 @layer base {
-  body {
-    @apply font-sans bg-[#FDFCFB] text-[#1A1A1A] antialiased selection:bg-gold-200 selection:text-gold-900;
+  html {
+    scroll-behavior: smooth;
   }
-  
+
+  body {
+    @apply font-sans bg-white text-ink antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.15px;
+    font-weight: 400;
+  }
+
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif tracking-wide text-[#1A1A1A];
+    @apply font-sans text-ink;
+    font-weight: 600;
+    letter-spacing: 0.15px;
+  }
+
+  p {
+    @apply font-sans text-muted;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  a {
+    @apply transition-colors duration-200;
   }
 }
 
-/* Custom premium scrollbar for a seamless desktop experience */
+/* Dark navy theme: white surfaces keep dark text automatically */
+.bg-white,
+.card-surface,
+.input-luxury {
+  color: var(--color-ink);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FDFCFB;
+  background: #f9f9f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #F2EDE4;
-  border-radius: 3px;
+  background: #b9bfd8;
+  border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4C3A6;
+  background: #232c57;
 }
 
-/* Custom glassmorphism or golden glowing effects */
+/* Elevation from design doc */
 .luxury-shadow {
-  box-shadow: 0 4px 30px rgba(197, 160, 89, 0.05);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
+}
+
+.luxury-shadow-lg {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
 
 .gold-gradient {
-  background: linear-gradient(135deg, #C5A059 0%, #D4C3A6 50%, #F2EDE4 100%);
+  background: linear-gradient(135deg, #232c57 0%, #3a4680 50%, #ececf4 100%);
 }
 
 .gold-gradient-text {
-  background: linear-gradient(135deg, #C5A059 0%, #B28B45 100%);
+  background: linear-gradient(135deg, #2a3462 0%, #161c3a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-overlay {
+  background: linear-gradient(
+    105deg,
+    rgba(10, 10, 10, 0.72) 0%,
+    rgba(10, 10, 10, 0.35) 48%,
+    rgba(10, 10, 10, 0.12) 100%
+  );
+}
+
+/* Buttons — design system */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #232c57;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #161c3a;
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #232c57;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-gold:hover {
+  background: #161c3a;
+  color: #ffffff;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ececf4;
+  color: #161c3a;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #232c57;
+  color: #ffffff;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  color: #232c57;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  color: #161c3a;
+}
+
+.btn-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #28292b;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-dark:hover {
+  background: #232c57;
+}
+
+.section-eyebrow {
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #232c57;
+}
+
+.input-luxury {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  color: #000000;
+  transition: border-color 0.2s ease;
+}
+
+.input-luxury::placeholder {
+  color: #898dad;
+}
+
+.input-luxury:focus {
+  outline: none;
+  border-color: #232c57;
+}
+
+.card-surface {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.08);
+}
+
+@keyframes kenburns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+.animate-kenburns {
+  animation: kenburns 14s ease-out forwards;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes progress-line {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.hero-progress {
+  transform-origin: left;
+  animation: progress-line 6s linear forwards;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
