@@ -24,6 +24,10 @@ export interface ICategoryDoc extends Document {
   displayOrder: number;
   seoTitle: string;
   seoDescription: string;
+  megaPromoImage?: string;
+  megaPromoCaption?: string;
+  megaPromoLink?: string;
+  megaPromoLinkLabel?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -36,7 +40,78 @@ const CategorySchema = new Schema<ICategoryDoc>({
   displayOrder: { type: Number, default: 0 },
   seoTitle: { type: String, default: '' },
   seoDescription: { type: String, default: '' },
+  megaPromoImage: { type: String, default: '' },
+  megaPromoCaption: { type: String, default: '' },
+  megaPromoLink: { type: String, default: '' },
+  megaPromoLinkLabel: { type: String, default: '' },
 }, { timestamps: true });
+
+export type SubCategoryGroupDoc =
+  | 'style'
+  | 'material'
+  | 'price'
+  | 'audience'
+  | 'occasion'
+  | 'collection'
+  | 'accessories'
+  | 'chains';
+
+export interface ISubCategoryDoc extends Document {
+  name: string;
+  slug: string;
+  categoryId: string;
+  group: SubCategoryGroupDoc;
+  image?: string;
+  link?: string;
+  displayOrder: number;
+  status: 'active' | 'inactive';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const SubCategorySchema = new Schema<ISubCategoryDoc>({
+  name: { type: String, required: true },
+  slug: { type: String, required: true, index: true },
+  categoryId: { type: String, required: true, index: true },
+  group: {
+    type: String,
+    enum: ['style', 'material', 'price', 'audience', 'occasion', 'collection', 'accessories', 'chains'],
+    required: true,
+    index: true,
+  },
+  image: { type: String, default: '' },
+  link: { type: String, default: '' },
+  displayOrder: { type: Number, default: 0 },
+  status: { type: String, enum: ['active', 'inactive'], default: 'active', index: true },
+}, { timestamps: true });
+
+SubCategorySchema.index({ categoryId: 1, slug: 1 }, { unique: true });
+
+// 2b. Hero banner schema
+export interface IHeroBannerDoc extends Document {
+  title: string;
+  alt: string;
+  image: string;
+  link: string;
+  displayOrder: number;
+  status: 'active' | 'inactive';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const HeroBannerSchema = new Schema<IHeroBannerDoc>({
+  title: { type: String, required: true },
+  alt: { type: String, default: '' },
+  image: { type: String, required: true },
+  link: { type: String, default: '/shop' },
+  displayOrder: { type: Number, default: 0, index: true },
+  status: { type: String, enum: ['active', 'inactive'], default: 'active', index: true },
+}, { timestamps: true });
+
+const AppSettingSchema = new Schema({
+  key: { type: String, required: true, unique: true, index: true },
+  value: { type: String, default: '' },
+});
 
 // 3. Product Schema
 export interface IProductDoc extends Document {
@@ -71,6 +146,16 @@ export interface IProductDoc extends Document {
       weightApprox?: string;
     }[];
   };
+  gemstoneDetails?: {
+    totalCount?: number;
+    totalWeight?: string;
+    type?: string;
+    color?: string;
+    stoneCount?: number;
+    settingType?: string;
+    shape?: string;
+    weightApprox?: string;
+  };
   metalDetails?: {
     name?: string;
     purity?: string;
@@ -93,6 +178,17 @@ const DiamondDetailsSchema = new Schema({
   totalWeight: { type: String, default: '' },
   settingType: { type: String, default: '' },
   groups: { type: [DiamondGroupSchema], default: [] },
+}, { _id: false });
+
+const GemstoneDetailsSchema = new Schema({
+  totalCount: { type: Number },
+  totalWeight: { type: String, default: '' },
+  type: { type: String, default: '' },
+  color: { type: String, default: '' },
+  stoneCount: { type: Number },
+  settingType: { type: String, default: '' },
+  shape: { type: String, default: '' },
+  weightApprox: { type: String, default: '' },
 }, { _id: false });
 
 const MetalDetailsSchema = new Schema({
@@ -122,6 +218,7 @@ const ProductSchema = new Schema<IProductDoc>({
   seoTitle: { type: String, default: '' },
   seoDescription: { type: String, default: '' },
   diamondDetails: { type: DiamondDetailsSchema, default: undefined },
+  gemstoneDetails: { type: GemstoneDetailsSchema, default: undefined },
   metalDetails: { type: MetalDetailsSchema, default: undefined },
 }, { timestamps: true });
 
@@ -278,6 +375,9 @@ const PurchaseSchema = new Schema<IPurchaseDoc>({
 // Avoid model recompilation errors
 export const MongooseAdmin = (mongoose.models.Admin || mongoose.model<IAdminDoc>('Admin', AdminSchema)) as mongoose.Model<IAdminDoc>;
 export const MongooseCategory = (mongoose.models.Category || mongoose.model<ICategoryDoc>('Category', CategorySchema)) as mongoose.Model<ICategoryDoc>;
+export const MongooseSubCategory = (mongoose.models.SubCategory || mongoose.model<ISubCategoryDoc>('SubCategory', SubCategorySchema)) as mongoose.Model<ISubCategoryDoc>;
+export const MongooseHeroBanner = (mongoose.models.HeroBanner || mongoose.model<IHeroBannerDoc>('HeroBanner', HeroBannerSchema)) as mongoose.Model<IHeroBannerDoc>;
+export const MongooseAppSetting = (mongoose.models.AppSetting || mongoose.model('AppSetting', AppSettingSchema)) as mongoose.Model<{ key: string; value: string }>;
 export const MongooseProduct = (mongoose.models.Product || mongoose.model<IProductDoc>('Product', ProductSchema)) as mongoose.Model<IProductDoc>;
 export const MongooseOrder = (mongoose.models.Order || mongoose.model<IOrderDoc>('Order', OrderSchema)) as mongoose.Model<IOrderDoc>;
 export const MongoosePayment = (mongoose.models.Payment || mongoose.model<IPaymentDoc>('Payment', PaymentSchema)) as mongoose.Model<IPaymentDoc>;

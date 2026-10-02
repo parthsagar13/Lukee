@@ -13,6 +13,7 @@
     "start": "node dist/server.cjs",
     "seed": "tsx src/db/seed.ts",
     "seed:products": "tsx src/db/seedProducts.ts",
+    "seed:subcategories": "tsx src/db/seedSubcategories.ts",
     "clean": "rm -rf dist server.js data",
     "lint": "tsc --noEmit"
   },

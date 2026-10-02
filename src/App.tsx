@@ -25,7 +25,9 @@ import { OrderDetails } from './pages/OrderDetails.js';
 import { AdminLogin } from './pages/admin/AdminLogin.js';
 import { AdminDashboard } from './pages/admin/AdminDashboard.js';
 import { AdminCategories } from './pages/admin/AdminCategories.js';
+import { AdminSubcategories } from './pages/admin/AdminSubcategories.js';
 import { AdminProducts } from './pages/admin/AdminProducts.js';
+import { AdminBanners } from './pages/admin/AdminBanners.js';
 import { AdminSettings } from './pages/admin/AdminSettings.js';
 import { AdminOrders } from './pages/admin/AdminOrders.js';
 import { AdminLayout } from './layouts/AdminLayout.js';
@@ -94,7 +96,9 @@ export default function App() {
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/categories" element={<AdminCategories />} />
+                <Route path="/admin/subcategories" element={<AdminSubcategories />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/banners" element={<AdminBanners />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
               </Route>

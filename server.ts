@@ -25,6 +25,8 @@ function createApp() {
     credentials: true
   }));
   app.use('/products', express.static(path.join(process.cwd(), 'public', 'products')));
+  app.use('/banner', express.static(path.join(process.cwd(), 'public', 'banner')));
+  app.use('/subcategories', express.static(path.join(process.cwd(), 'public', 'subcategories')));
   console.log('[server] Middleware configured');
 
   app.get('/health', async (_req, res) => {

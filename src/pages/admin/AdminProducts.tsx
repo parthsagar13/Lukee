@@ -56,6 +56,14 @@ export const AdminProducts: React.FC = () => {
     emptyDiamondGroup(),
     emptyDiamondGroup(),
   ]);
+  const [formGemstoneTotalCount, setFormGemstoneTotalCount] = useState('');
+  const [formGemstoneTotalWeight, setFormGemstoneTotalWeight] = useState('');
+  const [formGemstoneType, setFormGemstoneType] = useState('');
+  const [formGemstoneColor, setFormGemstoneColor] = useState('');
+  const [formGemstoneStoneCount, setFormGemstoneStoneCount] = useState('');
+  const [formGemstoneSettingType, setFormGemstoneSettingType] = useState('');
+  const [formGemstoneShape, setFormGemstoneShape] = useState('');
+  const [formGemstoneWeightApprox, setFormGemstoneWeightApprox] = useState('');
   
   const [error, setError] = useState('');
 
@@ -130,6 +138,14 @@ export const AdminProducts: React.FC = () => {
     setFormDiamondTotalWeight('');
     setFormSettingType('');
     setFormDiamondGroups([emptyDiamondGroup(), emptyDiamondGroup()]);
+    setFormGemstoneTotalCount('');
+    setFormGemstoneTotalWeight('');
+    setFormGemstoneType('');
+    setFormGemstoneColor('');
+    setFormGemstoneStoneCount('');
+    setFormGemstoneSettingType('');
+    setFormGemstoneShape('');
+    setFormGemstoneWeightApprox('');
     setIsFormOpen(true);
   };
 
@@ -176,6 +192,18 @@ export const AdminProducts: React.FC = () => {
       { ...emptyDiamondGroup(), ...groups[0] },
       { ...emptyDiamondGroup(), ...groups[1] },
     ]);
+    setFormGemstoneTotalCount(
+      prod.gemstoneDetails?.totalCount != null ? String(prod.gemstoneDetails.totalCount) : ''
+    );
+    setFormGemstoneTotalWeight(prod.gemstoneDetails?.totalWeight || '');
+    setFormGemstoneType(prod.gemstoneDetails?.type || '');
+    setFormGemstoneColor(prod.gemstoneDetails?.color || '');
+    setFormGemstoneStoneCount(
+      prod.gemstoneDetails?.stoneCount != null ? String(prod.gemstoneDetails.stoneCount) : ''
+    );
+    setFormGemstoneSettingType(prod.gemstoneDetails?.settingType || '');
+    setFormGemstoneShape(prod.gemstoneDetails?.shape || '');
+    setFormGemstoneWeightApprox(prod.gemstoneDetails?.weightApprox || '');
     setIsFormOpen(true);
   };
 
@@ -334,6 +362,16 @@ export const AdminProducts: React.FC = () => {
           shape: group.shape || '',
           weightApprox: group.weightApprox || '',
         })),
+      },
+      gemstoneDetails: {
+        totalCount: formGemstoneTotalCount.trim() !== '' ? Number(formGemstoneTotalCount) : undefined,
+        totalWeight: formGemstoneTotalWeight.trim(),
+        type: formGemstoneType.trim(),
+        color: formGemstoneColor.trim(),
+        stoneCount: formGemstoneStoneCount.trim() !== '' ? Number(formGemstoneStoneCount) : undefined,
+        settingType: formGemstoneSettingType.trim(),
+        shape: formGemstoneShape.trim(),
+        weightApprox: formGemstoneWeightApprox.trim(),
       },
       metalDetails: {
         name: metalNameFromMaterial(material),
@@ -816,6 +854,105 @@ export const AdminProducts: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Gemstone Details */}
+              <div className="border-t border-gold-100 pt-4 space-y-4">
+                <h4 className="font-serif text-sm text-brand-dark font-medium">Gemstone Details</h4>
+                <p className="text-[0.65rem] text-gray-400 font-light">
+                  Optional. Filled fields are saved with the product and shown on the product page.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Total No. of Gemstones</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formGemstoneTotalCount}
+                      onChange={(e) => setFormGemstoneTotalCount(e.target.value)}
+                      placeholder="e.g. 2"
+                      className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Total Weight</label>
+                    <input
+                      type="text"
+                      value={formGemstoneTotalWeight}
+                      onChange={(e) => setFormGemstoneTotalWeight(e.target.value)}
+                      placeholder="e.g. 0.280 Ct"
+                      className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Type</label>
+                    <input
+                      type="text"
+                      value={formGemstoneType}
+                      onChange={(e) => setFormGemstoneType(e.target.value)}
+                      placeholder="e.g. Fancy Gemstone"
+                      className="w-full text-xs bg-gray-50 border border-line py-3 px-3.5 focus:outline-none focus:border-brand rounded-sm text-gray-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gold-50/20 border border-gold-100 p-4 rounded-sm space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Color</label>
+                      <input
+                        type="text"
+                        value={formGemstoneColor}
+                        onChange={(e) => setFormGemstoneColor(e.target.value)}
+                        placeholder="e.g. Green"
+                        className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">No of stones</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formGemstoneStoneCount}
+                        onChange={(e) => setFormGemstoneStoneCount(e.target.value)}
+                        placeholder="e.g. 2"
+                        className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Setting Type</label>
+                      <input
+                        type="text"
+                        value={formGemstoneSettingType}
+                        onChange={(e) => setFormGemstoneSettingType(e.target.value)}
+                        placeholder="e.g. Prong"
+                        className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Shape</label>
+                      <input
+                        type="text"
+                        value={formGemstoneShape}
+                        onChange={(e) => setFormGemstoneShape(e.target.value)}
+                        placeholder="e.g. Round"
+                        className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2 sm:max-w-[calc(50%-0.375rem)]">
+                    <label className="text-[0.65rem] tracking-wider uppercase text-gray-400 block font-medium">Gemstone Weight (Approx)</label>
+                    <input
+                      type="text"
+                      value={formGemstoneWeightApprox}
+                      onChange={(e) => setFormGemstoneWeightApprox(e.target.value)}
+                      placeholder="e.g. 0.28 Ct"
+                      className="w-full text-xs bg-white border border-line py-2.5 px-3 focus:outline-none rounded-sm font-mono"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -12,22 +12,39 @@ import {
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext.js';
 import { useAdmin } from '../contexts/AdminContext.js';
-import type { Category } from '../types.js';
+import type { Category, SubCategory, SubCategoryGroup } from '../types.js';
 import { CATEGORY_TILES } from '../data/luxuryContent.js';
+import { MEGA_MENU_GROUP_ORDER, SUBCATEGORY_GROUP_LABELS } from '../subcategorySpec.js';
+
+const MEGA_CATEGORY_SLUGS = new Set([
+  'rings',
+  'earrings',
+  'necklaces',
+  'bangles-bracelets',
+  'solitaires',
+  'mangalsutras-pendants',
+  'other-jewellery',
+]);
 
 type CategoryNavItem = {
+  key: string;
   label: string;
   to: string;
   highlight?: boolean;
+  categoryId?: string;
+  category?: Category;
 };
 
 export const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
+  const [jewelleryOpen, setJewelleryOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
+  const [hoveredNavKey, setHoveredNavKey] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const closeTimer = useRef<number | null>(null);
 
   const { toggleCart, getCartCount } = useCart();
   const { isAuthenticated } = useAdmin();
@@ -44,27 +61,35 @@ export const Header: React.FC = () => {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    setMegaOpen(false);
+    setJewelleryOpen(false);
     setIsSearchOpen(false);
+    setHoveredNavKey(null);
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadNav = async () => {
       try {
-        const res = await fetch('/api/categories');
-        const data = await res.json();
-        const active = (Array.isArray(data) ? data : [])
+        const [catRes, subRes] = await Promise.all([
+          fetch('/api/categories'),
+          fetch('/api/subcategories'),
+        ]);
+        const catData = await catRes.json();
+        const subData = await subRes.json();
+        const active = (Array.isArray(catData) ? catData : [])
           .filter((c: Category) => c.status === 'active')
           .sort(
             (a: Category, b: Category) =>
               (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || a.name.localeCompare(b.name)
           );
         setCategories(active);
+        setSubcategories(
+          (Array.isArray(subData) ? subData : []).filter((s: SubCategory) => s.status === 'active')
+        );
       } catch (err) {
-        console.error('Failed to load header categories:', err);
+        console.error('Failed to load header navigation:', err);
       }
     };
-    loadCategories();
+    loadNav();
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -83,15 +108,78 @@ export const Header: React.FC = () => {
     { label: 'Contact', path: '/contact' },
   ];
 
-  const categoryNav: CategoryNavItem[] = [
-    { label: 'Bestsellers', to: '/shop?bestSeller=true' },
-    { label: 'New Arrivals', to: '/shop?newArrival=true', highlight: true },
-    ...categories.slice(0, 8).map((c) => ({
+  const categoryNav: CategoryNavItem[] = useMemo(() => {
+    const megaCats = categories.filter((c) => MEGA_CATEGORY_SLUGS.has(c.slug));
+    const fallbackCats = categories.filter((c) => !MEGA_CATEGORY_SLUGS.has(c.slug)).slice(0, 6);
+    const main = (megaCats.length > 0 ? megaCats : fallbackCats).map((c) => ({
+      key: c._id,
       label: c.name,
       to: `/shop?category=${encodeURIComponent(c.slug)}`,
-    })),
-    { label: 'Gifts', to: '/shop' },
-  ];
+      categoryId: c._id,
+      category: c,
+    }));
+
+    return [
+      { key: 'bestsellers', label: 'Bestsellers', to: '/shop?bestSeller=true' },
+      { key: 'new-arrivals', label: 'New Arrivals', to: '/shop?newArrival=true', highlight: true },
+      ...main,
+      { key: 'gifts', label: 'Gifts', to: '/shop' },
+    ];
+  }, [categories]);
+
+  const subsByCategory = useMemo(() => {
+    const map = new Map<string, SubCategory[]>();
+    for (const sub of subcategories) {
+      const list = map.get(sub.categoryId) || [];
+      list.push(sub);
+      map.set(sub.categoryId, list);
+    }
+    for (const [id, list] of map) {
+      map.set(
+        id,
+        [...list].sort((a, b) => a.displayOrder - b.displayOrder || a.name.localeCompare(b.name))
+      );
+    }
+    return map;
+  }, [subcategories]);
+
+  const activeMegaItem = categoryNav.find((item) => item.key === hoveredNavKey);
+  const activeSubs = activeMegaItem?.categoryId
+    ? subsByCategory.get(activeMegaItem.categoryId) || []
+    : [];
+
+  const groupedSubs = useMemo(() => {
+    const groups: Array<{ group: SubCategoryGroup; label: string; items: SubCategory[] }> = [];
+    for (const group of MEGA_MENU_GROUP_ORDER) {
+      const items = activeSubs.filter((s) => s.group === group);
+      if (items.length === 0) continue;
+      const label = SUBCATEGORY_GROUP_LABELS[group];
+      const existing = groups.find((g) => g.label === label);
+      if (existing) {
+        existing.items.push(...items);
+      } else {
+        groups.push({ group, label, items });
+      }
+    }
+    return groups;
+  }, [activeSubs]);
+
+  const clearCloseTimer = () => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const openMega = (key: string) => {
+    clearCloseTimer();
+    setHoveredNavKey(key);
+  };
+
+  const scheduleCloseMega = () => {
+    clearCloseTimer();
+    closeTimer.current = window.setTimeout(() => setHoveredNavKey(null), 160);
+  };
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -104,6 +192,14 @@ export const Header: React.FC = () => {
     const itemQ = item.to.includes('?') ? item.to.split('?')[1] : '';
     if (!itemQ) return !q;
     return q.includes(itemQ);
+  };
+
+  const subLink = (sub: SubCategory, parent?: Category) => {
+    if (sub.link) return sub.link;
+    if (parent?.slug) {
+      return `/shop?category=${encodeURIComponent(parent.slug)}&search=${encodeURIComponent(sub.name)}`;
+    }
+    return `/shop?search=${encodeURIComponent(sub.name)}`;
   };
 
   return (
@@ -154,12 +250,12 @@ export const Header: React.FC = () => {
                 ))}
                 <button
                   type="button"
-                  onMouseEnter={() => setMegaOpen(true)}
-                  onClick={() => setMegaOpen((v) => !v)}
+                  onMouseEnter={() => setJewelleryOpen(true)}
+                  onClick={() => setJewelleryOpen((v) => !v)}
                   className="inline-flex items-center gap-1 text-[13px] font-bold tracking-[0.3px] text-white/75 hover:text-white"
                 >
                   Jewellery
-                  <ChevronDown size={14} className={`transition-transform ${megaOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`transition-transform ${jewelleryOpen ? 'rotate-180' : ''}`} />
                 </button>
               </nav>
             </div>
@@ -221,17 +317,17 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {megaOpen && (
+        {jewelleryOpen && (
           <div
-            className="hidden lg:block absolute left-0 right-0 top-full bg-dark border-t border-white/10 luxury-shadow-lg"
-            onMouseLeave={() => setMegaOpen(false)}
+            className="hidden lg:block absolute left-0 right-0 top-[78px] sm:top-[88px] bg-dark border-t border-white/10 luxury-shadow-lg z-30"
+            onMouseLeave={() => setJewelleryOpen(false)}
           >
             <div className="max-w-[1440px] mx-auto px-8 py-8 grid grid-cols-4 gap-8">
               <div>
                 <p className="section-eyebrow mb-4">Shop</p>
                 <ul className="space-y-2.5">
-                  {categoryNav.slice(0, 6).map((item) => (
-                    <li key={item.label}>
+                  {categoryNav.slice(0, 8).map((item) => (
+                    <li key={item.key}>
                       <Link
                         to={item.to}
                         className="text-sm font-medium text-white/80 hover:text-white transition-colors"
@@ -265,17 +361,32 @@ export const Header: React.FC = () => {
           </div>
         )}
 
-        <nav className="bg-[#161c3a] border-t border-white/10" aria-label="Product categories">
+        <nav
+          className="relative bg-[#161c3a] border-t border-white/10"
+          aria-label="Product categories"
+          onMouseLeave={scheduleCloseMega}
+        >
           <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
             <ul className="flex items-center gap-1 overflow-x-auto scrollbar-none py-2">
               {categoryNav.map((item) => {
                 const active = isCategoryActive(item);
+                const hasMega = Boolean(item.categoryId && (subsByCategory.get(item.categoryId)?.length || 0) > 0);
                 return (
-                  <li key={item.label} className="flex-shrink-0">
+                  <li
+                    key={item.key}
+                    className="flex-shrink-0"
+                    onMouseEnter={() => {
+                      if (hasMega) openMega(item.key);
+                      else {
+                        clearCloseTimer();
+                        setHoveredNavKey(null);
+                      }
+                    }}
+                  >
                     <Link
                       to={item.to}
                       className={`block px-3 py-1.5 text-[12px] font-bold tracking-[0.3px] whitespace-nowrap rounded-full transition-colors ${
-                        active
+                        hoveredNavKey === item.key || active
                           ? 'bg-white text-dark'
                           : item.highlight
                             ? 'text-white hover:bg-white/10'
@@ -289,6 +400,91 @@ export const Header: React.FC = () => {
               })}
             </ul>
           </div>
+
+          {activeMegaItem && groupedSubs.length > 0 && (
+            <div
+              className="hidden lg:block absolute left-0 right-0 top-full z-50 bg-white border-t border-line luxury-shadow-lg"
+              onMouseEnter={clearCloseTimer}
+              onMouseLeave={scheduleCloseMega}
+            >
+              <div className="max-w-[1440px] mx-auto px-6 py-7 grid grid-cols-12 gap-8">
+                <div className="col-span-9 grid grid-cols-2 xl:grid-cols-4 gap-8">
+                  {groupedSubs.map((section) => {
+                    const withImages = section.items.some((item) => Boolean(item.image));
+                    const isStyle = section.group === 'style' || section.group === 'collection';
+                    return (
+                      <div key={`${section.group}-${section.label}`} className={isStyle ? 'xl:col-span-2' : ''}>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink border-b border-brand/40 pb-2 mb-4">
+                          {section.label}
+                        </p>
+                        <ul className={`gap-x-6 gap-y-3 ${isStyle ? 'grid grid-cols-1 sm:grid-cols-2' : 'space-y-3'}`}>
+                          {section.items.map((sub) => (
+                            <li key={sub._id}>
+                              <Link
+                                to={subLink(sub, activeMegaItem.category)}
+                                className="group flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.04em] text-ink/80 hover:text-brand"
+                              >
+                                {withImages && (
+                                  <span className="w-9 h-9 rounded-md overflow-hidden bg-surface border border-line flex-shrink-0">
+                                    {sub.image ? (
+                                      <img
+                                        src={sub.image}
+                                        alt=""
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <span className="block w-full h-full bg-line/40" />
+                                    )}
+                                  </span>
+                                )}
+                                <span className="leading-snug group-hover:underline underline-offset-4 decoration-brand/50">
+                                  {sub.name}
+                                </span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="col-span-3">
+                  {activeMegaItem.category?.megaPromoImage ? (
+                    <div className="space-y-3">
+                      <div className="aspect-[4/5] overflow-hidden rounded-lg bg-surface">
+                        <img
+                          src={activeMegaItem.category.megaPromoImage}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {activeMegaItem.category.megaPromoCaption && (
+                        <p className="text-xs italic text-muted leading-relaxed">
+                          {activeMegaItem.category.megaPromoCaption}
+                        </p>
+                      )}
+                      <Link
+                        to={activeMegaItem.category.megaPromoLink || activeMegaItem.to}
+                        className="inline-block text-[11px] font-bold uppercase tracking-[0.14em] text-ink border-b border-brand pb-0.5 hover:text-brand"
+                      >
+                        {activeMegaItem.category.megaPromoLinkLabel || 'View all designs'}
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="h-full min-h-[180px] rounded-lg border border-dashed border-line flex items-center justify-center px-4 text-center">
+                      <Link
+                        to={activeMegaItem.to}
+                        className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand"
+                      >
+                        View all {activeMegaItem.label}
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
 
         {isMobileMenuOpen && (
@@ -317,15 +513,32 @@ export const Header: React.FC = () => {
             ))}
             <p className="pt-3 text-[11px] uppercase tracking-wider text-white/50 font-bold">Categories</p>
             {categoryNav.map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className={`block text-sm py-2 ${
-                  item.highlight ? 'text-white font-bold' : 'text-white/70 font-medium'
-                }`}
-              >
-                {item.label}
-              </Link>
+              <div key={item.key} className="border-b border-white/10 pb-2 mb-2">
+                <Link
+                  to={item.to}
+                  className={`block text-sm py-2 ${
+                    item.highlight ? 'text-white font-bold' : 'text-white/70 font-medium'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+                {item.categoryId &&
+                  (subsByCategory.get(item.categoryId) || [])
+                    .filter((s) => s.group === 'style' || s.group === 'collection')
+                    .slice(0, 6)
+                    .map((sub) => (
+                      <Link
+                        key={sub._id}
+                        to={subLink(sub, item.category)}
+                        className="flex items-center gap-2 pl-3 py-1.5 text-xs text-white/55"
+                      >
+                        {sub.image && (
+                          <img src={sub.image} alt="" className="w-6 h-6 rounded object-cover" />
+                        )}
+                        {sub.name}
+                      </Link>
+                    ))}
+              </div>
             ))}
           </div>
         )}

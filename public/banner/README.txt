@@ -9,8 +9,12 @@ Used by:
 - HeroBanner on the home page
 
 Recommended:
-- Wide landscape banners (about 16:7 or 21:9)
+- Exact pixel size: 1920 × 850
+- Wide landscape banners that fill the homepage hero
 - Text/offers baked into the image (no HTML overlay)
+
+New banners can also be added from Admin → Hero Banners.
+Uploads are rejected unless they are exactly 1920 × 850 pixels.
 
 Path from code:
 - /banner/<filename>

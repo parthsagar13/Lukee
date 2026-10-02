@@ -6,12 +6,19 @@ import jwt from 'jsonwebtoken';
 import { dbService } from '../db/dbService.js';
 import { authMiddleware, AuthenticatedRequest, JWT_SECRET } from '../middleware/auth.js';
 import paymentsRouter from './payments.js';
+import { readImageSize } from '../db/imageDimensions.js';
+import { HERO_BANNER_MAX_BYTES, bannerSizeError } from '../bannerSpec.js';
 
 const PRODUCT_IMAGES_DIR = path.join(process.cwd(), 'public', 'products');
+const BANNER_IMAGES_DIR = path.join(process.cwd(), 'public', 'banner');
 const ALLOWED_IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 
 function ensureProductImagesDir() {
   fs.mkdirSync(PRODUCT_IMAGES_DIR, { recursive: true });
+}
+
+function ensureBannerImagesDir() {
+  fs.mkdirSync(BANNER_IMAGES_DIR, { recursive: true });
 }
 
 const router = Router();
@@ -141,7 +148,18 @@ router.get('/categories/:idOrSlug', async (req: Request, res: Response) => {
 
 // POST /api/categories
 router.post('/categories', authMiddleware, async (req: Request, res: Response) => {
-  const { name, description, status, displayOrder, seoTitle, seoDescription } = req.body;
+  const {
+    name,
+    description,
+    status,
+    displayOrder,
+    seoTitle,
+    seoDescription,
+    megaPromoImage,
+    megaPromoCaption,
+    megaPromoLink,
+    megaPromoLinkLabel,
+  } = req.body;
 
   if (!name) {
     res.status(400).json({ error: 'Category name is required.' });
@@ -164,7 +182,11 @@ router.post('/categories', authMiddleware, async (req: Request, res: Response) =
       status: status || 'active',
       displayOrder: Number(displayOrder) || 0,
       seoTitle: seoTitle || `${name} Collection | Lukee Jewels`,
-      seoDescription: seoDescription || `Explore the finest selection of luxury ${name} designs.`
+      seoDescription: seoDescription || `Explore the finest selection of luxury ${name} designs.`,
+      megaPromoImage: megaPromoImage || '',
+      megaPromoCaption: megaPromoCaption || '',
+      megaPromoLink: megaPromoLink || '',
+      megaPromoLinkLabel: megaPromoLinkLabel || '',
     });
 
     res.status(201).json(newCat);
@@ -178,7 +200,18 @@ router.post('/categories', authMiddleware, async (req: Request, res: Response) =
 // PUT /api/categories/:id
 router.put('/categories/:id', authMiddleware, async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, description, status, displayOrder, seoTitle, seoDescription } = req.body;
+  const {
+    name,
+    description,
+    status,
+    displayOrder,
+    seoTitle,
+    seoDescription,
+    megaPromoImage,
+    megaPromoCaption,
+    megaPromoLink,
+    megaPromoLinkLabel,
+  } = req.body;
 
   try {
     const current = await dbService.getCategoryById(id);
@@ -192,7 +225,11 @@ router.put('/categories/:id', authMiddleware, async (req: Request, res: Response
       status,
       displayOrder: displayOrder !== undefined ? Number(displayOrder) : undefined,
       seoTitle,
-      seoDescription
+      seoDescription,
+      megaPromoImage,
+      megaPromoCaption,
+      megaPromoLink,
+      megaPromoLinkLabel,
     };
 
     if (name && name !== current.name) {
@@ -244,6 +281,353 @@ router.delete('/categories/:id', authMiddleware, async (req: Request, res: Respo
   }
 });
 
+function isAdminRequest(req: Request): boolean {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  try {
+    jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ==========================================
+// SUBCATEGORIES
+// ==========================================
+
+const VALID_SUB_GROUPS = new Set([
+  'style',
+  'material',
+  'price',
+  'audience',
+  'occasion',
+  'collection',
+  'accessories',
+  'chains',
+]);
+
+router.get('/subcategories', async (req: Request, res: Response) => {
+  try {
+    const includeInactive = req.query.status === 'all';
+    if (includeInactive && !isAdminRequest(req)) {
+      res.status(401).json({ error: 'Access denied. Unauthorized credentials.' });
+      return;
+    }
+    const categoryId = typeof req.query.categoryId === 'string' ? req.query.categoryId : undefined;
+    const items = await dbService.getSubCategories({ categoryId, includeInactive });
+    res.json(items);
+  } catch (err) {
+    console.error('Error listing subcategories:', err);
+    res.status(500).json({ error: 'Failed to retrieve subcategories.' });
+  }
+});
+
+router.get('/subcategories/:id', async (req: Request, res: Response) => {
+  try {
+    const item = await dbService.getSubCategoryById(req.params.id);
+    if (!item) {
+      res.status(404).json({ error: 'Subcategory not found.' });
+      return;
+    }
+    res.json(item);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve subcategory.' });
+  }
+});
+
+router.post('/subcategories', authMiddleware, async (req: Request, res: Response) => {
+  const { name, slug, categoryId, group, image, link, displayOrder, status } = req.body;
+  if (!name || !String(name).trim()) {
+    res.status(400).json({ error: 'Subcategory name is required.' });
+    return;
+  }
+  if (!categoryId) {
+    res.status(400).json({ error: 'Parent category is required.' });
+    return;
+  }
+  if (!group || !VALID_SUB_GROUPS.has(group)) {
+    res.status(400).json({ error: 'A valid mega-menu group is required.' });
+    return;
+  }
+
+  try {
+    const parent = await dbService.getCategoryById(categoryId);
+    if (!parent) {
+      res.status(400).json({ error: 'Invalid parent category.' });
+      return;
+    }
+
+    const finalSlug = slugify(slug || name);
+    const item = await dbService.createSubCategory({
+      name: String(name).trim(),
+      slug: finalSlug,
+      categoryId,
+      group,
+      image: image || '',
+      link: link || '',
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
+      status: status === 'inactive' ? 'inactive' : 'active',
+    });
+    res.status(201).json(item);
+  } catch (err) {
+    console.error('Error creating subcategory:', err);
+    const message = err instanceof Error ? err.message : 'Failed to create subcategory.';
+    res.status(500).json({ error: message });
+  }
+});
+
+router.put('/subcategories/:id', authMiddleware, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, slug, categoryId, group, image, link, displayOrder, status } = req.body;
+
+  try {
+    const current = await dbService.getSubCategoryById(id);
+    if (!current) {
+      res.status(404).json({ error: 'Subcategory not found.' });
+      return;
+    }
+
+    if (categoryId) {
+      const parent = await dbService.getCategoryById(categoryId);
+      if (!parent) {
+        res.status(400).json({ error: 'Invalid parent category.' });
+        return;
+      }
+    }
+
+    if (group && !VALID_SUB_GROUPS.has(group)) {
+      res.status(400).json({ error: 'Invalid mega-menu group.' });
+      return;
+    }
+
+    const updated = await dbService.updateSubCategory(id, {
+      name: name !== undefined ? String(name).trim() : current.name,
+      slug: slug !== undefined ? slugify(slug) : name !== undefined ? slugify(name) : current.slug,
+      categoryId: categoryId || current.categoryId,
+      group: group || current.group,
+      image: image !== undefined ? String(image).trim() : current.image,
+      link: link !== undefined ? String(link).trim() : current.link,
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : current.displayOrder,
+      status: status === 'inactive' ? 'inactive' : status === 'active' ? 'active' : current.status,
+    });
+
+    if (!updated) {
+      res.status(404).json({ error: 'Subcategory not found.' });
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    console.error('Error updating subcategory:', err);
+    res.status(500).json({ error: 'Failed to update subcategory.' });
+  }
+});
+
+router.delete('/subcategories/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const success = await dbService.deleteSubCategory(req.params.id);
+    if (!success) {
+      res.status(404).json({ error: 'Subcategory not found or already deleted.' });
+      return;
+    }
+    res.json({ success: true, message: 'Subcategory removed successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete subcategory.' });
+  }
+});
+
+router.post('/subcategory-images', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const { filename, data } = req.body as { filename?: string; data?: string };
+    if (!data || typeof data !== 'string') {
+      res.status(400).json({ error: 'Image data is required.' });
+      return;
+    }
+
+    const match = data.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) {
+      res.status(400).json({ error: 'Invalid image data. Use a JPG, PNG, WEBP, or GIF file.' });
+      return;
+    }
+
+    const mime = match[1].toLowerCase();
+    const extFromMime =
+      mime === 'image/jpeg' ? '.jpg' :
+      mime === 'image/png' ? '.png' :
+      mime === 'image/webp' ? '.webp' :
+      mime === 'image/gif' ? '.gif' :
+      '';
+    const extFromName = path.extname(filename || '').toLowerCase();
+    const ext = ALLOWED_IMAGE_EXT.has(extFromName) ? (extFromName === '.jpeg' ? '.jpg' : extFromName) : extFromMime;
+
+    if (!ext || !ALLOWED_IMAGE_EXT.has(ext)) {
+      res.status(400).json({ error: 'Only JPG, PNG, WEBP, and GIF images are allowed.' });
+      return;
+    }
+
+    const buffer = Buffer.from(match[2], 'base64');
+    if (buffer.length > 5 * 1024 * 1024) {
+      res.status(400).json({ error: 'Image must be 5MB or smaller.' });
+      return;
+    }
+
+    const dir = path.join(process.cwd(), 'public', 'subcategories');
+    fs.mkdirSync(dir, { recursive: true });
+    const safeName = `sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    fs.writeFileSync(path.join(dir, safeName), buffer);
+    res.status(201).json({ url: `/subcategories/${safeName}` });
+  } catch (err) {
+    console.error('Error uploading subcategory image:', err);
+    res.status(500).json({ error: 'Failed to upload subcategory image.' });
+  }
+});
+
+// ==========================================
+// HERO BANNERS
+// ==========================================
+
+router.get('/banners', async (req: Request, res: Response) => {
+  try {
+    const includeInactive = req.query.status === 'all';
+    if (includeInactive && !isAdminRequest(req)) {
+      res.status(401).json({ error: 'Access denied. Unauthorized credentials.' });
+      return;
+    }
+    const banners = await dbService.getBanners(includeInactive);
+    res.json(banners);
+  } catch (err) {
+    console.error('Error listing banners:', err);
+    res.status(500).json({ error: 'Failed to retrieve hero banners.' });
+  }
+});
+
+router.post('/banners', authMiddleware, async (req: Request, res: Response) => {
+  const { title, alt, image, link, displayOrder, status } = req.body;
+  if (!title || !String(title).trim()) {
+    res.status(400).json({ error: 'Banner title is required.' });
+    return;
+  }
+  if (!image || !String(image).trim()) {
+    res.status(400).json({ error: 'Banner image is required.' });
+    return;
+  }
+
+  try {
+    const banner = await dbService.createBanner({
+      title: String(title).trim(),
+      alt: alt ? String(alt).trim() : String(title).trim(),
+      image: String(image).trim(),
+      link: link ? String(link).trim() : '/shop',
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
+      status: status === 'inactive' ? 'inactive' : 'active',
+    });
+    res.status(201).json(banner);
+  } catch (err) {
+    console.error('Error creating banner:', err);
+    res.status(500).json({ error: 'Failed to create hero banner.' });
+  }
+});
+
+router.put('/banners/:id', authMiddleware, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { title, alt, image, link, displayOrder, status } = req.body;
+
+  try {
+    const current = await dbService.getBannerById(id);
+    if (!current) {
+      res.status(404).json({ error: 'Banner not found.' });
+      return;
+    }
+
+    const updated = await dbService.updateBanner(id, {
+      title: title !== undefined ? String(title).trim() : current.title,
+      alt: alt !== undefined ? String(alt).trim() : current.alt,
+      image: image !== undefined ? String(image).trim() : current.image,
+      link: link !== undefined ? String(link).trim() : current.link,
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : current.displayOrder,
+      status: status === 'inactive' ? 'inactive' : status === 'active' ? 'active' : current.status,
+    });
+
+    if (!updated) {
+      res.status(404).json({ error: 'Banner not found.' });
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    console.error('Error updating banner:', err);
+    res.status(500).json({ error: 'Failed to update hero banner.' });
+  }
+});
+
+router.delete('/banners/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const success = await dbService.deleteBanner(req.params.id);
+    if (!success) {
+      res.status(404).json({ error: 'Banner not found or already deleted.' });
+      return;
+    }
+    res.json({ success: true, message: 'Banner removed successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete hero banner.' });
+  }
+});
+
+router.post('/banner-images', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const { filename, data } = req.body as { filename?: string; data?: string };
+    if (!data || typeof data !== 'string') {
+      res.status(400).json({ error: 'Image data is required.' });
+      return;
+    }
+
+    const match = data.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) {
+      res.status(400).json({ error: 'Invalid image data. Use a JPG, PNG, WEBP, or GIF file.' });
+      return;
+    }
+
+    const mime = match[1].toLowerCase();
+    const extFromMime =
+      mime === 'image/jpeg' ? '.jpg' :
+      mime === 'image/png' ? '.png' :
+      mime === 'image/webp' ? '.webp' :
+      mime === 'image/gif' ? '.gif' :
+      '';
+    const extFromName = path.extname(filename || '').toLowerCase();
+    const ext = ALLOWED_IMAGE_EXT.has(extFromName) ? (extFromName === '.jpeg' ? '.jpg' : extFromName) : extFromMime;
+
+    if (!ext || !ALLOWED_IMAGE_EXT.has(ext)) {
+      res.status(400).json({ error: 'Only JPG, PNG, WEBP, and GIF images are allowed.' });
+      return;
+    }
+
+    const buffer = Buffer.from(match[2], 'base64');
+    if (buffer.length > HERO_BANNER_MAX_BYTES) {
+      res.status(400).json({ error: 'Image must be 8MB or smaller.' });
+      return;
+    }
+
+    const size = readImageSize(buffer);
+    if (!size) {
+      res.status(400).json({ error: 'Could not read the image size. Use a JPG, PNG, WEBP, or GIF file.' });
+      return;
+    }
+
+    const sizeError = bannerSizeError(size.width, size.height);
+    if (sizeError) {
+      res.status(400).json({ error: sizeError, width: size.width, height: size.height });
+      return;
+    }
+
+    ensureBannerImagesDir();
+    const safeName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    fs.writeFileSync(path.join(BANNER_IMAGES_DIR, safeName), buffer);
+    res.status(201).json({ url: `/banner/${safeName}`, width: size.width, height: size.height });
+  } catch (err) {
+    console.error('Error uploading banner image:', err);
+    res.status(500).json({ error: 'Failed to upload banner image.' });
+  }
+});
 
 // ==========================================
 // PRODUCT IMAGE UPLOADS
@@ -411,6 +795,7 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
     seoTitle,
     seoDescription,
     diamondDetails,
+    gemstoneDetails,
     metalDetails
   } = req.body;
 
@@ -453,6 +838,7 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
       seoTitle: seoTitle || `${name} in Premium ${material} | Lukee Jewels`,
       seoDescription: seoDescription || shortDescription || `${name} luxury fine jewelry accessory.`,
       diamondDetails,
+      gemstoneDetails,
       metalDetails: metalDetails || { name: material, purity, weight: `${Number(weight)}g` },
     });
 
@@ -487,6 +873,7 @@ router.put('/products/:id', authMiddleware, async (req: Request, res: Response) 
     seoTitle,
     seoDescription,
     diamondDetails,
+    gemstoneDetails,
     metalDetails
   } = req.body;
 
@@ -524,6 +911,7 @@ router.put('/products/:id', authMiddleware, async (req: Request, res: Response) 
       seoTitle,
       seoDescription,
       diamondDetails,
+      gemstoneDetails,
       metalDetails: metalDetails || (material || purity || weight !== undefined
         ? { name: material, purity, weight: weight !== undefined ? `${Number(weight)}g` : undefined }
         : undefined),

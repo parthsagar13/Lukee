@@ -14,11 +14,11 @@ import {
   Sparkles,
   ChevronDown,
 } from 'lucide-react';
-import { Product, Category, DiamondDetails, MetalDetails } from '../types.js';
+import { Product, Category, DiamondDetails, GemstoneDetails, MetalDetails } from '../types.js';
 import { useCart } from '../contexts/CartContext.js';
 import { ProductCard } from '../components/ProductCard.js';
 import { DUMMY_REVIEWS } from '../data/luxuryContent.js';
-import { hasDiamondDetails, normalizeMetalDetails } from '../db/productSpecs.js';
+import { hasDiamondDetails, hasGemstoneDetails, normalizeMetalDetails } from '../db/productSpecs.js';
 
 const RING_SIZES = ['5', '6', '7', '8', '9', '10'];
 const RECENT_KEY = 'lukee_recent';
@@ -133,6 +133,27 @@ function DiamondDetailsTable({ details }: { details: DiamondDetails }) {
         values={groups.map((g) => g.weightApprox)}
         cols={cols}
       />
+    </div>
+  );
+}
+
+function GemstoneDetailsTable({ details }: { details: GemstoneDetails }) {
+  const rows: Array<{ label: string; value?: string | number }> = [
+    { label: 'Total No. of Gemstones', value: details.totalCount },
+    { label: 'Total Weight', value: details.totalWeight },
+    { label: 'Type', value: details.type },
+    { label: 'Color', value: details.color },
+    { label: 'No of stones', value: details.stoneCount },
+    { label: 'Setting Type', value: details.settingType },
+    { label: 'Shape', value: details.shape },
+    { label: 'Gemstone Weight (Approx)', value: details.weightApprox },
+  ].filter((row) => row.value !== undefined && row.value !== '');
+
+  return (
+    <div>
+      {rows.map((row) => (
+        <SpecRow key={row.label} label={row.label} values={[row.value]} cols={1} />
+      ))}
     </div>
   );
 }
@@ -550,6 +571,11 @@ export const ProductDetails: React.FC = () => {
             {hasDiamondDetails(product.diamondDetails) && product.diamondDetails && (
               <SpecAccordion title="Diamond Details">
                 <DiamondDetailsTable details={product.diamondDetails} />
+              </SpecAccordion>
+            )}
+            {hasGemstoneDetails(product.gemstoneDetails) && product.gemstoneDetails && (
+              <SpecAccordion title="Gemstone Details">
+                <GemstoneDetailsTable details={product.gemstoneDetails} />
               </SpecAccordion>
             )}
             <SpecAccordion title="Metal Details">

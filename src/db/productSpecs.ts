@@ -1,4 +1,4 @@
-import { DiamondDetails, DiamondGroup, MetalDetails, Product } from '../types.js';
+import { DiamondDetails, DiamondGroup, GemstoneDetails, MetalDetails, Product } from '../types.js';
 
 export function emptyDiamondGroup(): DiamondGroup {
   return { count: undefined, clarity: '', color: '', shape: '', weightApprox: '' };
@@ -52,6 +52,37 @@ export function normalizeDiamondDetails(raw?: DiamondDetails | null): DiamondDet
 
 export function hasDiamondDetails(details?: DiamondDetails | null): boolean {
   return Boolean(normalizeDiamondDetails(details));
+}
+
+export function normalizeGemstoneDetails(raw?: GemstoneDetails | null): GemstoneDetails | undefined {
+  if (!raw) return undefined;
+  const details: GemstoneDetails = {
+    totalCount: toOptionalNumber(raw.totalCount),
+    totalWeight: toOptionalText(raw.totalWeight),
+    type: toOptionalText(raw.type),
+    color: toOptionalText(raw.color),
+    stoneCount: toOptionalNumber(raw.stoneCount),
+    settingType: toOptionalText(raw.settingType),
+    shape: toOptionalText(raw.shape),
+    weightApprox: toOptionalText(raw.weightApprox),
+  };
+  if (
+    !details.totalCount &&
+    !details.totalWeight &&
+    !details.type &&
+    !details.color &&
+    !details.stoneCount &&
+    !details.settingType &&
+    !details.shape &&
+    !details.weightApprox
+  ) {
+    return undefined;
+  }
+  return details;
+}
+
+export function hasGemstoneDetails(details?: GemstoneDetails | null): boolean {
+  return Boolean(normalizeGemstoneDetails(details));
 }
 
 export function normalizeMetalDetails(

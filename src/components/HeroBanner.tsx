@@ -19,9 +19,12 @@ const DEFAULT_SLIDES: HeroSlide[] = [
 const AUTO_MS = 3000;
 const DRAG_THRESHOLD_PX = 48;
 
-export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
-  slides = DEFAULT_SLIDES,
-}) => {
+const HERO_FRAME_CLASS =
+  'relative w-full aspect-[16/7] min-h-[280px] max-h-[960px] sm:min-h-[360px] md:min-h-[480px] lg:min-h-[560px]';
+
+export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({ slides: slidesProp }) => {
+  const [remoteSlides, setRemoteSlides] = useState<HeroSlide[] | null>(slidesProp ?? null);
+  const slides = slidesProp ?? remoteSlides ?? [];
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
@@ -29,6 +32,38 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
   const dragStartXRef = useRef<number | null>(null);
   const draggedRef = useRef(false);
   const count = slides.length;
+  const slideKey = slides.map((slide) => slide.id).join('|');
+
+  useEffect(() => {
+    if (slidesProp) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/banners');
+        if (!res.ok) throw new Error('Failed to load banners');
+        const data = await res.json();
+        const next: HeroSlide[] = (Array.isArray(data) ? data : [])
+          .filter((banner) => banner?.image)
+          .map((banner) => ({
+            id: String(banner._id),
+            image: banner.image,
+            alt: banner.alt || banner.title || 'Lukee banner',
+            to: banner.link || undefined,
+          }));
+        if (!cancelled) setRemoteSlides(next.length > 0 ? next : DEFAULT_SLIDES);
+      } catch (err) {
+        console.error('Hero banners could not be loaded:', err);
+        if (!cancelled) setRemoteSlides(DEFAULT_SLIDES);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slidesProp]);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [slideKey]);
 
   const goTo = useCallback(
     (next: number) => {
@@ -108,8 +143,11 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
+      {!remoteSlides && !slidesProp ? (
+        <div className={`${HERO_FRAME_CLASS} overflow-hidden bg-black`} />
+      ) : (
       <div
-        className={`relative w-full aspect-[16/7] min-h-[280px] max-h-[960px] sm:min-h-[360px] md:min-h-[480px] lg:min-h-[560px] overflow-hidden select-none touch-none ${
+        className={`${HERO_FRAME_CLASS} overflow-hidden select-none touch-none ${
           count > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
         }`}
         onPointerDown={handlePointerDown}
@@ -124,13 +162,36 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
             transform: trackTransform,
           }}
         >
-          {slides.map((slide) => (
+          {slides.map((slide) => {
+            const external = Boolean(slide.to && /^https?:\/\//i.test(slide.to));
+            const image = (
+              <img
+                src={slide.image}
+                alt={slide.alt}
+                className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"
+                draggable={false}
+              />
+            );
+            return (
             <div
               key={slide.id}
               className="relative h-full shrink-0"
               style={{ width: `${100 / count}%` }}
             >
-              {slide.to ? (
+              {slide.to && external ? (
+                <a
+                  href={slide.to}
+                  className="absolute inset-0 block"
+                  aria-label={slide.alt}
+                  draggable={false}
+                  onClick={(e) => {
+                    if (draggedRef.current) e.preventDefault();
+                  }}
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  {image}
+                </a>
+              ) : slide.to ? (
                 <Link
                   to={slide.to}
                   className="absolute inset-0 block"
@@ -141,23 +202,14 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
                   }}
                   onDragStart={(e) => e.preventDefault()}
                 >
-                  <img
-                    src={slide.image}
-                    alt={slide.alt}
-                    className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"
-                    draggable={false}
-                  />
+                  {image}
                 </Link>
               ) : (
-                <img
-                  src={slide.image}
-                  alt={slide.alt}
-                  className="absolute inset-0 h-full w-full object-cover object-center"
-                  draggable={false}
-                />
+                image
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {count > 1 && (
@@ -195,6 +247,7 @@ export const HeroBanner: React.FC<{ slides?: HeroSlide[] }> = ({
           </>
         )}
       </div>
+      )}
     </section>
   );
 };

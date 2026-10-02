@@ -7,6 +7,46 @@ export interface Category {
   displayOrder: number;
   seoTitle: string;
   seoDescription: string;
+  megaPromoImage?: string;
+  megaPromoCaption?: string;
+  megaPromoLink?: string;
+  megaPromoLinkLabel?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type SubCategoryGroup =
+  | 'style'
+  | 'material'
+  | 'price'
+  | 'audience'
+  | 'occasion'
+  | 'collection'
+  | 'accessories'
+  | 'chains';
+
+export interface SubCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  categoryId: string;
+  group: SubCategoryGroup;
+  image?: string;
+  link?: string;
+  displayOrder: number;
+  status: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface HeroBanner {
+  _id: string;
+  title: string;
+  alt: string;
+  image: string;
+  link: string;
+  displayOrder: number;
+  status: 'active' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -24,6 +64,17 @@ export interface DiamondDetails {
   totalWeight?: string;
   settingType?: string;
   groups?: DiamondGroup[];
+}
+
+export interface GemstoneDetails {
+  totalCount?: number;
+  totalWeight?: string;
+  type?: string;
+  color?: string;
+  stoneCount?: number;
+  settingType?: string;
+  shape?: string;
+  weightApprox?: string;
 }
 
 export interface MetalDetails {
@@ -54,6 +105,7 @@ export interface Product {
   seoTitle: string;
   seoDescription: string;
   diamondDetails?: DiamondDetails;
+  gemstoneDetails?: GemstoneDetails;
   metalDetails?: MetalDetails;
   createdAt?: string;
   updatedAt?: string;

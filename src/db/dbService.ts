@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 import {
   MongooseAdmin,
   MongooseCategory,
+  MongooseSubCategory,
+  MongooseHeroBanner,
+  MongooseAppSetting,
   MongooseProduct,
   MongooseOrder,
   MongoosePayment,
@@ -12,6 +15,9 @@ import {
 import {
   Admin,
   Category,
+  SubCategory,
+  SubCategoryGroup,
+  HeroBanner,
   Product,
   DashboardStats,
   Order,
@@ -20,7 +26,7 @@ import {
   ShippingAddress,
   OrderItem,
 } from '../types.js';
-import { normalizeDiamondDetails, normalizeMetalDetails } from './productSpecs.js';
+import { normalizeDiamondDetails, normalizeGemstoneDetails, normalizeMetalDetails } from './productSpecs.js';
 
 function toProduct(doc: any): Product {
   return {
@@ -45,6 +51,7 @@ function toProduct(doc: any): Product {
     seoTitle: doc.seoTitle,
     seoDescription: doc.seoDescription,
     diamondDetails: normalizeDiamondDetails(doc.diamondDetails),
+    gemstoneDetails: normalizeGemstoneDetails(doc.gemstoneDetails),
     metalDetails: normalizeMetalDetails(doc.metalDetails, doc),
     createdAt: doc.createdAt
       ? (typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt.toISOString())
@@ -61,11 +68,21 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 interface LocalDbSchema {
   admins: Admin[];
   categories: Category[];
+  subcategories: SubCategory[];
+  banners: HeroBanner[];
+  bannerSeeded: boolean;
   products: Product[];
   orders: Order[];
   payments: Payment[];
   purchases: Purchase[];
 }
+
+const DEFAULT_HERO_BANNERS: Array<Omit<HeroBanner, '_id' | 'createdAt' | 'updatedAt'>> = [
+  { title: 'Festive offer', alt: 'Lukee festive offer banner', image: '/banner/01.webp', link: '/shop', displayOrder: 1, status: 'active' },
+  { title: 'Collection', alt: 'Lukee collection banner', image: '/banner/02.webp', link: '/shop', displayOrder: 2, status: 'active' },
+  { title: 'Jewellery', alt: 'Lukee jewellery banner', image: '/banner/03.webp', link: '/shop', displayOrder: 3, status: 'active' },
+  { title: 'Promotion', alt: 'Lukee promotional banner', image: '/banner/04.webp', link: '/shop', displayOrder: 4, status: 'active' },
+];
 
 class DbService {
   private isMongoConnected = false;
@@ -73,6 +90,9 @@ class DbService {
   private localDb: LocalDbSchema = {
     admins: [],
     categories: [],
+    subcategories: [],
+    banners: [],
+    bannerSeeded: false,
     products: [],
     orders: [],
     payments: [],
@@ -92,7 +112,7 @@ class DbService {
       fs.writeFileSync(
         DB_FILE,
         JSON.stringify(
-          { admins: [], categories: [], products: [], orders: [], payments: [], purchases: [] },
+          { admins: [], categories: [], subcategories: [], banners: [], bannerSeeded: false, products: [], orders: [], payments: [], purchases: [] },
           null,
           2
         ),
@@ -109,6 +129,9 @@ class DbService {
       this.localDb = {
         admins: parsed.admins || [],
         categories: parsed.categories || [],
+        subcategories: parsed.subcategories || [],
+        banners: parsed.banners || [],
+        bannerSeeded: Boolean(parsed.bannerSeeded),
         products: parsed.products || [],
         orders: parsed.orders || [],
         payments: parsed.payments || [],
@@ -118,6 +141,9 @@ class DbService {
       this.localDb = {
         admins: [],
         categories: [],
+        subcategories: [],
+        banners: [],
+        bannerSeeded: false,
         products: [],
         orders: [],
         payments: [],
@@ -169,6 +195,7 @@ class DbService {
   private async connectInternal(): Promise<boolean> {
     if (mongoose.connection.readyState === 1) {
       this.isMongoConnected = true;
+      await this.ensureDefaultBanners();
       return true;
     }
 
@@ -182,6 +209,7 @@ class DbService {
       console.log('[dbService] MONGODB_URI is not set — using local persistent JSON DB.');
       this.isMongoConnected = false;
       this.ensureLocalDir();
+      await this.ensureDefaultBanners();
       return false;
     }
 
@@ -193,6 +221,7 @@ class DbService {
       });
       this.isMongoConnected = true;
       console.log('[dbService] Successfully connected to MongoDB Atlas!');
+      await this.ensureDefaultBanners();
       return true;
     } catch (err) {
       console.error('[dbService] MongoDB Atlas connection failed.');
@@ -205,6 +234,7 @@ class DbService {
 
       console.warn('[dbService] Falling back to local JSON DB (development only).');
       this.ensureLocalDir();
+      await this.ensureDefaultBanners();
       return false;
     }
   }
@@ -260,19 +290,33 @@ class DbService {
   // ==========================================
   // CATEGORIES CRUD
   // ==========================================
+  private toCategory(doc: any): Category {
+    return {
+      _id: String(doc._id),
+      name: doc.name || '',
+      slug: doc.slug || '',
+      description: doc.description || '',
+      status: doc.status === 'inactive' ? 'inactive' : 'active',
+      displayOrder: Number(doc.displayOrder) || 0,
+      seoTitle: doc.seoTitle || '',
+      seoDescription: doc.seoDescription || '',
+      megaPromoImage: doc.megaPromoImage || '',
+      megaPromoCaption: doc.megaPromoCaption || '',
+      megaPromoLink: doc.megaPromoLink || '',
+      megaPromoLinkLabel: doc.megaPromoLinkLabel || '',
+      createdAt: doc.createdAt
+        ? (typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt.toISOString())
+        : undefined,
+      updatedAt: doc.updatedAt
+        ? (typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt.toISOString())
+        : undefined,
+    };
+  }
+
   async getCategories(): Promise<Category[]> {
     if (this.isMongoConnected) {
       const docs = await MongooseCategory.find().sort({ displayOrder: 1, name: 1 }).lean();
-      return docs.map(d => ({
-        _id: d._id.toString(),
-        name: d.name,
-        slug: d.slug,
-        description: d.description,
-        status: d.status,
-        displayOrder: d.displayOrder,
-        seoTitle: d.seoTitle,
-        seoDescription: d.seoDescription
-      }));
+      return docs.map((d) => this.toCategory(d));
     } else {
       this.readLocalDb();
       return [...this.localDb.categories].sort((a, b) => {
@@ -289,16 +333,7 @@ class DbService {
       try {
         const doc = await MongooseCategory.findById(id).lean();
         if (!doc) return null;
-        return {
-          _id: doc._id.toString(),
-          name: doc.name,
-          slug: doc.slug,
-          description: doc.description,
-          status: doc.status,
-          displayOrder: doc.displayOrder,
-          seoTitle: doc.seoTitle,
-          seoDescription: doc.seoDescription
-        };
+        return this.toCategory(doc);
       } catch {
         return null;
       }
@@ -312,16 +347,7 @@ class DbService {
     if (this.isMongoConnected) {
       const doc = await MongooseCategory.findOne({ slug }).lean();
       if (!doc) return null;
-      return {
-        _id: doc._id.toString(),
-        name: doc.name,
-        slug: doc.slug,
-        description: doc.description,
-        status: doc.status,
-        displayOrder: doc.displayOrder,
-        seoTitle: doc.seoTitle,
-        seoDescription: doc.seoDescription
-      };
+      return this.toCategory(doc);
     } else {
       this.readLocalDb();
       return this.localDb.categories.find(c => c.slug === slug) || null;
@@ -331,16 +357,7 @@ class DbService {
   async createCategory(catData: Partial<Category>): Promise<Category> {
     if (this.isMongoConnected) {
       const doc = await MongooseCategory.create(catData);
-      return {
-        _id: doc._id.toString(),
-        name: doc.name,
-        slug: doc.slug,
-        description: doc.description,
-        status: doc.status,
-        displayOrder: doc.displayOrder,
-        seoTitle: doc.seoTitle,
-        seoDescription: doc.seoDescription
-      };
+      return this.toCategory(doc);
     } else {
       this.readLocalDb();
       const newCat: Category = {
@@ -352,6 +369,10 @@ class DbService {
         displayOrder: Number(catData.displayOrder) || 0,
         seoTitle: catData.seoTitle || '',
         seoDescription: catData.seoDescription || '',
+        megaPromoImage: catData.megaPromoImage || '',
+        megaPromoCaption: catData.megaPromoCaption || '',
+        megaPromoLink: catData.megaPromoLink || '',
+        megaPromoLinkLabel: catData.megaPromoLinkLabel || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -366,16 +387,7 @@ class DbService {
       try {
         const doc = await MongooseCategory.findByIdAndUpdate(id, catData, { new: true }).lean();
         if (!doc) return null;
-        return {
-          _id: doc._id.toString(),
-          name: doc.name,
-          slug: doc.slug,
-          description: doc.description,
-          status: doc.status,
-          displayOrder: doc.displayOrder,
-          seoTitle: doc.seoTitle,
-          seoDescription: doc.seoDescription
-        };
+        return this.toCategory(doc);
       } catch {
         return null;
       }
@@ -398,6 +410,9 @@ class DbService {
     if (this.isMongoConnected) {
       try {
         const res = await MongooseCategory.findByIdAndDelete(id);
+        if (res) {
+          await MongooseSubCategory.deleteMany({ categoryId: id });
+        }
         return !!res;
       } catch {
         return false;
@@ -406,12 +421,306 @@ class DbService {
       this.readLocalDb();
       const initialLen = this.localDb.categories.length;
       this.localDb.categories = this.localDb.categories.filter(c => c._id !== id);
+      this.localDb.subcategories = this.localDb.subcategories.filter((s) => s.categoryId !== id);
       if (this.localDb.categories.length !== initialLen) {
         this.saveLocalDb();
         return true;
       }
       return false;
     }
+  }
+
+  // ==========================================
+  // SUBCATEGORIES CRUD
+  // ==========================================
+  private toSubCategory(doc: any): SubCategory {
+    return {
+      _id: String(doc._id),
+      name: doc.name || '',
+      slug: doc.slug || '',
+      categoryId: doc.categoryId || '',
+      group: (doc.group || 'style') as SubCategoryGroup,
+      image: doc.image || '',
+      link: doc.link || '',
+      displayOrder: Number(doc.displayOrder) || 0,
+      status: doc.status === 'inactive' ? 'inactive' : 'active',
+      createdAt: doc.createdAt
+        ? (typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt.toISOString())
+        : undefined,
+      updatedAt: doc.updatedAt
+        ? (typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt.toISOString())
+        : undefined,
+    };
+  }
+
+  async getSubCategories(params?: {
+    categoryId?: string;
+    includeInactive?: boolean;
+  }): Promise<SubCategory[]> {
+    const includeInactive = Boolean(params?.includeInactive);
+    const categoryId = params?.categoryId;
+
+    if (this.isMongoConnected) {
+      const filter: Record<string, unknown> = {};
+      if (categoryId) filter.categoryId = categoryId;
+      if (!includeInactive) filter.status = 'active';
+      const docs = await MongooseSubCategory.find(filter)
+        .sort({ displayOrder: 1, name: 1 })
+        .lean();
+      return docs.map((doc) => this.toSubCategory(doc));
+    }
+
+    this.readLocalDb();
+    return [...this.localDb.subcategories]
+      .filter((item) => {
+        if (categoryId && item.categoryId !== categoryId) return false;
+        if (!includeInactive && item.status !== 'active') return false;
+        return true;
+      })
+      .sort((a, b) => a.displayOrder - b.displayOrder || a.name.localeCompare(b.name));
+  }
+
+  async getSubCategoryById(id: string): Promise<SubCategory | null> {
+    if (this.isMongoConnected) {
+      try {
+        const doc = await MongooseSubCategory.findById(id).lean();
+        return doc ? this.toSubCategory(doc) : null;
+      } catch {
+        return null;
+      }
+    }
+    this.readLocalDb();
+    return this.localDb.subcategories.find((item) => item._id === id) || null;
+  }
+
+  async createSubCategory(data: Partial<SubCategory>): Promise<SubCategory> {
+    const payload = {
+      name: (data.name || '').trim(),
+      slug: (data.slug || '').trim(),
+      categoryId: (data.categoryId || '').trim(),
+      group: (data.group || 'style') as SubCategoryGroup,
+      image: (data.image || '').trim(),
+      link: (data.link || '').trim(),
+      displayOrder: Number(data.displayOrder) || 0,
+      status: data.status === 'inactive' ? 'inactive' as const : 'active' as const,
+    };
+
+    if (this.isMongoConnected) {
+      const doc = await MongooseSubCategory.create(payload);
+      return this.toSubCategory(doc);
+    }
+
+    this.readLocalDb();
+    const now = new Date().toISOString();
+    const item: SubCategory = {
+      _id: 'sub_' + Math.random().toString(36).substr(2, 9),
+      ...payload,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.localDb.subcategories.push(item);
+    this.saveLocalDb();
+    return item;
+  }
+
+  async updateSubCategory(id: string, data: Partial<SubCategory>): Promise<SubCategory | null> {
+    if (this.isMongoConnected) {
+      try {
+        const doc = await MongooseSubCategory.findByIdAndUpdate(id, data, { new: true }).lean();
+        return doc ? this.toSubCategory(doc) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    this.readLocalDb();
+    const idx = this.localDb.subcategories.findIndex((item) => item._id === id);
+    if (idx === -1) return null;
+    const updated: SubCategory = {
+      ...this.localDb.subcategories[idx],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    this.localDb.subcategories[idx] = updated;
+    this.saveLocalDb();
+    return updated;
+  }
+
+  async deleteSubCategory(id: string): Promise<boolean> {
+    if (this.isMongoConnected) {
+      try {
+        const res = await MongooseSubCategory.findByIdAndDelete(id);
+        return !!res;
+      } catch {
+        return false;
+      }
+    }
+
+    this.readLocalDb();
+    const initialLen = this.localDb.subcategories.length;
+    this.localDb.subcategories = this.localDb.subcategories.filter((item) => item._id !== id);
+    if (this.localDb.subcategories.length !== initialLen) {
+      this.saveLocalDb();
+      return true;
+    }
+    return false;
+  }
+
+  // ==========================================
+  // HERO BANNERS CRUD
+  // ==========================================
+  private toBanner(doc: any): HeroBanner {
+    return {
+      _id: String(doc._id),
+      title: doc.title || '',
+      alt: doc.alt || doc.title || '',
+      image: doc.image || '',
+      link: doc.link || '/shop',
+      displayOrder: Number(doc.displayOrder) || 0,
+      status: doc.status === 'inactive' ? 'inactive' : 'active',
+      createdAt: doc.createdAt
+        ? (typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt.toISOString())
+        : undefined,
+      updatedAt: doc.updatedAt
+        ? (typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt.toISOString())
+        : undefined,
+    };
+  }
+
+  private async ensureDefaultBanners(): Promise<void> {
+    try {
+      if (this.isMongoConnected) {
+        const seeded = await MongooseAppSetting.findOne({ key: 'heroBannersSeeded' }).lean();
+        if (seeded) return;
+        const count = await MongooseHeroBanner.countDocuments();
+        if (count === 0) {
+          await MongooseHeroBanner.insertMany(DEFAULT_HERO_BANNERS);
+          console.log('[dbService] Seeded default homepage hero banners.');
+        }
+        await MongooseAppSetting.updateOne(
+          { key: 'heroBannersSeeded' },
+          { $set: { value: '1' } },
+          { upsert: true }
+        );
+        return;
+      }
+
+      this.readLocalDb();
+      if (this.localDb.bannerSeeded) return;
+      if (this.localDb.banners.length === 0) {
+        const now = new Date().toISOString();
+        this.localDb.banners = DEFAULT_HERO_BANNERS.map((banner, index) => ({
+          ...banner,
+          _id: `ban_default_${index + 1}`,
+          createdAt: now,
+          updatedAt: now,
+        }));
+        console.log('[dbService] Seeded default homepage hero banners.');
+      }
+      this.localDb.bannerSeeded = true;
+      this.saveLocalDb();
+    } catch (err) {
+      console.error('[dbService] Failed to seed default hero banners:', err);
+    }
+  }
+
+  async getBanners(includeInactive = false): Promise<HeroBanner[]> {
+    if (this.isMongoConnected) {
+      const docs = includeInactive
+        ? await MongooseHeroBanner.find().sort({ displayOrder: 1, createdAt: 1 }).lean()
+        : await MongooseHeroBanner.find({ status: 'active' }).sort({ displayOrder: 1, createdAt: 1 }).lean();
+      return docs.map((doc) => this.toBanner(doc));
+    }
+
+    this.readLocalDb();
+    return [...this.localDb.banners]
+      .filter((banner) => includeInactive || banner.status === 'active')
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async getBannerById(id: string): Promise<HeroBanner | null> {
+    if (this.isMongoConnected) {
+      try {
+        const doc = await MongooseHeroBanner.findById(id).lean();
+        return doc ? this.toBanner(doc) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    this.readLocalDb();
+    return this.localDb.banners.find((banner) => banner._id === id) || null;
+  }
+
+  async createBanner(data: Partial<HeroBanner>): Promise<HeroBanner> {
+    const payload = {
+      title: (data.title || '').trim(),
+      alt: (data.alt || data.title || '').trim(),
+      image: (data.image || '').trim(),
+      link: (data.link || '/shop').trim() || '/shop',
+      displayOrder: Number(data.displayOrder) || 0,
+      status: data.status === 'inactive' ? 'inactive' as const : 'active' as const,
+    };
+
+    if (this.isMongoConnected) {
+      const doc = await MongooseHeroBanner.create(payload);
+      return this.toBanner(doc);
+    }
+
+    this.readLocalDb();
+    const now = new Date().toISOString();
+    const banner: HeroBanner = {
+      _id: 'ban_' + Math.random().toString(36).substr(2, 9),
+      ...payload,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.localDb.banners.push(banner);
+    this.saveLocalDb();
+    return banner;
+  }
+
+  async updateBanner(id: string, data: Partial<HeroBanner>): Promise<HeroBanner | null> {
+    if (this.isMongoConnected) {
+      try {
+        const doc = await MongooseHeroBanner.findByIdAndUpdate(id, data, { new: true }).lean();
+        return doc ? this.toBanner(doc) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    this.readLocalDb();
+    const idx = this.localDb.banners.findIndex((banner) => banner._id === id);
+    if (idx === -1) return null;
+    const updated: HeroBanner = {
+      ...this.localDb.banners[idx],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    this.localDb.banners[idx] = updated;
+    this.saveLocalDb();
+    return updated;
+  }
+
+  async deleteBanner(id: string): Promise<boolean> {
+    if (this.isMongoConnected) {
+      try {
+        const res = await MongooseHeroBanner.findByIdAndDelete(id);
+        return !!res;
+      } catch {
+        return false;
+      }
+    }
+
+    this.readLocalDb();
+    const initialLen = this.localDb.banners.length;
+    this.localDb.banners = this.localDb.banners.filter((banner) => banner._id !== id);
+    if (this.localDb.banners.length !== initialLen) {
+      this.saveLocalDb();
+      return true;
+    }
+    return false;
   }
 
   // ==========================================
@@ -634,6 +943,7 @@ class DbService {
       const doc = await MongooseProduct.create({
         ...prodData,
         diamondDetails: normalizeDiamondDetails(prodData.diamondDetails),
+        gemstoneDetails: normalizeGemstoneDetails(prodData.gemstoneDetails),
         metalDetails: normalizeMetalDetails(prodData.metalDetails, {
           material: prodData.material || '',
           purity: prodData.purity || '',
@@ -665,6 +975,7 @@ class DbService {
         seoTitle: prodData.seoTitle || '',
         seoDescription: prodData.seoDescription || '',
         diamondDetails: normalizeDiamondDetails(prodData.diamondDetails),
+        gemstoneDetails: normalizeGemstoneDetails(prodData.gemstoneDetails),
         metalDetails: normalizeMetalDetails(prodData.metalDetails, {
           material: prodData.material || '',
           purity: prodData.purity || '',
@@ -685,6 +996,9 @@ class DbService {
         const updatePayload: Record<string, unknown> = { ...prodData };
         if (prodData.diamondDetails !== undefined) {
           updatePayload.diamondDetails = normalizeDiamondDetails(prodData.diamondDetails);
+        }
+        if (prodData.gemstoneDetails !== undefined) {
+          updatePayload.gemstoneDetails = normalizeGemstoneDetails(prodData.gemstoneDetails) ?? null;
         }
         if (prodData.metalDetails !== undefined || prodData.material || prodData.purity || prodData.weight !== undefined) {
           updatePayload.metalDetails = normalizeMetalDetails(prodData.metalDetails, {
@@ -715,6 +1029,7 @@ class DbService {
       const updated: Product = {
         ...merged,
         diamondDetails: normalizeDiamondDetails(merged.diamondDetails),
+        gemstoneDetails: normalizeGemstoneDetails(merged.gemstoneDetails),
         metalDetails: normalizeMetalDetails(merged.metalDetails, merged),
       };
       this.localDb.products[idx] = updated;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Package, ListCollapse, Settings, LogOut, ExternalLink, Menu, X, ShieldAlert, ShoppingBag } from 'lucide-react';
+import { LayoutGrid, Package, ListCollapse, Settings, LogOut, ExternalLink, Menu, X, ShieldAlert, ShoppingBag, Image as ImageIcon, Layers } from 'lucide-react';
 import { useAdmin } from '../contexts/AdminContext.js';
 
 export const AdminLayout: React.FC = () => {
@@ -18,6 +18,8 @@ export const AdminLayout: React.FC = () => {
     { name: 'Dashboard', path: '/admin', icon: LayoutGrid },
     { name: 'Products Catalog', path: '/admin/products', icon: Package },
     { name: 'Categories indices', path: '/admin/categories', icon: ListCollapse },
+    { name: 'Subcategories', path: '/admin/subcategories', icon: Layers },
+    { name: 'Hero Banners', path: '/admin/banners', icon: ImageIcon },
     { name: 'Orders & Payments', path: '/admin/orders', icon: ShoppingBag },
     { name: 'System Settings', path: '/admin/settings', icon: Settings },
   ];
