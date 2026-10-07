@@ -4,6 +4,7 @@ import { Plus, Edit2, Trash2, Search, X, Image as ImageIcon, Upload, Link2, Fold
 import { Product, Category, DiamondGroup } from '../../types.js';
 import { useAdmin } from '../../contexts/AdminContext.js';
 import { emptyDiamondGroup, metalNameFromMaterial, metalPurityLabel } from '../../db/productSpecs.js';
+import { prepareImageDataUrl } from '../../utils/imageUpload.js';
 
 const MATERIALS_PRESETS = [
   { name: '18k Yellow Gold', purity: '18K (750)' },
@@ -257,37 +258,38 @@ export const AdminProducts: React.FC = () => {
     setError('');
     setUploadingImageIdx(idx);
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const data = typeof reader.result === 'string' ? reader.result : '';
-        const res = await fetch('/api/product-images', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ filename: file.name, data }),
-        });
-        const payload = await res.json();
-        if (!res.ok || !payload.url) {
-          setError(payload.error || 'Failed to upload image.');
-          return;
-        }
-        handleImageUrlChange(idx, payload.url);
-        setLibraryImages((prev) => (prev.includes(payload.url) ? prev : [payload.url, ...prev]));
-      } catch (err) {
-        console.error('Image upload failed:', err);
-        setError('Connection failure during image upload.');
-      } finally {
-        setUploadingImageIdx(null);
+    try {
+      const { dataUrl, filename } = await prepareImageDataUrl(file, {
+        maxWidth: 2000,
+        maxHeight: 2000,
+        quality: 0.82,
+      });
+      const res = await fetch('/api/product-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ filename, data: dataUrl }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload.url) {
+        setError(
+          payload.error ||
+            (res.status === 413
+              ? 'Image is too large for the server. Try a smaller JPG/WEBP.'
+              : 'Failed to upload image.')
+        );
+        return;
       }
-    };
-    reader.onerror = () => {
+      handleImageUrlChange(idx, payload.url);
+      setLibraryImages((prev) => (prev.includes(payload.url) ? prev : [payload.url, ...prev]));
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      setError(err instanceof Error ? err.message : 'Connection failure during image upload.');
+    } finally {
       setUploadingImageIdx(null);
-      setError('Could not read the selected image.');
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleDiamondGroupChange = (

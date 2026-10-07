@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Search, X, Check, Upload, Image as ImageIcon } fro
 import { SubCategory, Category, SubCategoryGroup } from '../../types.js';
 import { SUBCATEGORY_GROUP_OPTIONS, SUBCATEGORY_GROUP_LABELS } from '../../subcategorySpec.js';
 import { useAdmin } from '../../contexts/AdminContext.js';
+import { prepareImageDataUrl } from '../../utils/imageUpload.js';
 
 const SUBCATEGORY_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -111,36 +112,37 @@ export const AdminSubcategories: React.FC = () => {
     }
 
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const data = typeof reader.result === 'string' ? reader.result : '';
-        const res = await fetch('/api/subcategory-images', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ filename: file.name, data }),
-        });
-        const payload = await res.json();
-        if (!res.ok || !payload.url) {
-          setError(payload.error || 'Failed to upload subcategory image.');
-          return;
-        }
-        setFormImage(payload.url);
-      } catch (err) {
-        console.error('Subcategory upload failed:', err);
-        setError('Connection failure during image upload.');
-      } finally {
-        setUploading(false);
+    try {
+      const { dataUrl, filename } = await prepareImageDataUrl(file, {
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.85,
+      });
+      const res = await fetch('/api/subcategory-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ filename, data: dataUrl }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload.url) {
+        setError(
+          payload.error ||
+            (res.status === 413
+              ? 'Image is too large for the server. Try a smaller JPG/WEBP.'
+              : 'Failed to upload subcategory image.')
+        );
+        return;
       }
-    };
-    reader.onerror = () => {
+      setFormImage(payload.url);
+    } catch (err) {
+      console.error('Subcategory upload failed:', err);
+      setError(err instanceof Error ? err.message : 'Connection failure during image upload.');
+    } finally {
       setUploading(false);
-      setError('Could not read the selected image.');
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {

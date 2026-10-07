@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Search, X, Check, Upload, Image as ImageIcon } fro
 import { HeroBanner } from '../../types.js';
 import { useAdmin } from '../../contexts/AdminContext.js';
 import { HERO_BANNER_HEIGHT, HERO_BANNER_MAX_BYTES, HERO_BANNER_SIZE_LABEL, HERO_BANNER_WIDTH, bannerSizeError } from '../../bannerSpec.js';
+import { prepareImageDataUrl } from '../../utils/imageUpload.js';
 
 export const AdminBanners: React.FC = () => {
   const [banners, setBanners] = useState<HeroBanner[]>([]);
@@ -96,36 +97,37 @@ export const AdminBanners: React.FC = () => {
     }
 
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const data = typeof reader.result === 'string' ? reader.result : '';
-        const res = await fetch('/api/banner-images', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ filename: file.name, data }),
-        });
-        const payload = await res.json();
-        if (!res.ok || !payload.url) {
-          setError(payload.error || 'Failed to upload banner image.');
-          return;
-        }
-        setFormImage(payload.url);
-      } catch (err) {
-        console.error('Banner upload failed:', err);
-        setError('Connection failure during image upload.');
-      } finally {
-        setUploading(false);
+    try {
+      const { dataUrl, filename } = await prepareImageDataUrl(file, {
+        preserveDimensions: true,
+        quality: 0.85,
+        maxDataUrlBytes: 3.5 * 1024 * 1024,
+      });
+      const res = await fetch('/api/banner-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ filename, data: dataUrl }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload.url) {
+        setError(
+          payload.error ||
+            (res.status === 413
+              ? 'Image is too large for the server. Try a smaller JPG/WEBP.'
+              : 'Failed to upload banner image.')
+        );
+        return;
       }
-    };
-    reader.onerror = () => {
+      setFormImage(payload.url);
+    } catch (err) {
+      console.error('Banner upload failed:', err);
+      setError(err instanceof Error ? err.message : 'Connection failure during image upload.');
+    } finally {
       setUploading(false);
-      setError('Could not read the selected image.');
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
