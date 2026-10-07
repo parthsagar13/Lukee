@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import fs from 'fs';
 import path from 'path';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -8,18 +7,9 @@ import { authMiddleware, AuthenticatedRequest, JWT_SECRET } from '../middleware/
 import paymentsRouter from './payments.js';
 import { readImageSize } from '../db/imageDimensions.js';
 import { HERO_BANNER_MAX_BYTES, bannerSizeError } from '../bannerSpec.js';
+import { listProductLibraryImages, saveUploadedImage } from '../db/imageStorage.js';
 
-const PRODUCT_IMAGES_DIR = path.join(process.cwd(), 'public', 'products');
-const BANNER_IMAGES_DIR = path.join(process.cwd(), 'public', 'banner');
 const ALLOWED_IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
-
-function ensureProductImagesDir() {
-  fs.mkdirSync(PRODUCT_IMAGES_DIR, { recursive: true });
-}
-
-function ensureBannerImagesDir() {
-  fs.mkdirSync(BANNER_IMAGES_DIR, { recursive: true });
-}
 
 const router = Router();
 
@@ -436,7 +426,7 @@ router.delete('/subcategories/:id', authMiddleware, async (req: Request, res: Re
   }
 });
 
-router.post('/subcategory-images', authMiddleware, (req: Request, res: Response) => {
+router.post('/subcategory-images', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { filename, data } = req.body as { filename?: string; data?: string };
     if (!data || typeof data !== 'string') {
@@ -471,14 +461,18 @@ router.post('/subcategory-images', authMiddleware, (req: Request, res: Response)
       return;
     }
 
-    const dir = path.join(process.cwd(), 'public', 'subcategories');
-    fs.mkdirSync(dir, { recursive: true });
     const safeName = `sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    fs.writeFileSync(path.join(dir, safeName), buffer);
-    res.status(201).json({ url: `/subcategories/${safeName}` });
+    const url = await saveUploadedImage({
+      folder: 'subcategories',
+      filename: safeName,
+      buffer,
+      contentType: mime,
+    });
+    res.status(201).json({ url });
   } catch (err) {
     console.error('Error uploading subcategory image:', err);
-    res.status(500).json({ error: 'Failed to upload subcategory image.' });
+    const message = err instanceof Error ? err.message : 'Failed to upload subcategory image.';
+    res.status(500).json({ error: message });
   }
 });
 
@@ -572,7 +566,7 @@ router.delete('/banners/:id', authMiddleware, async (req: Request, res: Response
   }
 });
 
-router.post('/banner-images', authMiddleware, (req: Request, res: Response) => {
+router.post('/banner-images', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { filename, data } = req.body as { filename?: string; data?: string };
     if (!data || typeof data !== 'string') {
@@ -619,13 +613,18 @@ router.post('/banner-images', authMiddleware, (req: Request, res: Response) => {
       return;
     }
 
-    ensureBannerImagesDir();
     const safeName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    fs.writeFileSync(path.join(BANNER_IMAGES_DIR, safeName), buffer);
-    res.status(201).json({ url: `/banner/${safeName}`, width: size.width, height: size.height });
+    const url = await saveUploadedImage({
+      folder: 'banner',
+      filename: safeName,
+      buffer,
+      contentType: mime,
+    });
+    res.status(201).json({ url, width: size.width, height: size.height });
   } catch (err) {
     console.error('Error uploading banner image:', err);
-    res.status(500).json({ error: 'Failed to upload banner image.' });
+    const message = err instanceof Error ? err.message : 'Failed to upload banner image.';
+    res.status(500).json({ error: message });
   }
 });
 
@@ -633,15 +632,9 @@ router.post('/banner-images', authMiddleware, (req: Request, res: Response) => {
 // PRODUCT IMAGE UPLOADS
 // ==========================================
 
-router.get('/product-images', authMiddleware, (_req: Request, res: Response) => {
+router.get('/product-images', authMiddleware, async (_req: Request, res: Response) => {
   try {
-    ensureProductImagesDir();
-    const images = fs
-      .readdirSync(PRODUCT_IMAGES_DIR)
-      .filter((file) => ALLOWED_IMAGE_EXT.has(path.extname(file).toLowerCase()))
-      .filter((file) => !/\(\d+\)/.test(file))
-      .sort((a, b) => a.localeCompare(b))
-      .map((file) => `/products/${file}`);
+    const images = await listProductLibraryImages(ALLOWED_IMAGE_EXT);
     res.json({ images });
   } catch (err) {
     console.error('Error listing product images:', err);
@@ -649,7 +642,7 @@ router.get('/product-images', authMiddleware, (_req: Request, res: Response) => 
   }
 });
 
-router.post('/product-images', authMiddleware, (req: Request, res: Response) => {
+router.post('/product-images', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { filename, data } = req.body as { filename?: string; data?: string };
     if (!data || typeof data !== 'string') {
@@ -684,13 +677,18 @@ router.post('/product-images', authMiddleware, (req: Request, res: Response) => 
       return;
     }
 
-    ensureProductImagesDir();
     const safeName = `product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    fs.writeFileSync(path.join(PRODUCT_IMAGES_DIR, safeName), buffer);
-    res.status(201).json({ url: `/products/${safeName}` });
+    const url = await saveUploadedImage({
+      folder: 'products',
+      filename: safeName,
+      buffer,
+      contentType: mime,
+    });
+    res.status(201).json({ url });
   } catch (err) {
     console.error('Error uploading product image:', err);
-    res.status(500).json({ error: 'Failed to upload product image.' });
+    const message = err instanceof Error ? err.message : 'Failed to upload product image.';
+    res.status(500).json({ error: message });
   }
 });
 
