@@ -132,6 +132,8 @@ export interface IProductDoc extends Document {
   newArrival: boolean;
   status: 'active' | 'inactive';
   images: string[];
+  videos?: string[];
+  mainImage?: string;
   seoTitle: string;
   seoDescription: string;
   diamondDetails?: {
@@ -215,6 +217,8 @@ const ProductSchema = new Schema<IProductDoc>({
   newArrival: { type: Boolean, default: false },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   images: { type: [String], default: [] },
+  videos: { type: [String], default: [] },
+  mainImage: { type: String, default: '' },
   seoTitle: { type: String, default: '' },
   seoDescription: { type: String, default: '' },
   diamondDetails: { type: DiamondDetailsSchema, default: undefined },

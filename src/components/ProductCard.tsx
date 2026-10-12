@@ -12,10 +12,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const [wishlisted, setWishlisted] = useState(false);
 
-  const mainImage =
-    product.images?.[0] ||
+  const fallbackImage =
     'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80';
-  const hoverImage = product.images?.[1] || mainImage;
+  const mainImage = product.mainImage || product.images?.[0] || fallbackImage;
+  const hoverImage =
+    product.images?.find((img) => img && img !== mainImage) || mainImage;
   const isOnSale =
     product.salePrice !== undefined &&
     product.salePrice !== null &&

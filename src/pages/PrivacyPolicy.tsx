@@ -22,7 +22,7 @@ export const PrivacyPolicy: React.FC = () => {
           },
           {
             t: '2. Safeguards',
-            b: 'Any personal data you submit is encrypted during transit and at rest. We enforce administrative token filters so only authorised boutique personnel can review your file.',
+            b: 'Any personal data you submit is encrypted during transit and at rest. Only authorised Lukee Jewels staff can review your file.',
           },
           {
             t: '3. Third-Party Disclosures',
@@ -30,7 +30,7 @@ export const PrivacyPolicy: React.FC = () => {
           },
           {
             t: '4. Your Choices',
-            b: 'You may request access, correction, or deletion of your personal information by contacting our concierge team at hello@lukeejewels.com.',
+            b: 'You may request access, correction, or deletion of your personal information by emailing support.lukeejewels@gmail.com.',
           },
         ].map((s) => (
           <div key={s.t} className="space-y-3">
@@ -41,7 +41,7 @@ export const PrivacyPolicy: React.FC = () => {
 
         <div className="pt-6">
           <Link to="/contact" className="btn-secondary">
-            Contact Concierge
+            Contact the store
           </Link>
         </div>
       </div>

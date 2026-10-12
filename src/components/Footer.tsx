@@ -28,11 +28,11 @@ export const Footer: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
         <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 md:p-8 mb-12 grid md:grid-cols-2 gap-6 items-center">
           <div>
-            <p className="text-brand text-[12px] tracking-[1.2px] uppercase font-bold mb-2">Newsletter</p>
-            <h3 className="font-serif text-[26px] md:text-[32px] text-white font-semibold tracking-[0.15px]">
+            <p className="!text-white text-[12px] tracking-[1.2px] uppercase font-bold mb-2">Newsletter</p>
+            <h3 className="font-serif text-[26px] md:text-[32px] !text-white font-semibold tracking-[0.15px]">
               Join the Lukee circle
             </h3>
-            <p className="mt-2 text-sm text-white/55 max-w-md">
+            <p className="mt-2 text-sm !text-white/80 max-w-md">
               Early access to drops, private viewings, and styling notes.
             </p>
           </div>
@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
               <img
                 src="/lukee-logo.png"
                 alt="Lukee Jewels"
-                className="h-14 w-auto object-contain brightness-0 invert opacity-90"
+                className="h-14 w-auto pb-3 object-contain brightness-0 invert opacity-90"
               />
             </Link>
             <p className="text-xs leading-relaxed text-white/50">
@@ -75,7 +75,7 @@ export const Footer: React.FC = () => {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noreferrer"
-                className="p-2.5 rounded-lg border border-white/15 text-white/70 hover:border-white/40 hover:text-white transition-colors"
+                className="p-2.5 rounded-lg border border-white/40 !text-white hover:border-white hover:bg-white/10 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram size={16} />
@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noreferrer"
-                className="p-2.5 rounded-lg border border-white/15 text-white/70 hover:border-white/40 hover:text-white transition-colors"
+                className="p-2.5 rounded-lg border border-white/40 !text-white hover:border-white hover:bg-white/10 transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook size={16} />
@@ -117,7 +117,7 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Support</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/contact" className="hover:text-white transition-colors">Concierge</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Track Order</Link></li>
               <li><Link to="/about" className="hover:text-white transition-colors">Exchange Policy</Link></li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Size Guide</Link></li>
@@ -127,31 +127,31 @@ export const Footer: React.FC = () => {
           <div className="col-span-2 md:col-span-1">
             <h4 className="text-[12px] tracking-[1px] uppercase text-white mb-4 font-bold">Contact</h4>
             <ul className="space-y-3 text-sm">
-              <li className="flex gap-2 items-start">
-                <Phone size={14} className="text-brand mt-0.5 flex-shrink-0" />
-                <span>+91 98765 43210</span>
+              <li className="flex gap-2 items-start !text-white">
+                <Phone size={14} className="!text-white mt-0.5 flex-shrink-0" />
+                <a href="https://wa.me/918153026232" className="!text-white hover:text-white/80">+91 81530 26232</a>
               </li>
-              <li className="flex gap-2 items-start">
-                <Mail size={14} className="text-brand mt-0.5 flex-shrink-0" />
-                <span>hello@lukeejewels.com</span>
+              <li className="flex gap-2 items-start !text-white">
+                <Mail size={14} className="!text-white mt-0.5 flex-shrink-0" />
+                <a href="mailto:support.lukeejewels@gmail.com" className="!text-white hover:text-white/80">support.lukeejewels@gmail.com</a>
               </li>
-              <li className="flex gap-2 items-start">
-                <MapPin size={14} className="text-brand mt-0.5 flex-shrink-0" />
-                <span>Bandra West, Mumbai · Connaught Place, Delhi</span>
+              <li className="flex gap-2 items-start !text-white">
+                <MapPin size={14} className="!text-white mt-0.5 flex-shrink-0" />
+                <span className="!text-white">C5/1104, Shivdhara residence, near L.P. Savani school, Mota Varachha, Surat - 394105</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
-          <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-wider text-white/40 font-bold">
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={12} className="text-brand" /> Certified
+          <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-wider !text-white font-bold">
+            <span className="inline-flex items-center gap-1.5 !text-white">
+              <ShieldCheck size={14} className="!text-white" /> Certified
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CreditCard size={12} className="text-brand" /> Razorpay Secure
+            <span className="inline-flex items-center gap-1.5 !text-white">
+              <CreditCard size={14} className="!text-white" /> Razorpay Secure
             </span>
-            <span>BIS Hallmark Ready</span>
+            <span className="!text-white">BIS Hallmark Ready</span>
           </div>
           <p className="text-[12px] text-white/35">
             © {new Date().getFullYear()} Lukee Jewels. All rights reserved.

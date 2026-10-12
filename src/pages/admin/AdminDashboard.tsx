@@ -197,7 +197,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
           <h3 className="font-serif text-lg text-gray-800 font-medium uppercase tracking-wider text-xs flex items-center gap-2">
             <AlertTriangle size={14} className="text-amber-500" />
-            Boutique Vault Stock Alerts
+            Jewellery stock alerts
           </h3>
           <Link
             to="/admin/products"

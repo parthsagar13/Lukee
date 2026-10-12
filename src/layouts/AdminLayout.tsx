@@ -130,7 +130,7 @@ export const AdminLayout: React.FC = () => {
           </div>
 
           <span className="text-[0.7rem] text-gray-400 font-light tracking-wide">
-            Workspace: <span className="font-semibold text-gray-700">Lukee Jewels Fifth Ave Boutique</span>
+            Workspace: <span className="font-semibold text-gray-700">Lukee Jewels, Surat</span>
           </span>
         </header>
 

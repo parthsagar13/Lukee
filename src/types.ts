@@ -102,6 +102,10 @@ export interface Product {
   newArrival: boolean;
   status: 'active' | 'inactive';
   images: string[];
+  /** URLs of product videos shown on the product page. */
+  videos?: string[];
+  /** Image used on product list cards. Falls back to the first image. */
+  mainImage?: string;
   seoTitle: string;
   seoDescription: string;
   diamondDetails?: DiamondDetails;

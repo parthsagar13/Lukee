@@ -88,7 +88,7 @@ router.post('/payments/create-order', async (req: Request, res: Response) => {
         productId: product._id,
         name: product.name,
         sku: product.sku,
-        image: product.images?.[0],
+        image: product.mainImage || product.images?.[0],
         price,
         quantity: qty,
       });

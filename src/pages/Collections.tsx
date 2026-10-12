@@ -85,7 +85,7 @@ export const Collections: React.FC = () => {
               Lukee Collections
             </h1>
             <p className="text-sm sm:text-base text-white/80 font-light max-w-lg leading-relaxed">
-              Exquisite edits prepared by our boutique directors — aligning material purities with
+              Jewellery edits from our Surat store — aligning material purities with
               visual and thematic inspiration.
             </p>
             <Link to="/shop" className="btn-gold inline-flex mt-2">

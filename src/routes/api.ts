@@ -10,6 +10,7 @@ import { HERO_BANNER_MAX_BYTES, bannerSizeError } from '../bannerSpec.js';
 import { listProductLibraryImages, saveUploadedImage } from '../db/imageStorage.js';
 
 const ALLOWED_IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const ALLOWED_VIDEO_EXT = new Set(['.mp4', '.webm', '.mov']);
 
 const router = Router();
 
@@ -21,6 +22,17 @@ router.get('/db-status', async (_req: Request, res: Response) => {
 });
 
 // Helper to create slugs
+function cleanMediaUrls(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => String(item || '').trim()).filter(Boolean);
+}
+
+function pickMainImage(images: string[], mainImage: unknown): string {
+  const chosen = typeof mainImage === 'string' ? mainImage.trim() : '';
+  if (chosen && images.includes(chosen)) return chosen;
+  return images[0] || '';
+}
+
 function slugify(text: string): string {
   return text
     .toString()
@@ -642,6 +654,19 @@ router.get('/product-images', authMiddleware, async (_req: Request, res: Respons
   }
 });
 
+router.get('/product-media', authMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const [images, videos] = await Promise.all([
+      listProductLibraryImages(ALLOWED_IMAGE_EXT),
+      listProductLibraryImages(ALLOWED_VIDEO_EXT),
+    ]);
+    res.json({ images, videos });
+  } catch (err) {
+    console.error('Error listing product media:', err);
+    res.status(500).json({ error: 'Failed to list product media.' });
+  }
+});
+
 router.post('/product-images', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { filename, data } = req.body as { filename?: string; data?: string };
@@ -688,6 +713,55 @@ router.post('/product-images', authMiddleware, async (req: Request, res: Respons
   } catch (err) {
     console.error('Error uploading product image:', err);
     const message = err instanceof Error ? err.message : 'Failed to upload product image.';
+    res.status(500).json({ error: message });
+  }
+});
+
+router.post('/product-videos', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { filename, data } = req.body as { filename?: string; data?: string };
+    if (!data || typeof data !== 'string') {
+      res.status(400).json({ error: 'Video data is required.' });
+      return;
+    }
+
+    const match = data.match(/^data:(video\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) {
+      res.status(400).json({ error: 'Invalid video data. Use an MP4, WEBM, or MOV file.' });
+      return;
+    }
+
+    const mime = match[1].toLowerCase();
+    const extFromMime =
+      mime === 'video/mp4' ? '.mp4' :
+      mime === 'video/webm' ? '.webm' :
+      mime === 'video/quicktime' ? '.mov' :
+      '';
+    const extFromName = path.extname(filename || '').toLowerCase();
+    const ext = ALLOWED_VIDEO_EXT.has(extFromName) ? extFromName : extFromMime;
+
+    if (!ext || !ALLOWED_VIDEO_EXT.has(ext)) {
+      res.status(400).json({ error: 'Only MP4, WEBM, and MOV videos are allowed.' });
+      return;
+    }
+
+    const buffer = Buffer.from(match[2], 'base64');
+    if (buffer.length > 8 * 1024 * 1024) {
+      res.status(400).json({ error: 'Video must be 8MB or smaller.' });
+      return;
+    }
+
+    const safeName = `product-video-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const url = await saveUploadedImage({
+      folder: 'products',
+      filename: safeName,
+      buffer,
+      contentType: mime,
+    });
+    res.status(201).json({ url });
+  } catch (err) {
+    console.error('Error uploading product video:', err);
+    const message = err instanceof Error ? err.message : 'Failed to upload product video.';
     res.status(500).json({ error: message });
   }
 });
@@ -790,6 +864,8 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
     newArrival,
     status,
     images,
+    videos,
+    mainImage,
     seoTitle,
     seoDescription,
     diamondDetails,
@@ -813,6 +889,11 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
       return;
     }
 
+    const productImages = cleanMediaUrls(images);
+    const storedImages = productImages.length > 0 ? productImages : [
+      'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80'
+    ];
+
     const newProd = await dbService.createProduct({
       name,
       slug,
@@ -830,9 +911,9 @@ router.post('/products', authMiddleware, async (req: Request, res: Response) => 
       bestSeller: !!bestSeller,
       newArrival: !!newArrival,
       status: status || 'active',
-      images: Array.isArray(images) && images.length > 0 ? images : [
-        'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80'
-      ],
+      images: storedImages,
+      videos: cleanMediaUrls(videos),
+      mainImage: pickMainImage(storedImages, mainImage),
       seoTitle: seoTitle || `${name} in Premium ${material} | Lukee Jewels`,
       seoDescription: seoDescription || shortDescription || `${name} luxury fine jewelry accessory.`,
       diamondDetails,
@@ -868,6 +949,8 @@ router.put('/products/:id', authMiddleware, async (req: Request, res: Response) 
     newArrival,
     status,
     images,
+    videos,
+    mainImage,
     seoTitle,
     seoDescription,
     diamondDetails,
@@ -905,7 +988,11 @@ router.put('/products/:id', authMiddleware, async (req: Request, res: Response) 
       bestSeller,
       newArrival,
       status,
-      images,
+      images: Array.isArray(images) ? cleanMediaUrls(images) : images,
+      videos: Array.isArray(videos) ? cleanMediaUrls(videos) : undefined,
+      mainImage: Array.isArray(images)
+        ? pickMainImage(cleanMediaUrls(images), mainImage)
+        : (typeof mainImage === 'string' ? mainImage.trim() : undefined),
       seoTitle,
       seoDescription,
       diamondDetails,

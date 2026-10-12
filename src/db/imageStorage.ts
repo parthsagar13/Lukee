@@ -10,6 +10,9 @@ const MIME_BY_EXT: Record<string, string> = {
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.gif': 'image/gif',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
 };
 
 function useBlobStorage(): boolean {
@@ -80,7 +83,6 @@ export async function listProductLibraryImages(
         const name = blob.pathname.split('/').pop() || '';
         const ext = path.extname(name).toLowerCase();
         if (!allowedExt.has(ext)) continue;
-        if (/\(\d+\)/.test(name)) continue;
         urls.push(blob.url);
       }
       cursor = page.hasMore ? page.cursor : undefined;
@@ -93,7 +95,6 @@ export async function listProductLibraryImages(
   return fs
     .readdirSync(dir)
     .filter((file) => allowedExt.has(path.extname(file).toLowerCase()))
-    .filter((file) => !/\(\d+\)/.test(file))
     .sort((a, b) => a.localeCompare(b))
     .map((file) => publicUrl('products', file));
 }

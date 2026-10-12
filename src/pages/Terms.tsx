@@ -12,7 +12,7 @@ export const Terms: React.FC = () => {
         </div>
 
         <p className="text-sm text-muted leading-relaxed">
-          These terms govern the use of Lukee Jewels boutiques and online shopping experiences. By browsing or completing a purchase, you agree to these bounds.
+          These terms govern shopping at the Lukee Jewels store in Surat and on this website. By browsing or completing a purchase, you agree to these bounds.
         </p>
 
         {[

@@ -24,7 +24,7 @@ export const IMAGES = {
   promo:
     'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1600&q=80',
   store:
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=80',
   story:
     'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80',
   about:
@@ -204,7 +204,7 @@ export const FAQS = [
   },
   {
     q: 'Can I exchange my jewellery?',
-    a: 'We offer lifetime exchange toward a new Lukee design. Reach our concierge for guidance.',
+    a: 'We offer lifetime exchange toward a new Lukee design. Contact the Surat store for guidance.',
   },
   {
     q: 'How long does delivery take?',
@@ -216,18 +216,18 @@ export const FAQS = [
   },
 ];
 
+export const STORE_ADDRESS =
+  'C5/1104, Shivdhara residence, near L.P. Savani school, Mota Varachha, Surat - 394105';
+
+export const STORE_PHONE = '+91 81530 26232';
+
 export const STORES = [
   {
-    name: 'Lukee Boutique — Bandra',
-    address: 'Linking Road, Mumbai 400050',
+    name: 'Lukee Jewels — Surat',
+    address: STORE_ADDRESS,
     hours: '11:00 AM – 8:00 PM',
+    phone: STORE_PHONE,
     img: IMAGES.store,
-  },
-  {
-    name: 'Lukee Atelier — Connaught Place',
-    address: 'Inner Circle, New Delhi 110001',
-    hours: '11:00 AM – 8:00 PM',
-    img: IMAGES.about,
   },
 ];
 

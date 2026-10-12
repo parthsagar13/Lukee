@@ -35,8 +35,8 @@ const TIMELINE = [
   },
   {
     year: '2016',
-    title: 'First Flagship Boutique',
-    text: 'Our Bandra boutique opens — inviting clients into private viewing rooms and bespoke consultations.',
+    title: 'Surat store opens',
+    text: 'Our only jewellery store opens in Mota Varachha, Surat.',
   },
   {
     year: '2020',
@@ -45,8 +45,8 @@ const TIMELINE = [
   },
   {
     year: '2024',
-    title: 'Digital Concierge',
-    text: 'Seamless online discovery meets atelier care — from virtual appointments to lifetime exchange.',
+    title: 'Surat jewellery store',
+    text: 'Shop fine jewellery online or visit our only store in Mota Varachha, Surat.',
   },
   {
     year: '2026',
@@ -252,7 +252,7 @@ export const About: React.FC = () => {
             Visit the atelier or shop the vault
           </h2>
           <p className="text-sm text-white/70 max-w-lg mx-auto">
-            Book a private consultation with our concierge, or discover certified pieces ready to ship.
+            Visit our Surat jewellery store, or shop certified pieces ready to ship.
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link to="/contact" className="btn-gold">

@@ -106,7 +106,7 @@ export const CartDrawer: React.FC = () => {
                         className="w-20 h-20 bg-surface flex-shrink-0 border border-line rounded-xl overflow-hidden"
                       >
                         <img
-                          src={item.product.images?.[0]}
+                          src={item.product.mainImage || item.product.images?.[0]}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />

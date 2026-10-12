@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Search, X, Image as ImageIcon, Upload, Link2, FolderOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Image as ImageIcon, Upload, Link2, Film } from 'lucide-react';
 import { Product, Category, DiamondGroup } from '../../types.js';
 import { useAdmin } from '../../contexts/AdminContext.js';
 import { emptyDiamondGroup, metalNameFromMaterial, metalPurityLabel } from '../../db/productSpecs.js';
@@ -44,10 +44,16 @@ export const AdminProducts: React.FC = () => {
   const [formNewArrival, setFormNewArrival] = useState(false);
   const [formStatus, setFormStatus] = useState<'active' | 'inactive'>('active');
   const [formImages, setFormImages] = useState<string[]>(['']);
+  const [formMainImage, setFormMainImage] = useState('');
+  const [formVideos, setFormVideos] = useState<string[]>([]);
   const [showImageUrl, setShowImageUrl] = useState<boolean[]>([false]);
+  const [showVideoUrl, setShowVideoUrl] = useState<boolean[]>([]);
   const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(null);
+  const [uploadingVideoIdx, setUploadingVideoIdx] = useState<number | null>(null);
   const [libraryImages, setLibraryImages] = useState<string[]>([]);
-  const [libraryOpenFor, setLibraryOpenFor] = useState<number | null>(null);
+  const [libraryVideos, setLibraryVideos] = useState<string[]>([]);
+  const [pasteUrl, setPasteUrl] = useState('');
+  const [showPasteUrl, setShowPasteUrl] = useState(false);
   const [formSeoTitle, setFormSeoTitle] = useState('');
   const [formSeoDesc, setFormSeoDesc] = useState('');
   const [formDiamondTotalCount, setFormDiamondTotalCount] = useState('');
@@ -130,9 +136,11 @@ export const AdminProducts: React.FC = () => {
     setFormBestSeller(false);
     setFormNewArrival(true);
     setFormStatus('active');
-    setFormImages(['']);
-    setShowImageUrl([false]);
-    setLibraryOpenFor(null);
+    setFormImages([]);
+    setFormMainImage('');
+    setFormVideos([]);
+    setPasteUrl('');
+    setShowPasteUrl(false);
     setFormSeoTitle('');
     setFormSeoDesc('');
     setFormDiamondTotalCount('');
@@ -177,10 +185,15 @@ export const AdminProducts: React.FC = () => {
     setFormBestSeller(prod.bestSeller || false);
     setFormNewArrival(prod.newArrival || false);
     setFormStatus(prod.status || 'active');
-    const nextImages = prod.images && prod.images.length > 0 ? [...prod.images] : [''];
+    const nextImages = (prod.images || []).map((img) => img.trim()).filter(Boolean);
+    const nextVideos = (prod.videos || []).map((url) => url.trim()).filter(Boolean);
     setFormImages(nextImages);
-    setShowImageUrl(nextImages.map((img) => /^https?:\/\//i.test(img)));
-    setLibraryOpenFor(null);
+    setFormMainImage(
+      prod.mainImage && nextImages.includes(prod.mainImage) ? prod.mainImage : nextImages[0] || ''
+    );
+    setFormVideos(nextVideos);
+    setPasteUrl('');
+    setShowPasteUrl(false);
     setFormSeoTitle(prod.seoTitle || '');
     setFormSeoDesc(prod.seoDescription || '');
     setFormDiamondTotalCount(
@@ -214,9 +227,12 @@ export const AdminProducts: React.FC = () => {
   };
 
   const handleRemoveImageUrl = (idx: number) => {
-    setFormImages(formImages.filter((_, i) => i !== idx));
-    setShowImageUrl(showImageUrl.filter((_, i) => i !== idx));
-    if (libraryOpenFor === idx) setLibraryOpenFor(null);
+    const removed = formImages[idx];
+    const nextImages = formImages.filter((_, i) => i !== idx);
+    setFormImages(nextImages);
+    if (formMainImage === removed) {
+      setFormMainImage(nextImages.find((img) => img.trim()) || '');
+    }
   };
 
   const handleImageUrlChange = (idx: number, val: string) => {
@@ -229,13 +245,49 @@ export const AdminProducts: React.FC = () => {
 
   const fetchLibraryImages = async () => {
     try {
-      const res = await fetch('/api/product-images', {
+      const res = await fetch('/api/product-media', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       setLibraryImages(Array.isArray(data.images) ? data.images : []);
+      setLibraryVideos(Array.isArray(data.videos) ? data.videos : []);
     } catch (err) {
-      console.error('Failed to load image library:', err);
+      console.error('Failed to load uploaded media:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (isFormOpen && token) {
+      void fetchLibraryImages();
+    }
+  }, [isFormOpen, token]);
+
+  const addProductImage = (url: string) => {
+    const nextUrl = url.trim();
+    if (!nextUrl) return;
+    setFormImages((prev) => {
+      const next = prev.map((item) => item.trim()).filter(Boolean);
+      return next.includes(nextUrl) ? next : [...next, nextUrl];
+    });
+    setFormMainImage((prev) => prev || nextUrl);
+    setLibraryImages((prev) => (prev.includes(nextUrl) ? prev : [nextUrl, ...prev]));
+  };
+
+  const addProductVideo = (url: string) => {
+    const nextUrl = url.trim();
+    if (!nextUrl) return;
+    setFormVideos((prev) => {
+      const next = prev.map((item) => item.trim()).filter(Boolean);
+      return next.includes(nextUrl) ? next : [...next, nextUrl];
+    });
+    setLibraryVideos((prev) => (prev.includes(nextUrl) ? prev : [nextUrl, ...prev]));
+  };
+
+  const handleAppendImages = async (files: File[]) => {
+    for (const file of files) {
+      await new Promise<void>((resolve) => {
+        void handleImageFilePick(-1, file).finally(() => resolve());
+      });
     }
   };
 
@@ -282,14 +334,83 @@ export const AdminProducts: React.FC = () => {
         );
         return;
       }
-      handleImageUrlChange(idx, payload.url);
-      setLibraryImages((prev) => (prev.includes(payload.url) ? prev : [payload.url, ...prev]));
+      addProductImage(payload.url);
     } catch (err) {
       console.error('Image upload failed:', err);
       setError(err instanceof Error ? err.message : 'Connection failure during image upload.');
     } finally {
       setUploadingImageIdx(null);
     }
+  };
+
+  const handleAddVideo = () => {
+    setFormVideos([...formVideos, '']);
+    setShowVideoUrl([...showVideoUrl, false]);
+  };
+
+  const handleRemoveVideo = (idx: number) => {
+    setFormVideos(formVideos.filter((_, i) => i !== idx));
+    setShowVideoUrl(showVideoUrl.filter((_, i) => i !== idx));
+  };
+
+  const handleVideoUrlChange = (idx: number, val: string) => {
+    setFormVideos((prev) => {
+      const updated = [...prev];
+      while (updated.length <= idx) updated.push('');
+      updated[idx] = val;
+      return updated;
+    });
+  };
+
+  const handleVideoFilePick = async (_startIdx: number, files: File[]) => {
+    if (!files.length) return;
+    setError('');
+
+    for (let offset = 0; offset < files.length; offset += 1) {
+      const file = files[offset];
+      const idx = offset;
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      const allowed = file.type.startsWith('video/') || ['mp4', 'webm', 'mov'].includes(ext);
+      if (!allowed) {
+        setError('Please choose MP4, WEBM, or MOV videos.');
+        continue;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        setError('Each video must be 8MB or smaller.');
+        continue;
+      }
+
+      setUploadingVideoIdx(idx);
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            typeof reader.result === 'string'
+              ? resolve(reader.result)
+              : reject(new Error('Could not read the selected video.'));
+          reader.onerror = () => reject(new Error('Could not read the selected video.'));
+          reader.readAsDataURL(file);
+        });
+        const res = await fetch('/api/product-videos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ filename: file.name, data: dataUrl }),
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload.url) {
+          setError(payload.error || 'Failed to upload video.');
+          continue;
+        }
+        addProductVideo(payload.url);
+      } catch (err) {
+        console.error('Video upload failed:', err);
+        setError(err instanceof Error ? err.message : 'Connection failure during video upload.');
+      }
+    }
+    setUploadingVideoIdx(null);
   };
 
   const handleDiamondGroupChange = (
@@ -333,6 +454,8 @@ export const AdminProducts: React.FC = () => {
     if (cleanedImages.length === 0) {
       cleanedImages.push('https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80');
     }
+    const cleanedVideos = formVideos.map((url) => url.trim()).filter(Boolean);
+    const mainImage = cleanedImages.includes(formMainImage) ? formMainImage : cleanedImages[0];
 
     const payload = {
       name: formName.trim(),
@@ -351,6 +474,8 @@ export const AdminProducts: React.FC = () => {
       newArrival: formNewArrival,
       status: formStatus,
       images: cleanedImages,
+      videos: cleanedVideos,
+      mainImage,
       seoTitle: formSeoTitle.trim() || `${formName} in Premium ${material} | Lukee Jewels`,
       seoDescription: formSeoDesc.trim() || formShortDesc.trim(),
       diamondDetails: {
@@ -440,6 +565,19 @@ export const AdminProducts: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const attachedImages = formImages.map((url) => url.trim()).filter(Boolean);
+  const attachedVideos = formVideos.map((url) => url.trim()).filter(Boolean);
+  const mediaList: { type: 'image' | 'video'; url: string; onProduct: boolean }[] = [
+    ...attachedImages.map((url) => ({ type: 'image' as const, url, onProduct: true })),
+    ...attachedVideos.map((url) => ({ type: 'video' as const, url, onProduct: true })),
+    ...libraryImages
+      .filter((url) => !attachedImages.includes(url))
+      .map((url) => ({ type: 'image' as const, url, onProduct: false })),
+    ...libraryVideos
+      .filter((url) => !attachedVideos.includes(url))
+      .map((url) => ({ type: 'video' as const, url, onProduct: false })),
+  ];
+
   return (
     <div id="admin-products-page" className="space-y-8 font-sans">
       
@@ -523,8 +661,8 @@ export const AdminProducts: React.FC = () => {
                     {/* Preview */}
                     <td className="py-3 px-4 flex items-center space-x-3 min-w-[200px]">
                       <div className="w-12 h-12 bg-white border border-gray-100 flex-shrink-0 rounded-sm overflow-hidden flex items-center justify-center">
-                        {p.images?.[0] ? (
-                          <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                        {(p.mainImage || p.images?.[0]) ? (
+                          <img src={p.mainImage || p.images?.[0]} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <ImageIcon size={16} className="text-gray-300" />
                         )}
@@ -993,131 +1131,158 @@ export const AdminProducts: React.FC = () => {
                 </div>
               </div>
 
-              {/* Image picker, with optional URL input */}
               <div className="space-y-3.5 border-t border-gold-100 pt-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-serif text-sm text-brand-dark font-medium">Product Images</h4>
-                  <button
-                    type="button"
-                    onClick={handleAddImageUrl}
-                    className="text-[0.65rem] font-bold tracking-widest uppercase text-[#be903c] border-b border-brand/30 hover:text-[#aa7a30]"
-                  >
-                    + Add image
-                  </button>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h4 className="font-serif text-sm text-brand-dark font-medium">Product media</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center gap-1.5 bg-[#1c1a17] text-gold-200 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm cursor-pointer hover:bg-brand hover:text-white transition-colors">
+                      <Upload size={12} />
+                      {uploadingImageIdx !== null ? 'Uploading…' : 'Add images'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        multiple
+                        className="hidden"
+                        disabled={uploadingImageIdx !== null}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          e.target.value = '';
+                          files.forEach((file) => {
+                            void handleImageFilePick(0, file);
+                          });
+                        }}
+                      />
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 border border-line text-gray-600 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm cursor-pointer hover:border-brand hover:text-brand-dark">
+                      <Film size={12} />
+                      {uploadingVideoIdx !== null ? 'Uploading…' : 'Add videos'}
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+                        multiple
+                        className="hidden"
+                        disabled={uploadingVideoIdx !== null}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          e.target.value = '';
+                          void handleVideoFilePick(0, files);
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPasteUrl((open) => !open)}
+                      className="inline-flex items-center gap-1.5 border border-line text-gray-600 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm hover:border-brand hover:text-brand-dark"
+                    >
+                      <Link2 size={12} />
+                      Paste URL
+                    </button>
+                  </div>
                 </div>
 
                 <p className="text-[0.65rem] text-gray-400 leading-relaxed font-light">
-                  Pick an image from your computer or library. You can also paste an image URL if you prefer.
+                  Images and videos are listed together. Click one to use it on this product. Mark one image as the card image for the product list.
                 </p>
 
-                <div className="space-y-3">
-                  {formImages.map((imgUrl, idx) => (
-                    <div key={idx} className="border border-gold-100 rounded-sm p-3 space-y-3 bg-[#fcfbf9]">
-                      <div className="flex gap-3 items-start">
-                        <div className="w-20 h-20 bg-white border border-line rounded-sm overflow-hidden flex items-center justify-center flex-shrink-0">
-                          {imgUrl ? (
-                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <ImageIcon size={18} className="text-gray-300" />
-                          )}
-                        </div>
+                {showPasteUrl && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={pasteUrl}
+                      onChange={(e) => setPasteUrl(e.target.value)}
+                      placeholder="https://… image or video URL"
+                      className="flex-1 text-xs bg-white border border-line py-2 px-3 rounded-sm text-gray-600 font-light"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = pasteUrl.trim();
+                        if (!url) return;
+                        if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) addProductVideo(url);
+                        else addProductImage(url);
+                        setPasteUrl('');
+                      }}
+                      className="text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 bg-[#1c1a17] text-gold-200 rounded-sm"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
 
-                        <div className="flex-1 space-y-2 min-w-0">
-                          <div className="flex flex-wrap gap-2">
-                            <label className="inline-flex items-center gap-1.5 bg-[#1c1a17] text-gold-200 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm cursor-pointer hover:bg-brand hover:text-white transition-colors">
-                              <Upload size={12} />
-                              {uploadingImageIdx === idx ? 'Uploading…' : 'Choose image'}
-                              <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp,image/gif"
-                                className="hidden"
-                                disabled={uploadingImageIdx === idx}
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  e.target.value = '';
-                                  void handleImageFilePick(idx, file);
-                                }}
-                              />
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const next = libraryOpenFor === idx ? null : idx;
-                                setLibraryOpenFor(next);
-                                if (next !== null && libraryImages.length === 0) {
-                                  void fetchLibraryImages();
-                                }
-                              }}
-                              className="inline-flex items-center gap-1.5 border border-line text-gray-600 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm hover:border-brand hover:text-brand-dark"
-                            >
-                              <FolderOpen size={12} />
-                              Library
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowImageUrl((prev) => {
-                                  const next = [...prev];
-                                  next[idx] = !next[idx];
-                                  return next;
-                                });
-                              }}
-                              className="inline-flex items-center gap-1.5 border border-line text-gray-600 text-[0.65rem] uppercase tracking-widest font-semibold px-3 py-2 rounded-sm hover:border-brand hover:text-brand-dark"
-                            >
-                              <Link2 size={12} />
-                              {showImageUrl[idx] ? 'Hide URL' : 'or paste URL'}
-                            </button>
-                          </div>
-
-                          {showImageUrl[idx] && (
-                            <input
-                              type="text"
-                              placeholder="https://… or /products/blacky_11.jpg"
-                              value={imgUrl}
-                              onChange={(e) => handleImageUrlChange(idx, e.target.value)}
-                              className="w-full text-xs bg-white border border-line py-2 px-3 rounded-sm text-gray-600 font-light"
-                            />
-                          )}
-                        </div>
-
-                        {formImages.length > 1 && (
+                {mediaList.length === 0 ? (
+                  <p className="text-[0.65rem] text-gray-400">No uploaded images or videos yet.</p>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-80 overflow-y-auto">
+                    {mediaList.map((item) => {
+                      const isCard = item.type === 'image' && item.onProduct && formMainImage === item.url;
+                      return (
+                        <div
+                          key={`${item.type}-${item.url}`}
+                          className={`relative border rounded-sm overflow-hidden bg-[#fcfbf9] ${
+                            item.onProduct ? 'border-brand ring-1 ring-brand' : 'border-line'
+                          }`}
+                        >
                           <button
                             type="button"
-                            onClick={() => handleRemoveImageUrl(idx)}
-                            className="text-gray-400 hover:text-red-500 p-1"
-                            title="Remove image"
+                            onClick={() => {
+                              if (item.type === 'image') {
+                                if (item.onProduct) return;
+                                addProductImage(item.url);
+                              } else if (item.onProduct) {
+                                return;
+                              } else {
+                                addProductVideo(item.url);
+                              }
+                            }}
+                            className="block w-full aspect-square bg-black"
+                            title={item.onProduct ? 'On this product' : 'Add to this product'}
                           >
-                            <X size={14} />
+                            {item.type === 'video' ? (
+                              <video src={item.url} muted preload="metadata" className="w-full h-full object-cover" />
+                            ) : (
+                              <img src={item.url} alt="" className="w-full h-full object-cover" />
+                            )}
                           </button>
-                        )}
-                      </div>
-
-                      {libraryOpenFor === idx && (
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto border-t border-gold-100 pt-3">
-                          {libraryImages.length === 0 ? (
-                            <p className="col-span-full text-[0.65rem] text-gray-400">
-                              No uploaded images yet. Choose a file to add one.
-                            </p>
-                          ) : (
-                            libraryImages.map((src) => (
+                          <div className="flex items-center justify-between gap-1 px-1.5 py-1">
+                            <span className="text-[0.6rem] uppercase tracking-wider text-gray-400">
+                              {item.type === 'video' ? 'Video' : isCard ? 'Card image' : 'Image'}
+                            </span>
+                            {item.onProduct ? (
                               <button
-                                key={src}
                                 type="button"
-                                onClick={() => handlePickLibraryImage(idx, src)}
-                                className={`aspect-square border rounded-sm overflow-hidden ${
-                                  imgUrl === src ? 'border-brand ring-1 ring-brand' : 'border-line hover:border-brand'
-                                }`}
-                                title={src}
+                                onClick={() => {
+                                  if (item.type === 'image') {
+                                    setFormImages((prev) => prev.filter((url) => url !== item.url));
+                                    if (formMainImage === item.url) {
+                                      setFormMainImage(attachedImages.find((url) => url !== item.url) || '');
+                                    }
+                                  } else {
+                                    setFormVideos((prev) => prev.filter((url) => url !== item.url));
+                                  }
+                                }}
+                                className="text-gray-400 hover:text-red-500"
+                                title="Remove from this product"
                               >
-                                <img src={src} alt="" className="w-full h-full object-cover" />
+                                <X size={12} />
                               </button>
-                            ))
+                            ) : (
+                              <span className="text-[0.6rem] text-gray-400">Add</span>
+                            )}
+                          </div>
+                          {item.type === 'image' && item.onProduct && !isCard && (
+                            <button
+                              type="button"
+                              onClick={() => setFormMainImage(item.url)}
+                              className="w-full text-[0.6rem] uppercase tracking-wider text-brand-dark border-t border-gold-100 py-1 hover:bg-gold-50"
+                            >
+                              Set as card image
+                            </button>
                           )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Badges Toggle Row */}

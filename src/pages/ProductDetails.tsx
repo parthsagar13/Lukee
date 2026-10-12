@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -8,6 +8,7 @@ import {
   Truck,
   RefreshCw,
   ZoomIn,
+  Play,
   X,
   ChevronRight,
   MapPin,
@@ -22,6 +23,12 @@ import { hasDiamondDetails, hasGemstoneDetails, normalizeMetalDetails } from '..
 
 const RING_SIZES = ['5', '6', '7', '8', '9', '10'];
 const RECENT_KEY = 'lukee_recent';
+
+/** True for Rings / Diamond Rings, false for Earrings (the word "ring" is inside "earring"). */
+const isRingCategory = (cat: Category | null) => {
+  if (!cat) return false;
+  return /\brings?\b/i.test(`${cat.name} ${cat.slug.replace(/-/g, ' ')}`);
+};
 
 interface RecentItem {
   id: string;
@@ -173,7 +180,10 @@ export const ProductDetails: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [activeImage, setActiveImage] = useState('');
+  const [activeMedia, setActiveMedia] = useState<{ kind: 'image' | 'video'; url: string }>({
+    kind: 'image',
+    url: '',
+  });
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
@@ -182,6 +192,7 @@ export const ProductDetails: React.FC = () => {
   const [pincode, setPincode] = useState('');
   const [pincodeChecked, setPincodeChecked] = useState(false);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -197,7 +208,16 @@ export const ProductDetails: React.FC = () => {
         }
         const prodData: Product = await res.json();
         setProduct(prodData);
-        setActiveImage(prodData.images?.[0] || '');
+        setCategory(null);
+        if (prodData.videos?.[0]) {
+          setActiveMedia({ kind: 'video', url: prodData.videos[0] });
+        } else {
+          const cardImage =
+            prodData.mainImage && prodData.images?.includes(prodData.mainImage)
+              ? prodData.mainImage
+              : prodData.images?.[0];
+          setActiveMedia({ kind: 'image', url: cardImage || '' });
+        }
         setQuantity(1);
         setSelectedSize('7');
         setPincode('');
@@ -207,7 +227,7 @@ export const ProductDetails: React.FC = () => {
           id: prodData._id,
           slug: prodData.slug,
           name: prodData.name,
-          image: prodData.images?.[0],
+          image: prodData.mainImage || prodData.images?.[0],
         });
         setRecentItems(readRecent().filter((r) => r.id !== prodData._id));
 
@@ -275,6 +295,36 @@ export const ProductDetails: React.FC = () => {
     setPincodeChecked(true);
   };
 
+  const galleryItems: { kind: 'image' | 'video'; url: string }[] = [
+    ...(product.images || []).filter(Boolean).map((url) => ({ kind: 'image' as const, url })),
+    ...(product.videos || []).filter(Boolean).map((url) => ({ kind: 'video' as const, url })),
+  ];
+
+  const showAdjacentMedia = (direction: 1 | -1) => {
+    if (galleryItems.length < 2) return;
+    const currentIndex = galleryItems.findIndex(
+      (item) => item.kind === activeMedia.kind && item.url === activeMedia.url
+    );
+    const base = currentIndex === -1 ? 0 : currentIndex;
+    const next = (base + direction + galleryItems.length) % galleryItems.length;
+    setActiveMedia(galleryItems[next]);
+  };
+
+  const onGalleryTouchStart = (event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    swipeStart.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const onGalleryTouchEnd = (event: React.TouchEvent) => {
+    if (!swipeStart.current) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - swipeStart.current.x;
+    const dy = touch.clientY - swipeStart.current.y;
+    swipeStart.current = null;
+    if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
+    showAdjacentMedia(dx < 0 ? 1 : -1);
+  };
+
   return (
     <div
       id="product-details-page"
@@ -308,32 +358,50 @@ export const ProductDetails: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 xl:gap-16 items-start">
         <div id="product-gallery" className="space-y-4">
-          <div className="relative aspect-square bg-white border border-line overflow-hidden group rounded-xl luxury-shadow">
-            <img
-              src={activeImage}
-              alt={product.name}
-              className="w-full h-full object-cover object-center"
-              referrerPolicy="no-referrer"
-            />
-            <button
-              type="button"
-              onClick={() => setIsZoomOpen(true)}
-              className="absolute top-4 right-4 bg-white/95 p-2.5 rounded-full luxury-shadow text-muted hover:text-brand transition-all"
-              title="Zoom Image"
-            >
-              <ZoomIn size={16} />
-            </button>
+          <div
+            className="relative aspect-square bg-white border border-line overflow-hidden group rounded-xl luxury-shadow touch-pan-y"
+            onTouchStart={onGalleryTouchStart}
+            onTouchEnd={onGalleryTouchEnd}
+          >
+            {activeMedia.kind === 'video' && activeMedia.url ? (
+              <video
+                key={activeMedia.url}
+                src={activeMedia.url}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover bg-black pointer-events-none"
+              />
+            ) : (
+              <img
+                src={activeMedia.url}
+                alt={product.name}
+                className="w-full h-full object-cover object-center"
+                referrerPolicy="no-referrer"
+              />
+            )}
+            {activeMedia.kind === 'image' && activeMedia.url && (
+              <button
+                type="button"
+                onClick={() => setIsZoomOpen(true)}
+                className="absolute top-4 right-4 bg-white/95 p-2.5 rounded-full luxury-shadow text-muted hover:text-brand transition-all"
+                title="Zoom Image"
+              >
+                <ZoomIn size={16} />
+              </button>
+            )}
           </div>
 
-          {product.images && product.images.length > 1 && (
+          {((product.images?.length || 0) + (product.videos?.length || 0)) > 1 && (
             <div className="flex gap-3 overflow-x-auto pb-1.5">
-              {product.images.map((imgUrl, idx) => (
+              {(product.images || []).map((imgUrl, idx) => (
                 <button
                   type="button"
-                  key={idx}
-                  onClick={() => setActiveImage(imgUrl)}
+                  key={`image-${idx}`}
+                  onClick={() => setActiveMedia({ kind: 'image', url: imgUrl })}
                   className={`w-20 h-20 bg-white border flex-shrink-0 transition-all rounded-xl overflow-hidden ${
-                    activeImage === imgUrl
+                    activeMedia.kind === 'image' && activeMedia.url === imgUrl
                       ? 'border-brand ring-1 ring-brand-soft'
                       : 'border-line hover:border-brand'
                   }`}
@@ -344,6 +412,24 @@ export const ProductDetails: React.FC = () => {
                     className="w-full h-full object-cover object-center"
                     referrerPolicy="no-referrer"
                   />
+                </button>
+              ))}
+              {(product.videos || []).map((videoUrl, idx) => (
+                <button
+                  type="button"
+                  key={`video-${idx}`}
+                  onClick={() => setActiveMedia({ kind: 'video', url: videoUrl })}
+                  className={`relative w-20 h-20 bg-black border flex-shrink-0 transition-all rounded-xl overflow-hidden ${
+                    activeMedia.kind === 'video' && activeMedia.url === videoUrl
+                      ? 'border-brand ring-1 ring-brand-soft'
+                      : 'border-line hover:border-brand'
+                  }`}
+                  title="Play video"
+                >
+                  <video src={videoUrl} muted className="w-full h-full object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
+                    <Play size={16} fill="currentColor" />
+                  </span>
                 </button>
               ))}
             </div>
@@ -397,29 +483,30 @@ export const ProductDetails: React.FC = () => {
               'An exquisite, masterfully finished bespoke piece designed with attention to every facet and polished standard.'}
           </p>
 
-          {/* Size selector — local UI only */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="section-eyebrow !text-[0.65rem]">Ring Size</label>
-              <span className="text-[0.65rem] text-muted">Selected: {selectedSize}</span>
+          {isRingCategory(category) && (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="section-eyebrow !text-[0.65rem]">Ring Size</label>
+                <span className="text-[0.65rem] text-muted">Selected: {selectedSize}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {RING_SIZES.map((size) => (
+                  <button
+                    type="button"
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`w-11 h-11 text-xs font-mono rounded-xl border transition-colors ${
+                      selectedSize === size
+                        ? 'bg-ink text-white border-ink'
+                        : 'bg-white text-ink border-line hover:border-brand'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {RING_SIZES.map((size) => (
-                <button
-                  type="button"
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`w-11 h-11 text-xs font-mono rounded-xl border transition-colors ${
-                    selectedSize === size
-                      ? 'bg-ink text-white border-ink'
-                      : 'bg-white text-ink border-line hover:border-brand'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Delivery pincode — local UI only */}
           <div className="bg-white border border-line rounded-xl p-4 space-y-3 luxury-shadow">
@@ -497,14 +584,14 @@ export const ProductDetails: React.FC = () => {
                   Currently Out of Stock
                 </span>
                 <p className="text-[0.65rem] text-muted font-light mt-1">
-                  Contact our boutique concierge team to reserve subsequent casting editions.
+                  Contact our Surat jewellery store to ask about this piece.
                 </p>
               </div>
             )}
 
             {product.stock > 0 && (
               <p className="text-[0.65rem] text-muted font-light italic">
-                Only {product.stock} items remaining in our boutique vaults.
+                Only {product.stock} pieces left in the Surat store.
               </p>
             )}
           </div>
@@ -544,7 +631,7 @@ export const ProductDetails: React.FC = () => {
       {/* Highlights & Specs */}
       <section id="specifications-tabs" className="mt-16 sm:mt-20 pt-10 border-t border-line space-y-10">
         <div className="text-center space-y-2">
-          <p className="section-eyebrow">Boutique reference</p>
+          <p className="section-eyebrow">Jewellery details</p>
           <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-ink">
             Highlights & Specifications
           </h2>
@@ -596,7 +683,7 @@ export const ProductDetails: React.FC = () => {
               </div>
               <div className="flex justify-between border-b border-line pb-2.5">
                 <span className="text-muted uppercase tracking-wider text-[0.65rem]">Atelier</span>
-                <span className="text-ink font-semibold">Lukee Boutique</span>
+                <span className="text-ink font-semibold">Lukee Jewels, Surat</span>
               </div>
               <div className="flex justify-between pb-1">
                 <span className="text-muted uppercase tracking-wider text-[0.65rem]">Bespoke Sizing</span>
@@ -709,7 +796,7 @@ export const ProductDetails: React.FC = () => {
           </button>
           <div className="max-w-4xl max-h-[90vh] overflow-auto flex justify-center">
             <img
-              src={activeImage}
+              src={activeMedia.url}
               alt={product.name}
               className="max-w-full max-h-[85vh] object-contain rounded-xl"
               referrerPolicy="no-referrer"

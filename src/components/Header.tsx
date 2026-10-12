@@ -204,8 +204,22 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <div className="bg-brand text-white text-center py-2.5 px-4 text-[11px] tracking-[0.4px] font-sans font-bold">
-        Complimentary insured delivery · Lifetime exchange · Certified diamonds
+      <div className="banner-marquee bg-brand text-white overflow-hidden py-2.5 text-[11px] sm:text-xs tracking-[0.4px] font-sans font-bold">
+        <div className="banner-marquee-track">
+          {Array.from({ length: 8 }, (_, copy) => (
+            <span key={copy} className="px-10 whitespace-nowrap">
+              For B2B inquiries, WhatsApp on this number{' '}
+              <a
+                href="https://wa.me/918153026232"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-white/80"
+              >
+                +918153026232
+              </a>
+            </span>
+          ))}
+        </div>
       </div>
 
       <header

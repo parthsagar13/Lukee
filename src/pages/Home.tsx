@@ -737,7 +737,7 @@ export const Home: React.FC = () => {
                     <Link
                       key={cat.name}
                       to={cat.path}
-                      className="group relative aspect-[4/5] min-w-0 overflow-hidden bg-white rounded-xl"
+                      className="group relative aspect-[4/5] min-w-0 overflow-hidden bg-ink rounded-xl"
                       onClick={(e) => {
                         if (categorySwipedRef.current) e.preventDefault();
                       }}
@@ -748,11 +748,11 @@ export const Home: React.FC = () => {
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/20 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white">
-                        <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide">
+                      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+                        <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide !text-white">
                           {cat.name}
                         </h3>
-                        <span className="mt-2 inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.22em] text-white/90 font-medium">
+                        <span className="mt-2 inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.22em] !text-white font-medium">
                           Explore
                           <ArrowRight
                             size={12}
@@ -870,13 +870,13 @@ export const Home: React.FC = () => {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-xl space-y-5 text-white"
+            className="max-w-xl space-y-5"
           >
-            <p className="section-eyebrow !text-brand">Limited season offer</p>
-            <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light leading-tight">
+            <p className="section-eyebrow !text-white">Limited season offer</p>
+            <h2 className="font-serif text-[26px] sm:text-[32px] lg:text-[40px] font-light leading-tight !text-white">
               Zero making charges on select diamond jewellery*
             </h2>
-            <p className="text-sm text-white/75 font-light leading-relaxed">
+            <p className="text-sm !text-white font-light leading-relaxed">
               Extra instant bank offers at checkout. Crafted pieces from ₹12,999 — fully insured
               delivery across India.
             </p>
@@ -912,19 +912,19 @@ export const Home: React.FC = () => {
               <motion.div key={panel.title} variants={fadeUp}>
                 <Link
                   to={panel.to}
-                  className="group relative block aspect-[4/5] sm:aspect-[5/4] overflow-hidden bg-white rounded-xl"
+                  className="group relative block aspect-[4/5] sm:aspect-[5/4] overflow-hidden bg-ink rounded-xl"
                 >
                   <img
                     src={panel.img}
-                    alt={panel.title}
+                    alt=""
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-ink/40 group-hover:bg-ink/50 transition-colors" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
-                    <h3 className="font-serif text-xl sm:text-2xl lg:text-3xl font-light">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                    <h3 className="font-serif text-xl sm:text-2xl lg:text-3xl font-light !text-white">
                       {panel.title}
                     </h3>
-                    <p className="text-[0.65rem] uppercase tracking-[0.2em] text-white/80 mt-2 hidden sm:block">
+                    <p className="text-[0.65rem] uppercase tracking-[0.2em] !text-white mt-2 hidden sm:block">
                       {panel.subtitle}
                     </p>
                   </div>
@@ -964,17 +964,17 @@ export const Home: React.FC = () => {
               <motion.div key={o.title} variants={fadeUp}>
                 <Link
                   to={o.to}
-                  className="group block relative aspect-square overflow-hidden bg-white rounded-xl"
+                  className="group block relative aspect-square overflow-hidden bg-ink rounded-xl"
                 >
                   <img
                     src={o.img}
-                    alt={o.title}
+                    alt=""
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-ink/35 group-hover:bg-ink/45 transition-colors" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
-                    <h3 className="font-serif text-2xl font-light">{o.title}</h3>
-                    <p className="text-[0.65rem] uppercase tracking-[0.2em] text-white/80 mt-2">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                    <h3 className="font-serif text-2xl font-light !text-white">{o.title}</h3>
+                    <p className="text-[0.65rem] uppercase tracking-[0.2em] !text-white mt-2">
                       {o.subtitle}
                     </p>
                   </div>
@@ -1017,7 +1017,7 @@ export const Home: React.FC = () => {
               <p className="text-sm text-muted font-light leading-relaxed max-w-md">
                 Born from a love of luminous craftsmanship, Lukee blends certified diamonds and fine
                 gold with modern silhouettes. Every piece is designed to be gifted, worn daily, and
-                passed on — with concierge care from selection to lifetime exchange.
+                passed on — from selection at our Surat store to lifetime exchange.
               </p>
               <ul className="space-y-3 text-sm text-ink/80">
                 {[
@@ -1341,12 +1341,12 @@ export const Home: React.FC = () => {
       <section className="py-16 md:py-20 bg-ink text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <Mail size={28} className="mx-auto text-brand" />
-          <p className="section-eyebrow !text-brand">Stay in the know</p>
-          <h2 className="font-serif text-3xl sm:text-4xl font-light">
+          <p className="section-eyebrow !text-white">Stay in the know</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-light !text-white">
             Join the Lukee circle
           </h2>
-          <p className="text-sm text-white/65 font-light max-w-md mx-auto">
-            Early access to drops, private boutique invites, and styling notes — straight to your
+          <p className="text-sm !text-white font-light max-w-md mx-auto">
+            Early access to new jewellery and store updates — straight to your
             inbox.
           </p>
           {newsletterDone ? (
@@ -1382,18 +1382,18 @@ export const Home: React.FC = () => {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-ink/65" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full text-center text-white space-y-6">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full text-center space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="space-y-6"
           >
-            <p className="section-eyebrow !text-brand">Ready when you are</p>
-            <h2 className="font-serif text-3xl sm:text-5xl font-light">
+            <p className="section-eyebrow !text-white">Ready when you are</p>
+            <h2 className="font-serif text-3xl sm:text-5xl font-light !text-white">
               Discover jewellery made to be worn forever
             </h2>
-            <p className="text-sm text-white/70 max-w-lg mx-auto font-light">
+            <p className="text-sm !text-white max-w-lg mx-auto font-light">
               Browse certified diamonds, fine gold, and gift-ready edits — free insured shipping
               on orders above ₹2,500.
             </p>
